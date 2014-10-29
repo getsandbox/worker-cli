@@ -12,6 +12,8 @@ The code can be cloned and compiled by itself (Gradle is used for dependency man
 
 [Latest compiled binary](https://s3-us-west-2.amazonaws.com/getsandbox-assets/runtime-binary.tar)
 
+[ ![Codeship Status for getsandbox/sandbox](https://www.codeship.io/projects/74b27060-413f-0132-8b16-3ae7a01b01d4/status)](https://www.codeship.io/projects/44131)
+
 ### Dependencies
 
 * _Java 8 Update 20 or later_ - important! you actually might not have this, it is pretty recent.
