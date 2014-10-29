@@ -1,6 +1,6 @@
 package com.sandbox.runtime.models;
 
-import org.apache.cxf.jaxrs.model.URITemplate;
+import org.apache.cxf.jaxrs.model.ExactMatchURITemplate;
 
 import java.io.Serializable;
 import java.util.regex.Matcher;
@@ -16,7 +16,7 @@ public class RouteDetails implements Serializable{
     String path;
     String originalPath;
 
-    URITemplate uriTemplate;
+    ExactMatchURITemplate uriTemplate;
 
     public RouteDetails() {
     }
@@ -56,18 +56,18 @@ public class RouteDetails implements Serializable{
         return path;
     }
 
-    public URITemplate getUriTemplate() {
+    public ExactMatchURITemplate getUriTemplate() {
         return uriTemplate;
     }
 
-    protected void setUriTemplate(URITemplate uriTemplate) {
+    protected void setUriTemplate(ExactMatchURITemplate uriTemplate) {
         this.uriTemplate = uriTemplate;
     }
 
-    public URITemplate process(){
+    public ExactMatchURITemplate process(){
         if(uriTemplate != null) return uriTemplate;
 
-        uriTemplate = new URITemplate(getPath());
+        uriTemplate = new ExactMatchURITemplate(getPath());
         return uriTemplate;
     }
 

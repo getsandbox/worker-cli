@@ -1,6 +1,6 @@
 package com.sandbox.runtime.models;
 
-import org.apache.cxf.jaxrs.model.URITemplate;
+import org.apache.cxf.jaxrs.model.ExactMatchURITemplate;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -57,7 +57,7 @@ public class RoutingTable implements Serializable{
             if(!route.matchesMethod(requestMethod) ) continue;
 
             //method matches, so continue..
-            URITemplate template = route.process();
+            ExactMatchURITemplate template = route.process();
             String routeLiterals = template.getLiteralChars();
 
             MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
