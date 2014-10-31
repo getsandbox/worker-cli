@@ -222,8 +222,8 @@ public class HttpRequestHandler extends AbstractHandler {
 
         //cookies
         if (runtimeResponse.getCookies() != null) {
-            for (String cookie : runtimeResponse.getCookies()) {
-                response.setHeader("Set-Cookie", cookie);
+            for (String[] cookie : runtimeResponse.getCookies()) {
+                response.addHeader("Set-Cookie", cookie[0] + "=" + cookie[1]);
             }
 
         }

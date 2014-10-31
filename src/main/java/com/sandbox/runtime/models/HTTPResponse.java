@@ -17,7 +17,7 @@ public class HTTPResponse {
 
     private Object body;
     private HashMap<String, String> headers = new HashMap<String, String>();
-    private List<String> cookies = new ArrayList<String>();
+    private List<String[]> cookies = new ArrayList<String[]>();
     private Integer status = null;
 
     private boolean rendered;
@@ -147,7 +147,7 @@ public class HTTPResponse {
 
     //TODO this is a super simple version, make a better one that does other props of cookies.
     public void cookie(String name, String value) {
-        if(name != null && value != null) cookies.add(name + "=" + value);
+        if(name != null && value != null) cookies.add(new String[]{name,value});
     }
 
     public void clearCookie() { }
@@ -186,7 +186,7 @@ public class HTTPResponse {
         return templateLocals;
     }
 
-    public List<String> getCookies() {
+    public List<String[]> getCookies() {
         return cookies;
     }
 }
