@@ -145,7 +145,10 @@ public class HTTPResponse {
         return headers.get(header);
     }
 
-    public void cookie() { }
+    //TODO this is a super simple version, make a better one that does other props of cookies.
+    public void cookie(String name, String value) {
+        if(name != null && value != null) cookies.add(name + "=" + value);
+    }
 
     public void clearCookie() { }
 
