@@ -28,7 +28,7 @@ public class RouteDetails implements Serializable{
 
         if(path.equals("*") || path.equals("/*")){
             //replace wildcard with a JAXRS friendly syntax
-            path = "/{route}";
+            path = "/{route: .*}";
 
         } else if(path.contains(":") && !(path.contains("{") && path.contains("}")) ){
             //replace simple :param express routes with JAXRS {param} style ones.
