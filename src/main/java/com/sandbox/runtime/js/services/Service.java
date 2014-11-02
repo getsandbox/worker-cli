@@ -188,8 +188,7 @@ public abstract class Service {
         }
 
         try {
-            evalScript("main", mainjs, sandboxScriptEngine);
-
+            evalScript("main.js", mainjs, sandboxScriptEngine);
 
         } catch (NashornException ne) {
             throw new ServiceScriptException(ne, ne.getFileName(), ne.getLineNumber(), ne.getColumnNumber());
