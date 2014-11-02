@@ -76,7 +76,10 @@ public class RouteDetails implements Serializable{
     }
 
     public boolean matchesMethod(String method){
-        if(isWildcardMethod()){
+        if(isWildcardMethod()) {
+            return true;
+        }else if(method.equalsIgnoreCase("options")){
+            //always match options
             return true;
         }else{
             return this.method.equalsIgnoreCase(method);
