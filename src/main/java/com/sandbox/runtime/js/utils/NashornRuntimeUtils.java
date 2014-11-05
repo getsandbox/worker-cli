@@ -50,7 +50,7 @@ public class NashornRuntimeUtils implements INashornUtils{
     }
 
     public boolean hasFile(String filename) {
-        logger.debug("hasFile (%1$s) - %2$s", fullSandboxId,filename);
+        logger.debug("hasFile ({}) - {}", fullSandboxId,filename);
         return cache.hasRepositoryFile(fullSandboxId, filename);
     }
 }
