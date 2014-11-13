@@ -1,7 +1,5 @@
 package com.sandbox.runtime.models;
 
-import org.apache.cxf.jaxrs.model.ExactMatchURITemplate;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.Serializable;
@@ -16,6 +14,7 @@ public class RoutingTable implements Serializable{
     private static final long serialVersionUID = 5416349625258357175L;
     String repositoryId;
     List<RouteDetails> routeDetails;
+    private boolean routesSorted = false;
 
     public String getRepositoryId() {
         return repositoryId;
@@ -46,26 +45,19 @@ public class RoutingTable implements Serializable{
         List<RouteDetails> routes = getRouteDetails();
 
         //sort, put the longest route literals at the top, should theoretically be the best matches?!
-        routes.sort((r1, r2) -> {
-            return r2.process().getLiteralChars().compareTo(r1.process().getLiteralChars());
-        });
+        if(!routesSorted){
+            routes.sort((r1, r2) -> {
+                return r2.process().getLiteralChars().compareTo(r1.process().getLiteralChars());
+            });
+            routesSorted = true;
+        }
 
         if(routes == null) return null;
+        MultivaluedMap<String, String> pathParams = new MultivaluedHashMap<>();
 
         for(RouteDetails route : routes){
-            //if method isnt right, skip!
-            if(!route.matchesMethod(requestMethod) ) continue;
-
-            //method matches, so continue..
-            ExactMatchURITemplate template = route.process();
-            String routeLiterals = template.getLiteralChars();
-
-            MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
-            //if we have a match, then set it as the best match, because we could match more than one, we want the BEST match.. which i think should be the one with the shortest 'finalMatchGroup'..
-            if( template.match(requestPath, map) ) {
-                return new MatchedRouteDetails(route, map);
-
-            }
+            boolean isMatch = route.isMatch(requestMethod, requestPath, pathParams);
+            if(isMatch) return new MatchedRouteDetails(route, pathParams);
         }
 
         return null;

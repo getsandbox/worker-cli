@@ -2,6 +2,8 @@ package com.sandbox.runtime.models;
 
 import org.apache.cxf.jaxrs.model.ExactMatchURITemplate;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,6 +85,29 @@ public class RouteDetails implements Serializable{
             return true;
         }else{
             return this.method.equalsIgnoreCase(method);
+        }
+    }
+
+    public boolean isMatch(String method, String path) {
+        //bit crap but match needs a map to store processed path params.
+        MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+        return isMatch(method, path, map);
+    }
+
+    public boolean isMatch(String method, String path, MultivaluedMap map){
+
+        //if method isnt right, skip!
+        if(!matchesMethod(method) ) return false;
+
+        //method matches, so continue..
+        ExactMatchURITemplate template = process();
+        String routeLiterals = template.getLiteralChars();
+
+        //if we have a match, then set it as the best match, because we could match more than one, we want the BEST match.. which i think should be the one with the shortest 'finalMatchGroup'..
+        if( template.match(path, map) ) {
+            return true;
+        }else{
+            return false;
         }
     }
 }
