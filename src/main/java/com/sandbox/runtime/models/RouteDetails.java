@@ -1,5 +1,6 @@
 package com.sandbox.runtime.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.cxf.jaxrs.model.ExactMatchURITemplate;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -18,6 +19,7 @@ public class RouteDetails implements Serializable{
     String path;
     String originalPath;
 
+    @JsonIgnore
     ExactMatchURITemplate uriTemplate;
 
     public RouteDetails() {
@@ -58,6 +60,18 @@ public class RouteDetails implements Serializable{
         return path;
     }
 
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getOriginalPath() {
+        return originalPath;
+    }
+
+    public void setOriginalPath(String originalPath) {
+        this.originalPath = originalPath;
+    }
+
     public ExactMatchURITemplate getUriTemplate() {
         return uriTemplate;
     }
@@ -86,6 +100,10 @@ public class RouteDetails implements Serializable{
         }else{
             return this.method.equalsIgnoreCase(method);
         }
+    }
+
+    public boolean isMatch(RouteDetails otherRoute) {
+        return isMatch(otherRoute.getMethod(), otherRoute.getPath());
     }
 
     public boolean isMatch(String method, String path) {
