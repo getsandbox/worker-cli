@@ -1,7 +1,10 @@
 package com.sandbox.runtime.js.models;
 
 import com.sandbox.runtime.models.RouteDetails;
+import com.sandbox.runtime.models.ScriptSource;
 import com.sandbox.runtime.models.ServiceScriptException;
+import jdk.nashorn.internal.objects.NativeError;
+import jdk.nashorn.internal.runtime.ScriptFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,33 +15,13 @@ import java.util.List;
 public class ServiceBox implements ISandboxScriptObject{
     private List<RouteDetails> routes = new ArrayList<RouteDetails>();
 
-    /**
-     * Don't pass functions between Nashorn and Java.
-     * Pass objects which implement functional interfaces.
-     * OR
-     * Anonymous functions mapping to interfaces
-     */
-    public void define(String path, String method, ISandboxDefineCallback func) throws ServiceScriptException {
+    public void define(String path, String method, ScriptFunction callback, NativeError error, ISandboxDefineCallback func) throws ServiceScriptException {
         RouteDetails routeDetails = new RouteDetails(method, path);
+        routeDetails.setFunctionSource(new ScriptSource(callback));
+        routeDetails.setDefineSource(new ScriptSource(error, "<sandbox-internal>"));
         routes.add(routeDetails);
     }
 
-    public void define(String path, String method, Object func) throws ServiceScriptException {
-        throw new ServiceScriptException("Invalid callback definition for route: " + method.toUpperCase() + " " + path + " is: " + func);
-    }
-
-    /**
-     * for service defns omitting optional HTTP method type
-     */
-    public void define(String _path, ISandboxDefineCallback func) throws ServiceScriptException {
-        this.define(_path, "get", func);
-    }
-
-    public void define(String _path, Object func) throws ServiceScriptException {
-        this.define(_path, "get", func);
-    }
-
-    // TODO: deep clone
     public List<RouteDetails> getRoutes() { return routes; }
 
     public void seedState(String func) { }

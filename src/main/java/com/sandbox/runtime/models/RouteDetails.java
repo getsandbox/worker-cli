@@ -18,6 +18,8 @@ public class RouteDetails implements Serializable{
     String method;
     String path;
     String originalPath;
+    ScriptSource defineSource;
+    ScriptSource functionSource;
 
     @JsonIgnore
     ExactMatchURITemplate uriTemplate;
@@ -78,6 +80,22 @@ public class RouteDetails implements Serializable{
 
     protected void setUriTemplate(ExactMatchURITemplate uriTemplate) {
         this.uriTemplate = uriTemplate;
+    }
+
+    public ScriptSource getDefineSource() {
+        return defineSource;
+    }
+
+    public void setDefineSource(ScriptSource defineSource) {
+        this.defineSource = defineSource;
+    }
+
+    public ScriptSource getFunctionSource() {
+        return functionSource;
+    }
+
+    public void setFunctionSource(ScriptSource functionSource) {
+        this.functionSource = functionSource;
     }
 
     public ExactMatchURITemplate process(){

@@ -162,9 +162,7 @@ public abstract class Service {
     protected INashornUtils loadContext(ISandboxScriptObject _sandbox, INashornUtils nashornUtils) throws Exception {
 
         // bootstrap the context with minimal environment
-        setInScope("Sandbox", _sandbox, sandboxScriptEngine);
-        setInScope("Sandmox", _sandbox, sandboxScriptEngine);
-        setInScope("mock", _sandbox, sandboxScriptEngine);
+        setInScope("__mock", _sandbox, sandboxScriptEngine);
         setInScope("nashornUtils", nashornUtils, sandboxScriptEngine);
 
         return nashornUtils;

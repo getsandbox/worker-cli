@@ -4,6 +4,8 @@ import com.sandbox.runtime.models.HTTPRequest;
 import com.sandbox.runtime.models.HTTPResponse;
 import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.ServiceScriptException;
+import jdk.nashorn.internal.objects.NativeError;
+import jdk.nashorn.internal.runtime.ScriptFunction;
 
 /**
  * Created by drew on 30/07/2014.
@@ -31,8 +33,8 @@ public class Sandbox extends ServiceBox {
      * Anonymous functions mapping to interfaces
      */
     @Override
-    public void define(String path, String method, ISandboxDefineCallback func) throws ServiceScriptException {
-        super.define(path, method, func);
+    public void define(String path, String method, ScriptFunction callback, NativeError error, ISandboxDefineCallback func) throws ServiceScriptException {
+        super.define(path, method, callback, error, func);
         RouteDetails routeDetails = new RouteDetails(method, path);
 
         if (req.getPath().equals(routeDetails.getPath()) && routeDetails.matchesMethod(req.getMethod()) ) {

@@ -4,6 +4,20 @@
     return nashornUtils.jsonStringify(o);
   }
 
+  var mock = {
+    define: function(){
+      if(arguments.length == 3){
+            __mock.define(arguments[0], arguments[1], arguments[2], new Error(), arguments[2])
+        }else{
+            __mock.define(arguments[0],'GET', arguments[1], new Error(), arguments[1])
+        }
+    }
+
+  }
+  global.Sandbox = mock
+  global.Sandmox = mock
+  global.mock = mock
+
   function Console(stdout, stderr) {
     if (!(this instanceof Console)) {
       return new Console(stdout, stderr);
