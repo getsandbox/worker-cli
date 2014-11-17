@@ -22,7 +22,6 @@ public class RouteDetails implements Serializable{
     String transport;
     String method;
     String path;
-    String originalPath;
     Map<String, String> headers;
     ScriptSource defineSource;
 
@@ -37,9 +36,6 @@ public class RouteDetails implements Serializable{
     }
 
     public RouteDetails(String method, String path, Map<String, String> headers) {
-
-        //save original
-        this.originalPath = path;
 
         if(path.equals("*") || path.equals("/*")){
             //replace wildcard with a JAXRS friendly syntax
@@ -82,14 +78,6 @@ public class RouteDetails implements Serializable{
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public String getOriginalPath() {
-        return originalPath;
-    }
-
-    public void setOriginalPath(String originalPath) {
-        this.originalPath = originalPath;
     }
 
     public Map<String, String> getHeaders() {
