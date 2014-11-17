@@ -6,6 +6,7 @@ import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.ServiceScriptException;
 import jdk.nashorn.internal.objects.NativeError;
 import jdk.nashorn.internal.runtime.ScriptFunction;
+import jdk.nashorn.internal.runtime.ScriptObject;
 
 /**
  * Created by drew on 30/07/2014.
@@ -33,11 +34,13 @@ public class Sandbox extends ServiceBox {
      * Anonymous functions mapping to interfaces
      */
     @Override
-    public void define(String path, String method, ScriptFunction callback, NativeError error, ISandboxDefineCallback func) throws ServiceScriptException {
-        super.define(path, method, callback, error, func);
-        RouteDetails routeDetails = new RouteDetails(method, path);
+    public void define(String transport, String defineType, String path, String method, ScriptObject headers, ScriptFunction callback, ISandboxDefineCallback func, NativeError error) throws ServiceScriptException {
+        super.define(transport, defineType, path, method, headers, callback, func, error);
 
-        if (req.getPath().equals(routeDetails.getPath()) && routeDetails.matchesMethod(req.getMethod()) ) {
+        //get routeDetails just created by super.define()
+        RouteDetails routeDetails = super.currentRoute;
+
+        if (routeDetails.equals(req)){
             // flag match was found
             this.matched = true;
             // store the callback for when the whole file has been processed

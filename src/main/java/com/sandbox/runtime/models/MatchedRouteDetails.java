@@ -10,11 +10,12 @@ public class MatchedRouteDetails extends RouteDetails {
     MultivaluedMap<String, String> pathParams;
 
     public MatchedRouteDetails(RouteDetails routeDetails, MultivaluedMap<String, String> pathParams) {
-        super(routeDetails.getMethod(),routeDetails.getPath());
+        super(routeDetails.getMethod(),routeDetails.getPath(), routeDetails.getHeaders());
         //map any extra routedetails props
         setUriTemplate(routeDetails.getUriTemplate());
         setDefineSource(routeDetails.getDefineSource());
         setFunctionSource(routeDetails.getFunctionSource());
+        setDefineType(routeDetails.getDefineType());
 
         this.pathParams = pathParams;
     }

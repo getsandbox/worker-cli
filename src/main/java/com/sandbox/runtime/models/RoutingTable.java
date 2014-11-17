@@ -5,6 +5,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by nickhoughton on 3/08/2014.
@@ -41,7 +42,7 @@ public class RoutingTable implements Serializable{
 
     }
 
-    public MatchedRouteDetails findMatch(String requestMethod, String requestPath){
+    public MatchedRouteDetails findMatch(String requestMethod, String requestPath, Map<String, String> headers){
         List<RouteDetails> routes = getRouteDetails();
 
         //sort, put the longest route literals at the top, should theoretically be the best matches?!
@@ -56,7 +57,7 @@ public class RoutingTable implements Serializable{
         MultivaluedMap<String, String> pathParams = new MultivaluedHashMap<>();
 
         for(RouteDetails route : routes){
-            boolean isMatch = route.isMatch(requestMethod, requestPath, pathParams);
+            boolean isMatch = route.isMatch(requestMethod, requestPath, pathParams, headers);
             if(isMatch) return new MatchedRouteDetails(route, pathParams);
         }
 

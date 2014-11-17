@@ -5,12 +5,38 @@
   }
 
   var mock = {
+
+    //<path> <method> <headers {}> <callback>
+    //<path> <headers {}> <callback>
+    //<path> <method> <callback>
+    //<path> <callback>
     define: function(){
-      if(arguments.length == 3){
-            __mock.define(arguments[0], arguments[1], arguments[2], new Error(), arguments[2])
+      if(arguments.length == 4){
+        __mock.define('http', 'define', arguments[0], arguments[1], arguments[2], arguments[3], arguments[3], new Error())
+
+      } else if(arguments.length == 3){
+        if(typeof arguments[1] == 'object'){
+          __mock.define('http', 'define', arguments[0], 'GET', arguments[1], arguments[2], arguments[2], new Error())
+        }else if(typeof arguments[1] == 'string'){
+          __mock.define('http', 'define', arguments[0], arguments[1], {}, arguments[2], arguments[2], new Error())
         }else{
-            __mock.define(arguments[0],'GET', arguments[1], new Error(), arguments[1])
+          throw new Error("Invalid route definition, 2nd parameter should be a String or an Object")
         }
+
+      } else{
+        __mock.define('http', 'define', arguments[0],'GET', {}, arguments[1], arguments[1], new Error())
+
+      }
+    },
+    //<path> <action> <callback>
+    soap: function(){
+      if(arguments.length == 3 && typeof arguments[1] == 'string'){
+        __mock.define('http', 'soap', arguments[0], 'POST', {'SOAPAction':arguments[1]}, arguments[2], arguments[2], new Error())
+
+      }else{
+        throw new Error("Invalid route definition, must have 3 parameters (path, action, function)")
+      }
+
     }
 
   }

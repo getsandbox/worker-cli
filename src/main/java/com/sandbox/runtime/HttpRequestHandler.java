@@ -181,7 +181,7 @@ public class HttpRequestHandler extends AbstractHandler {
 
     //gets the matching route (if any) out of the routing table
     private MatchedRouteDetails findMatchedRoute(HttpRuntimeRequest request, RoutingTable table) throws Exception {
-        MatchedRouteDetails match = table.findMatch(request.getMethod(), request.getUrl());
+        MatchedRouteDetails match = table.findMatch(request.getMethod(), request.getUrl(), request.getHeaders());
         if(match == null){
             throw new Exception("Invalid route");
         }
