@@ -4,13 +4,13 @@
  */
 
 // A basic route returning a canned response
-mock.define('/test', 'get', function(req, res) {
+Sandbox.define('/test', 'get', function(req, res) {
     res.send('Hello world');
 });
 
 
 // A route using stateful behaviour to simulate adding users to a list
-mock.define('/users', 'POST', function(req, res) {
+Sandbox.define('/users', 'POST', function(req, res) {
     // retrieve users or if there are none init to empty array
     state.users = state.users || [];
     
@@ -21,7 +21,7 @@ mock.define('/users', 'POST', function(req, res) {
 });
 
 // A route using stateful behaviour to simulate getting all added users 
-mock.define('/users', 'GET', function(req, res) {
+Sandbox.define('/users', 'GET', function(req, res) {
     // retrieve users or if there are none init to empty array
     state.users = state.users || [];
 
@@ -29,7 +29,7 @@ mock.define('/users', 'GET', function(req, res) {
 });
 
 // A route using stateful behaviour to simulate getting all added users 
-mock.define('/users/{username}', 'GET', function(req, res) {
+Sandbox.define('/users/{username}', 'GET', function(req, res) {
     // retrieve users or if there are none init to empty array
     state.users = state.users || [];
     // get the username from req.params
