@@ -3,7 +3,6 @@ package com.sandbox.runtime.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sandbox.runtime.js.converters.NashornConverter;
-import com.sandbox.runtime.js.models.JSParseBodyError;
 import com.sandbox.runtime.js.models.JsonNode;
 import com.sandbox.runtime.utils.URISupport;
 
@@ -41,7 +40,7 @@ public class HTTPRequest {
     public HTTPRequest(ScriptEngine scriptEngine, String path, String method, Map<String, String> headers,
                        Map<String, String> query, Map<String, String> params,
                        Map<String, String> cookies, Object body, String contentType,
-                       String ip, List<String> accepted, String url) {
+                       String ip, List<String> accepted, String url) throws ServiceScriptException {
 
         // set default values
         this.path = path != null ? path : "";
@@ -77,9 +76,7 @@ public class HTTPRequest {
                     _body = body;
                 }
             } catch(Exception e) {
-                // set this body to JSError object, error is logged on user log in runtime bean, not here.
-                // TODO: test this in JS context
-                _body = new JSParseBodyError(e.getMessage(), "", body.toString());
+                throw new ServiceScriptException("Can't parse body of type " + this.contentType);
             }
         }
 
