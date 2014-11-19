@@ -11,22 +11,44 @@
     //<path> <method> <callback>
     //<path> <callback>
     define: function(){
+      var callback;
+      var path;
+      var method;
+      var headers;
+
       if(arguments.length == 4){
-        __mock.define('http', 'define', arguments[0], arguments[1], arguments[2], arguments[3], arguments[3], new Error())
+        path = arguments[0];
+        method = arguments[1];
+        headers = arguments[2];
+        callback = arguments[3];
 
       } else if(arguments.length == 3){
         if(typeof arguments[1] == 'object'){
-          __mock.define('http', 'define', arguments[0], 'GET', arguments[1], arguments[2], arguments[2], new Error())
+          path = arguments[0];
+          method = 'GET'
+          headers = arguments[1];
+          callback = arguments[2];
         }else if(typeof arguments[1] == 'string'){
-          __mock.define('http', 'define', arguments[0], arguments[1], {}, arguments[2], arguments[2], new Error())
+          path = arguments[0];
+          method = arguments[1];
+          headers = {};
+          callback = arguments[2];
         }else{
-          throw new Error("Invalid route definition, 2nd parameter should be a String or an Object")
+          throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", 2nd parameter should be a String or an Object")
         }
 
       } else{
-        __mock.define('http', 'define', arguments[0],'GET', {}, arguments[1], arguments[1], new Error())
-
+        path = arguments[0];
+        method = 'GET';
+        headers = {};
+        callback = arguments[1];
       }
+
+      if(callback == undefined){
+        throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", given function is undefined")
+      }
+
+      __mock.define('http', 'define', path, method, headers, callback, callback, new Error())
     },
     //<path> <action> <callback>
     soap: function(){
@@ -34,7 +56,7 @@
         __mock.define('http', 'soap', arguments[0], 'POST', {'SOAPAction':arguments[1]}, arguments[2], arguments[2], new Error())
 
       }else{
-        throw new Error("Invalid route definition, must have 3 parameters (path, action, function)")
+        throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", must have 3 parameters (path, action, function)")
       }
 
     }

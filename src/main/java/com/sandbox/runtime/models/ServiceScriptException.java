@@ -20,7 +20,8 @@ public class ServiceScriptException extends Exception {
     }
 
     public ServiceScriptException(String message) {
-        super(message);
+        //bit crap, need a utility to strip out JS error names from error messages
+        super(message.startsWith("Error:") ? message.substring(7) : message);
     }
 
     public ServiceScriptException(String message, Throwable cause) {
