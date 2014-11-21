@@ -183,6 +183,9 @@ public class RouteDetails implements Serializable{
         //method matches, so continue..
         ExactMatchURITemplate template = process();
 
+        //if paths are exactly the same then match
+        if(getPath().equals(url)) return true;
+
         //if we have a match, then set it as the best match, because we could match more than one, we want the BEST match.. which i think should be the one with the shortest 'finalMatchGroup'..
         if(template.match(url, urlParams)) {
             return true;
