@@ -9,6 +9,8 @@ import jdk.nashorn.internal.runtime.Source;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by nickhoughton on 15/11/2014.
@@ -19,10 +21,15 @@ public class ScriptSource implements Serializable {
     String path;
     int lineNumber;
     String implementation;
+    String requestParameter = null;
+    String responseParameter = null;
 
     private static Field scriptSourceField = null;
     private static Field scriptSourceSourceField = null;
     private static Field scriptSourceLineField = null;
+    private static Pattern functionArguments = Pattern.compile("^function\\s*[^\\(]*\\(\\s*([^\\)]*)\\)", Pattern.MULTILINE);
+    private static Pattern functionComments= Pattern.compile("((\\/\\/.*$)|(\\/\\*[\\s\\S]*?\\*\\/))", Pattern.MULTILINE | Pattern.DOTALL);
+
 
     static {
         try {
@@ -55,6 +62,21 @@ public class ScriptSource implements Serializable {
                 path = ((Source)scriptSourceSourceField.get(sourceData)).getName();
                 lineNumber = (int) scriptSourceLineField.get(sourceData);
                 implementation = function.toSource();
+
+                //get function parameter names
+                String cleanFunction = functionComments.matcher(implementation).replaceAll("");
+                Matcher matcher = functionArguments.matcher(implementation);
+                if(matcher.find()){
+                    String paramsStr = matcher.group(1);
+                    if(paramsStr.indexOf(",")==-1){
+                        //only one param!?
+                        requestParameter = paramsStr.trim();
+                    }else{
+                        String[] params = paramsStr.split(",");
+                        requestParameter = params[0].trim();
+                        responseParameter = params[1].trim();
+                    }
+                }
 
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -99,5 +121,21 @@ public class ScriptSource implements Serializable {
 
     public void setImplementation(String implementation) {
         this.implementation = implementation;
+    }
+
+    public String getRequestParameter() {
+        return requestParameter;
+    }
+
+    public void setRequestParameter(String requestParameter) {
+        this.requestParameter = requestParameter;
+    }
+
+    public String getResponseParameter() {
+        return responseParameter;
+    }
+
+    public void setResponseParameter(String responseParameter) {
+        this.responseParameter = responseParameter;
     }
 }
