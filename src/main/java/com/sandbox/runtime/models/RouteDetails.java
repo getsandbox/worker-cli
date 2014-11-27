@@ -35,6 +35,8 @@ public class RouteDetails implements Serializable{
     public RouteDetails() {
     }
 
+
+
     public RouteDetails(String method, String path, Map<String, String> headers) {
 
         if(path.equals("*") || path.equals("/*")){
@@ -158,12 +160,6 @@ public class RouteDetails implements Serializable{
 
     public boolean isMatch(RouteDetails otherRoute) {
         return isMatch(otherRoute.getMethod(), otherRoute.getPath(), otherRoute.getHeaders());
-    }
-
-    public boolean isMatch(String method, String path) {
-        //bit crap but match needs a map to store processed path params.
-        MultivaluedMap<String, String> pathParams = new MultivaluedHashMap<>();
-        return isMatch(method, path, pathParams, null);
     }
 
     public boolean isMatch(String method, String url, Map<String, String> headers) {
