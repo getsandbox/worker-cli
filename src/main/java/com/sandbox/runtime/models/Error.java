@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonInclude(Include.NON_NULL)
 public class Error {
+    private String code;
     private String displayMessage;
     private String detailedMessage;
     private String field;
@@ -22,6 +23,7 @@ public class Error {
     //display message is the few words error message shown to users
     //detailed message an optional amount of extra detail about the error, not generally shown to a UI user. Example is a JS validation error that is the failed code snippet
     //optional field if its a DTO validation error it would have an offending field name.
+    //code is an optional error identifier, can be used by the consumer to drive any logic, such as UI elements for compensation.
     public Error(String displayMessage) {
         this.displayMessage = displayMessage;
     }
@@ -35,6 +37,13 @@ public class Error {
         this.displayMessage = displayMessage;
         this.detailedMessage = detailedMessage;
         this.field = field;
+    }
+
+    public Error(String displayMessage, String detailedMessage, String field, String code) {
+        this.displayMessage = displayMessage;
+        this.detailedMessage = detailedMessage;
+        this.field = field;
+        this.code = code;
     }
 
     @JsonProperty("detailed_message")
@@ -65,4 +74,11 @@ public class Error {
         this.field = field;
     }
 
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 }
