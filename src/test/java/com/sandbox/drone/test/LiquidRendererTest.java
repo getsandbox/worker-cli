@@ -35,4 +35,23 @@ public class LiquidRendererTest {
         String result = new LiquidRenderer().render("hi {{list[0][\"a.b\"]}}", vars);
         assertEquals("hi ando",result);
     }
+
+    @Test
+    public void testPropertiesWithForLoop() throws Exception {
+        Map<String, Object> inner = new HashMap<String, Object>();
+        inner.put("blah","meep");
+
+
+        Map<String, Object> outer = new HashMap<String, Object>();
+        outer.put("a.b", inner);
+
+        Map<String, Object> vars = new HashMap<String, Object>();
+        vars.put("hash", outer);
+
+        String result = new LiquidRenderer().render("{% for item in hash %}{{item[0]}}: {{ item[1].blah }}{% endfor %}", vars);
+        assertEquals("a.b: meep",result);
+    }
+
+
+
 }
