@@ -209,7 +209,7 @@ module = (typeof module == 'undefined') ? {} :  module;
     var file = Require.resolve(id, parent);
 
     if (!file) {
-      throw new ModuleError("Cannot find module " + id, "MODULE_NOT_FOUND")
+      throw new Error("Cannot find module: " + id)
     }
 
     if (Require.cache[file]) {
@@ -295,15 +295,9 @@ module = (typeof module == 'undefined') ? {} :  module;
     var fileContents = nashornUtils.readFile(filename)
 
     if (fileContents == null) {
-        throw new ModuleError("Cannot get file ["+filename+"]: ", "Read error");
+        throw new Error("Cannot get file: " + filename);
     }
     return fileContents;
-  }
-
-  function ModuleError(message, code, cause) {
-    this.code = code || "UNDEFINED";
-    this.message = message || "Error loading module";
-    this.cause = cause;
   }
 
   // Helper function until ECMAScript 6 is complete
@@ -320,6 +314,4 @@ module = (typeof module == 'undefined') ? {} :  module;
     };
   }
 
-  ModuleError.prototype = new Error();
-  ModuleError.prototype.constructor = ModuleError;
 }());
