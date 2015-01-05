@@ -129,18 +129,18 @@ public class RouteDetails implements Serializable{
         return uriTemplate;
     }
 
-    public boolean isWildcardMethod(){
-        return method.equals("*") || method.equalsIgnoreCase("all");
+    public boolean isWildcardMethod(String comparisonMethod){
+        return comparisonMethod.equals("*") || comparisonMethod.equalsIgnoreCase("all");
     }
 
-    public boolean matchesMethod(String method){
-        if(isWildcardMethod()) {
+    public boolean matchesMethod(String comparisonMethod){
+        if(isWildcardMethod(comparisonMethod) || isWildcardMethod(this.method)) {
             return true;
-        }else if(method.equalsIgnoreCase("options")){
+        }else if(comparisonMethod.equalsIgnoreCase("options")){
             //always match options
             return true;
         }else{
-            return this.method.equalsIgnoreCase(method);
+            return this.method.equalsIgnoreCase(comparisonMethod);
         }
     }
 
