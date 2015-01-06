@@ -33,9 +33,8 @@ public class RouteDetails implements Serializable{
     ExactMatchURITemplate uriTemplate;
 
     public RouteDetails() {
+
     }
-
-
 
     public RouteDetails(String method, String path, Map<String, String> headers) {
 
@@ -52,6 +51,9 @@ public class RouteDetails implements Serializable{
             }
 
         }
+
+        //coalesce varied wildcard method into one
+        if(method.equalsIgnoreCase("all") || method.equalsIgnoreCase("*")) method = "ALL";
 
         this.method = method;
         this.path = path;
@@ -129,18 +131,18 @@ public class RouteDetails implements Serializable{
         return uriTemplate;
     }
 
-    public boolean isWildcardMethod(String comparisonMethod){
-        return comparisonMethod.equals("*") || comparisonMethod.equalsIgnoreCase("all");
+    public boolean isWildcardMethod(){
+        return method.equals("*") || method.equalsIgnoreCase("all");
     }
 
-    public boolean matchesMethod(String comparisonMethod){
-        if(isWildcardMethod(comparisonMethod) || isWildcardMethod(this.method)) {
+    public boolean matchesMethod(String method){
+        if(isWildcardMethod()) {
             return true;
-        }else if(comparisonMethod.equalsIgnoreCase("options")){
+        }else if(method.equalsIgnoreCase("options")){
             //always match options
             return true;
         }else{
-            return this.method.equalsIgnoreCase(comparisonMethod);
+            return this.method.equalsIgnoreCase(method);
         }
     }
 
