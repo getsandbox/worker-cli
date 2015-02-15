@@ -42,8 +42,10 @@ public class NashornRuntimeUtils implements INashornUtils{
         fileContents = cache.getRepositoryFile(fullSandboxId, filename);
 
         if (fileContents == null) {
-            // TODO: do something
-            return null;
+            //if we get a miss, try refreshing the files and try again.
+            cache.updateRemoteRepositoryFiles(fullSandboxId);
+            fileContents = cache.getRepositoryFile(fullSandboxId, filename);
+            return fileContents;
         }
 
         return fileContents;
