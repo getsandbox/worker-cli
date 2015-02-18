@@ -44,6 +44,7 @@ public class JSEngineQueue extends GenericEngineQueue {
 
             loadAndSealScript("lodash-2.4.1.js","lib/lodash-2.4.1.min", "_", globalScope, engine);
             loadAndSealScript("moment.js","lib/moment-2.8.2.min", "moment", globalScope, engine);
+            loadAndSealScript("amanda.js","lib/amanda-0.4.8.min", "amanda", globalScope, engine);
             loadAndSealScript("validator.js","lib/validator.min", "validator", globalScope, engine);
             loadAndSealScript("sandbox-validator.js","sandbox-validator", "sandboxValidator", globalScope, engine);
 

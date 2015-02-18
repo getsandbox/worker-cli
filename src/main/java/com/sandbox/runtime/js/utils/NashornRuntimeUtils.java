@@ -16,7 +16,7 @@ public class NashornRuntimeUtils implements INashornUtils{
     private ObjectMapper mapper;
 
     @Autowired
-    Cache cache;
+    private Cache cache;
 
     private static Logger logger = LoggerFactory.getLogger(NashornRuntimeUtils.class);
 
