@@ -19,6 +19,7 @@ wrappedRequest.checkJsonSchema = function checkJsonSchema(filename){
 
     // load request schema from cache
     var schemaStr = nashornUtils.readFile("schemas/" + filename + ".json")
+    if(typeof schemaStr != "string") throw new Error("Failed to load json schema")
 
     //if we have everything then validate
     jsonSchemaValidator.validate(wrappedRequest.body, schemaStr, { singleError: false }, function(error) {
