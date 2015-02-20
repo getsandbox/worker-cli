@@ -136,7 +136,7 @@
             }
         }
 
-        return function (req) {
+        return function (req, nashornUtils) {
 
             req.updateParam = function (name, value) {
                 // route params like /user/:id
@@ -217,6 +217,36 @@
             req.sanitize = req.filter;
             req.assert = req.check;
             req.validate = req.check;
+
+            //extra methods added to support validation
+            req.checkJsonSchema = function checkJsonSchema(filename){
+                // Initialize a JSON Schema validator.
+                if(typeof amanda != "function") throw new Error("Failed to load JSON Schema validator")
+                var jsonSchemaValidator = amanda('json')
+
+                // load request schema from cache
+                var schemaStr = nashornUtils.readFile("schemas/" + filename + ".json")
+                if(typeof schemaStr != "string") throw new Error("Failed to load json schema")
+
+                //if we have everything then validate
+                jsonSchemaValidator.validate(req.body, schemaStr, { singleError: false }, function(error) {
+                    if(!error) return;
+                    error = JSON.parse(error)
+
+                    if (req._validationErrors === undefined) {
+                        req._validationErrors = [];
+                    }
+
+                    for (var x=0; x < error.length; x++){
+                        var validateError = {
+                            param: error[x].property,
+                            msg: error[x].message
+                        }
+                        req._validationErrors.push(validateError)
+                    }
+                });
+
+            }
 
             return;
         };
