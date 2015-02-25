@@ -85,6 +85,7 @@ public class RouteDetails implements Serializable{
     }
 
     public Map<String, String> getHeaders() {
+        if(headers == null) headers = new HashMap<>();
         return headers;
     }
 
