@@ -225,8 +225,10 @@
                 var jsonSchemaValidator = amanda('json')
 
                 // load request schema from cache
-                var schemaStr = nashornUtils.readFile("schemas/" + filename + ".json")
+                var schemaFile = "schemas/" + filename + ".json"
+                var schemaStr = nashornUtils.readFile(schemaFile)
                 if(typeof schemaStr != "string") throw new Error("Failed to load json schema")
+                if(schemaStr.length == 0) throw new Error("JSON Schema is empty, please add valid JSON Schema - " + schemaFile)
 
                 //if we have everything then validate
                 jsonSchemaValidator.validate(req.body, schemaStr, { singleError: false }, function(error) {
