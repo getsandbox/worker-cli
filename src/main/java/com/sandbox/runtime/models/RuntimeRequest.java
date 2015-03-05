@@ -2,6 +2,7 @@ package com.sandbox.runtime.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -13,6 +14,7 @@ public class RuntimeRequest {
     String fullSandboxName;
     String fullSandboxId;
     Map<String, String> headers;
+    Map<String, String> properties = new HashMap<>();
     String body;
     @JsonProperty(value = "content_type")
     String contentType;
@@ -58,6 +60,14 @@ public class RuntimeRequest {
 
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 
     public String getBody() {

@@ -25,6 +25,7 @@ public class HTTPRequest {
     final String path;
     final String method;
     final Map<String, String> headers;
+    final Map<String, String> properties;
     final Map<String, String> query;
     final Map<String, String> params;
     final Map<String, String> cookies;
@@ -33,12 +34,12 @@ public class HTTPRequest {
     final String ip;
     final List<String> accepted;
     final String url;
-    final Object xmlDoc;
+    final XMLDoc xmlDoc;
 
     private static MimetypesFileTypeMap mimeTypes = new MimetypesFileTypeMap();
 
     public HTTPRequest(ScriptEngine scriptEngine, String path, String method, Map<String, String> headers,
-                       Map<String, String> query, Map<String, String> params,
+                       Map<String, String> properties, Map<String, String> query, Map<String, String> params,
                        Map<String, String> cookies, Object body, String contentType,
                        String ip, List<String> accepted, String url) throws ServiceScriptException {
 
@@ -46,6 +47,7 @@ public class HTTPRequest {
         this.path = path != null ? path : "";
         this.method = method != null ? method : "";
         this.headers = headers != null ? headers : new HashMap<String, String>();
+        this.properties = properties != null ? properties : new HashMap<String, String>();
         this.query = query != null ? query : new HashMap<String, String>();
         this.params = params != null ? params : new HashMap<String, String>();
         this.cookies = cookies != null ? cookies : new HashMap<String, String>();
@@ -55,8 +57,8 @@ public class HTTPRequest {
         this.url = url != null ? url : "";
 
 
-        Object _body = new Object();
-        Object _xmlDoc = null;
+        Object _body = null;
+        XMLDoc _xmlDoc = null;
 
         // if the body is non-zero length then parse it
         if (body != null && !body.toString().isEmpty()) {
@@ -117,6 +119,10 @@ public class HTTPRequest {
         return headers;
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
     public Map<String, ?> getQuery() {
         return query;
     }
@@ -150,7 +156,7 @@ public class HTTPRequest {
     }
 
     @JsonIgnore
-    public Object getXmlDoc() {
+    public XMLDoc getXmlDoc() {
         return xmlDoc;
     }
 

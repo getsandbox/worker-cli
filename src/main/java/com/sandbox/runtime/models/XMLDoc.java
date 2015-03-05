@@ -8,6 +8,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -83,15 +84,23 @@ public class XMLDoc {
      * @param searchString
      * @return Node
      */
-    public Node get(String searchString) {
-        Node node = null;
+    public <T> T get(String searchString, QName type, Class<T> returnType) {
+        Object obj = null;
         try {
-            node = (Node) xPath.evaluate(searchString, doc, XPathConstants.NODE);
+            obj = xPath.evaluate(searchString, doc, type);
         } catch (XPathExpressionException e) {
             e.printStackTrace();
         }
 
-        return XMLNodeInvocationHandler.wrap(node);
+        if(returnType == Node.class){
+            return returnType.cast(XMLNodeInvocationHandler.wrap((Node)(obj)));
+        }else{
+            return returnType.cast(obj);
+        }
+    }
+
+    public Node get(String searchString) {
+        return get(searchString, XPathConstants.NODE, Node.class);
     }
 
     /**

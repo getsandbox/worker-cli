@@ -19,6 +19,7 @@ public class HTTPRequestConverter {
                 request.getPath(),
                 request.getMethod(),
                 request.getHeaders(),
+                request.getProperties(),
                 request.getQuery(),
                 request.getParams(),
                 request.getCookies(),

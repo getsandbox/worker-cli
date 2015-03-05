@@ -34,8 +34,8 @@ public class Sandbox extends ServiceBox {
      * Anonymous functions mapping to interfaces
      */
     @Override
-    public void define(String transport, String defineType, String path, String method, ScriptObject headers, ScriptFunction callback, ISandboxDefineCallback func, NativeError error) throws ServiceScriptException {
-        super.define(transport, defineType, path, method, headers, callback, func, error);
+    public void define(String transport, String defineType, String path, String method, ScriptObject properties, ScriptFunction callback, ISandboxDefineCallback func, NativeError error) throws ServiceScriptException {
+        super.define(transport, defineType, path, method, properties, callback, func, error);
 
         //get routeDetails just created by super.define()
         RouteDetails routeDetails = super.currentRoute;

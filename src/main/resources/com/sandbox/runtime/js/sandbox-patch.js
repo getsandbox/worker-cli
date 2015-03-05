@@ -6,32 +6,32 @@
 
   var mock = {
 
-    //<path> <method> <headers {}> <callback>
-    //<path> <headers {}> <callback>
+    //<path> <method> <properties {}> <callback>
+    //<path> <properties {}> <callback>
     //<path> <method> <callback>
     //<path> <callback>
     define: function(){
       var callback;
       var path;
       var method;
-      var headers;
+      var properties;
 
       if(arguments.length == 4){
         path = arguments[0];
         method = arguments[1];
-        headers = arguments[2];
+        properties = arguments[2];
         callback = arguments[3];
 
       } else if(arguments.length == 3){
         if(typeof arguments[1] == 'object'){
           path = arguments[0];
           method = 'GET'
-          headers = arguments[1];
+          properties = arguments[1];
           callback = arguments[2];
         }else if(typeof arguments[1] == 'string'){
           path = arguments[0];
           method = arguments[1];
-          headers = {};
+          properties = {};
           callback = arguments[2];
         }else{
           throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", 2nd parameter should be a String or an Object")
@@ -40,7 +40,7 @@
       } else{
         path = arguments[0];
         method = 'GET';
-        headers = {};
+        properties = {};
         callback = arguments[1];
       }
 
@@ -48,12 +48,15 @@
         throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", given function is undefined")
       }
 
-      __mock.define('http', 'define', path, method, headers, callback, callback, new Error())
+      __mock.define('http', 'define', path, method, properties, callback, callback, new Error())
     },
     //<path> <action> <callback>
     soap: function(){
       if(arguments.length == 3 && typeof arguments[1] == 'string'){
         __mock.define('http', 'soap', arguments[0], 'POST', {'SOAPAction':arguments[1]}, arguments[2], arguments[2], new Error())
+
+      } else if(arguments.length == 4 && typeof arguments[1] == 'string'){
+          __mock.define('http', 'soap', arguments[0], 'POST', {'SOAPAction':arguments[1], 'SOAPOperationName':arguments[2]}, arguments[3], arguments[3], new Error())
 
       }else{
         throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", must have 3 parameters (path, action, function)")

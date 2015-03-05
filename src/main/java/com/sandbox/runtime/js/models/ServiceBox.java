@@ -20,15 +20,15 @@ public class ServiceBox implements ISandboxScriptObject{
 
     RouteDetails currentRoute;
 
-    public void define(String transport, String defineType, String path, String method, ScriptObject headers, ScriptFunction callback, ISandboxDefineCallback func, NativeError error) throws ServiceScriptException {
-        Map<String, String> headersMap = new HashMap<>();
-        headers.propertyIterator().forEachRemaining(k -> {
-            Object value = headers.get(k);
-            if(value instanceof String) headersMap.put(k, (String) value);
+    public void define(String transport, String defineType, String path, String method, ScriptObject properties, ScriptFunction callback, ISandboxDefineCallback func, NativeError error) throws ServiceScriptException {
+        Map<String, String> propertiesMap = new HashMap<>();
+        properties.propertyIterator().forEachRemaining(k -> {
+            Object value = properties.get(k);
+            if(value instanceof String) propertiesMap.put(k, (String) value);
             return;
         });
 
-        RouteDetails routeDetails = new RouteDetails(method, path, headersMap);
+        RouteDetails routeDetails = new RouteDetails(method, path, propertiesMap);
         routeDetails.setTransport(transport);
         routeDetails.setFunctionSource(new ScriptSource(callback));
         routeDetails.setDefineSource(new ScriptSource(error, "<sandbox-internal>"));

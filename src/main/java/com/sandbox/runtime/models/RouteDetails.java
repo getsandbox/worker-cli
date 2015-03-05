@@ -22,7 +22,7 @@ public class RouteDetails implements Serializable{
     String transport;
     String method;
     String path;
-    Map<String, String> headers;
+    Map<String, String> properties;
     ScriptSource defineSource;
 
     //the type of define function call, can be define() or soap()
@@ -36,7 +36,7 @@ public class RouteDetails implements Serializable{
 
     }
 
-    public RouteDetails(String method, String path, Map<String, String> headers) {
+    public RouteDetails(String method, String path, Map<String, String> properties) {
 
         if(path.equals("*") || path.equals("/*")){
             //replace wildcard with a JAXRS friendly syntax
@@ -57,7 +57,7 @@ public class RouteDetails implements Serializable{
 
         this.method = method;
         this.path = path;
-        this.headers = headers;
+        this.properties = properties;
     }
 
     public String getTransport() {
@@ -84,13 +84,13 @@ public class RouteDetails implements Serializable{
         this.path = path;
     }
 
-    public Map<String, String> getHeaders() {
-        if(headers == null) headers = new HashMap<>();
-        return headers;
+    public Map<String, String> getProperties() {
+        if(properties == null) properties = new HashMap<>();
+        return properties;
     }
 
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 
     public ExactMatchURITemplate getUriTemplate() {
@@ -132,6 +132,7 @@ public class RouteDetails implements Serializable{
         return uriTemplate;
     }
 
+    @JsonIgnore
     public boolean isWildcardMethod(){
         return method.equals("*") || method.equalsIgnoreCase("all");
     }
@@ -147,13 +148,13 @@ public class RouteDetails implements Serializable{
         }
     }
 
-    //match this routes headers again the given headers, doesn't matter if the given headers have extra
-    public boolean matchesHeaders(Map<String, String> headers){
-        if(headers == null) headers = new HashMap<>();
+    //match explicit properties
+    public boolean matchesProperties(Map<String, String> properties){
+        if(properties == null) properties = new HashMap<>();
 
         boolean match = true;
-        for (Map.Entry<String, String> entry : getHeaders().entrySet()){
-            if(!headers.getOrDefault(entry.getKey(),"").equals(entry.getValue().trim())) {
+        for (Map.Entry<String, String> entry : getProperties().entrySet()){
+            if(!properties.getOrDefault(entry.getKey(), "").equalsIgnoreCase(entry.getValue().trim())) {
                 match = false;
                 break;
             }
@@ -162,22 +163,22 @@ public class RouteDetails implements Serializable{
     }
 
     public boolean isMatch(RouteDetails otherRoute) {
-        return isMatch(otherRoute.getMethod(), otherRoute.getPath(), otherRoute.getHeaders());
+        return isMatch(otherRoute.getMethod(), otherRoute.getPath(), otherRoute.getProperties());
     }
 
-    public boolean isMatch(String method, String url, Map<String, String> headers) {
+    public boolean isMatch(String method, String url, Map<String, String> properties) {
         //bit crap but match needs a map to store processed path params.
         MultivaluedMap<String, String> urlParams = new MultivaluedHashMap<>();
-        return isMatch(method, url, urlParams, headers);
+        return isMatch(method, url, urlParams, properties);
     }
 
     //matches based on actual url /blah/1 -> /blah/{smth}
-    public boolean isMatch(String method, String url, MultivaluedMap urlParams, Map<String, String> headers){
+    public boolean isMatch(String method, String url, MultivaluedMap urlParams, Map<String, String> properties){
 
         //if method isnt right, skip!
         if(!matchesMethod(method)) return false;
         //if headers arent right, skip!
-        if(!matchesHeaders(headers)) return false;
+        if(!matchesProperties(properties)) return false;
 
         //method matches, so continue..
         ExactMatchURITemplate template = process();
@@ -195,6 +196,7 @@ public class RouteDetails implements Serializable{
 
     //matches based on uncompiled path /blah/{smth}
     public boolean equals(HTTPRequest req){
-        return matchesMethod(req.getMethod()) && req.getPath().equalsIgnoreCase(path) && matchesHeaders(req.getHeaders());
+        return matchesMethod(req.getMethod()) && req.getPath().equalsIgnoreCase(path) && matchesProperties(req.getProperties());
+
     }
 }
