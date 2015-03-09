@@ -80,7 +80,7 @@ public class HttpServletConverter {
         return request;
     }
 
-    private static Map<String,String> getHeadersAsMap(HttpServletRequest request){
+    public static Map<String,String> getHeadersAsMap(HttpServletRequest request){
         Map<String,String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
         Enumeration<String> keys = request.getHeaderNames();
@@ -91,6 +91,8 @@ public class HttpServletConverter {
 
             while(values.hasMoreElements()){
                 String value = values.nextElement();
+                //if the SOAPAction is wrapped in quotes, remove them to simplify matching.
+                if(key.equalsIgnoreCase("SOAPAction") && value.startsWith("\"") && value.endsWith("\"")) value = value.substring(1, value.length()-1);
                 headers.put(key, value);
             }
 
@@ -99,7 +101,7 @@ public class HttpServletConverter {
         return headers;
     }
 
-    private static List<String> getAcceptedHeadersFromHeaders(Enumeration<String> acceptedHeaders){
+    public static List<String> getAcceptedHeadersFromHeaders(Enumeration<String> acceptedHeaders){
         List<String> accepted = new ArrayList<String>();
         if(acceptedHeaders == null) return accepted;
 
@@ -125,5 +127,9 @@ public class HttpServletConverter {
 
     public Pattern getXmlPattern() {
         return xmlPattern;
+    }
+
+    public MapUtils getMapUtils() {
+        return mapUtils;
     }
 }
