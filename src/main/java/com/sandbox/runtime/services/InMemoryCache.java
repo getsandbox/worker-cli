@@ -59,11 +59,6 @@ public class InMemoryCache implements Cache {
     }
 
     @Override
-    public void updateRemoteRepositoryFiles(String fullSandboxId) {
-        //noop
-    }
-
-    @Override
     public boolean hasRepositoryFile(String fullSandboxId, String filename) {
         return (Files.exists(commandLine.getBasePath().resolve(filename)));
     }
