@@ -134,7 +134,7 @@ public class Context {
     }
 
     public static ScriptEngine createScriptEngine(NashornScriptEngineFactory factory){
-        ScriptEngine engine = factory.getScriptEngine(new String[]{"--no-java", "--no-syntax-extensions"});
+        ScriptEngine engine = factory.getScriptEngine(new String[]{"--no-java"});
         return engine;
     }
 
