@@ -1,7 +1,7 @@
 package com.sandbox.runtime.js.models;
 
-import com.sandbox.runtime.models.HTTPRequest;
-import com.sandbox.runtime.models.HTTPResponse;
+import com.sandbox.runtime.models.http.HTTPRequest;
+import com.sandbox.runtime.models.http.HTTPResponse;
 import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.ServiceScriptException;
 import jdk.nashorn.internal.objects.NativeError;
@@ -40,7 +40,7 @@ public class Sandbox extends ServiceBox {
         //get routeDetails just created by super.define()
         RouteDetails routeDetails = super.currentRoute;
 
-        if (routeDetails.equals(req)){
+        if (routeDetails.matchesEngineRequest(req)){
             // flag match was found
             this.matched = true;
             // store the callback for when the whole file has been processed

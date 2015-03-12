@@ -1,4 +1,6 @@
-package com.sandbox.runtime.models;
+package com.sandbox.runtime.models.http;
+
+import com.sandbox.runtime.models.RuntimeRequest;
 
 import java.util.List;
 import java.util.Map;

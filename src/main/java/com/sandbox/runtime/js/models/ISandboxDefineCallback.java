@@ -4,7 +4,7 @@ package com.sandbox.runtime.js.models;
  * Created by drew on 6/08/2014.
  */
 
-import com.sandbox.runtime.models.HTTPResponse;
+import com.sandbox.runtime.models.http.HTTPResponse;
 
 /**
  * Interface for the callback in Sandbox.define

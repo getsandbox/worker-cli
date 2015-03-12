@@ -4,6 +4,8 @@ import com.sandbox.runtime.js.models.JSError;
 import jdk.nashorn.internal.objects.Global;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import jdk.nashorn.internal.runtime.arrays.ArrayData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -25,6 +27,8 @@ public class NashornConverter {
     static Constructor nativeArrayConstructor;
     static Class scriptEngineClass;
     static Method getGlobalMethod;
+
+    private static final Logger logger = LoggerFactory.getLogger(NashornConverter.class);
 
     public static NashornConverter instance() throws Exception {
         if(converter == null) {
@@ -73,7 +77,7 @@ public class NashornConverter {
 
             Map mapObject = (Map)object;
             for (Object hashKey : mapObject.keySet()){
-                nativeObject.set(hashKey, convert(global, mapObject.get(hashKey)), false);
+                nativeObject.put(hashKey, convert(global, mapObject.get(hashKey)), false);
             }
 
             return nativeObject;

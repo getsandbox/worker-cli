@@ -8,11 +8,11 @@ import com.sandbox.runtime.js.converters.HTTPRequestConverter;
 import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
-import com.sandbox.runtime.models.HTTPRequest;
-import com.sandbox.runtime.models.HttpRuntimeRequest;
-import com.sandbox.runtime.models.HttpRuntimeResponse;
-import com.sandbox.runtime.models.MatchedRouteDetails;
 import com.sandbox.runtime.models.RoutingTable;
+import com.sandbox.runtime.models.http.HTTPRequest;
+import com.sandbox.runtime.models.http.HTTPRouteDetails;
+import com.sandbox.runtime.models.http.HttpRuntimeRequest;
+import com.sandbox.runtime.models.http.HttpRuntimeResponse;
 import com.sandbox.runtime.services.CommandLineProcessor;
 import com.sandbox.runtime.utils.FormatUtils;
 import com.sandbox.runtime.utils.MapUtils;
@@ -92,7 +92,7 @@ public class HttpRequestHandler extends AbstractHandler {
                 routingTable = runtimeService.handleRoutingTableRequest(sandboxId);
                 cache.setRoutingTableForSandboxId(sandboxId, routingTable);
             }
-            MatchedRouteDetails routeMatch = findMatchedRoute(instanceRequest, routingTable);
+            HTTPRouteDetails routeMatch = findMatchedRoute(instanceRequest, routingTable);
 
             //log request with route
             logRequest(instanceRequest, routeMatch, requestId);
@@ -119,7 +119,7 @@ public class HttpRequestHandler extends AbstractHandler {
         }
     }
 
-    private void logRequest(HttpRuntimeRequest request, MatchedRouteDetails matchedRouteDetails, String requestId){
+    private void logRequest(HttpRuntimeRequest request, HTTPRouteDetails matchedRouteDetails, String requestId){
         String matchedRouteDescription = "No matching route";
         if(matchedRouteDetails != null) matchedRouteDescription = "Matched route '" + matchedRouteDetails.getPath() + "'";
 
@@ -180,8 +180,8 @@ public class HttpRequestHandler extends AbstractHandler {
     }
 
     //gets the matching route (if any) out of the routing table
-    private MatchedRouteDetails findMatchedRoute(HttpRuntimeRequest request, RoutingTable table) throws Exception {
-        MatchedRouteDetails match = table.findMatch(request.getMethod(), request.getUrl(), request.getHeaders());
+    private HTTPRouteDetails findMatchedRoute(HttpRuntimeRequest request, RoutingTable table) throws Exception {
+        HTTPRouteDetails match = (HTTPRouteDetails) table.findMatch(request);
         if(match == null){
             throw new Exception("Invalid route");
         }

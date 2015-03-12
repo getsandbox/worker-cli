@@ -1,7 +1,7 @@
 package com.sandbox.runtime.js.converters;
 
-import com.sandbox.runtime.models.HTTPRequest;
-import com.sandbox.runtime.models.HttpRuntimeRequest;
+import com.sandbox.runtime.models.http.HTTPRequest;
+import com.sandbox.runtime.models.http.HttpRuntimeRequest;
 import com.sandbox.runtime.models.ServiceScriptException;
 import org.springframework.stereotype.Component;
 

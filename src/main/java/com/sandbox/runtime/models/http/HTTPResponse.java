@@ -1,4 +1,4 @@
-package com.sandbox.runtime.models;
+package com.sandbox.runtime.models.http;
 
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.internal.objects.NativeArray;

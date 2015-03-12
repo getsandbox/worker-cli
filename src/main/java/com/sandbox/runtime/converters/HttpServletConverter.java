@@ -1,6 +1,6 @@
 package com.sandbox.runtime.converters;
 
-import com.sandbox.runtime.models.HttpRuntimeRequest;
+import com.sandbox.runtime.models.http.HttpRuntimeRequest;
 import com.sandbox.runtime.utils.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;

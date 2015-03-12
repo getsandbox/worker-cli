@@ -1,6 +1,7 @@
-package com.sandbox.runtime.models;
+package com.sandbox.runtime.models.http;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sandbox.runtime.models.*;
 
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class HttpRuntimeResponse extends RuntimeResponse {
         this.error = null;
     }
 
-    public HttpRuntimeResponse(Error error) {
+    public HttpRuntimeResponse(com.sandbox.runtime.models.Error error) {
         this.error = error;
         this.statusCode = 500;
 

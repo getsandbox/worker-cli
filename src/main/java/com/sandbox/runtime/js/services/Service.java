@@ -14,9 +14,9 @@ import com.sandbox.runtime.js.utils.FileUtils;
 import com.sandbox.runtime.js.utils.INashornUtils;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
-import com.sandbox.runtime.models.HTTPRequest;
-import com.sandbox.runtime.models.HTTPResponse;
-import com.sandbox.runtime.models.HttpRuntimeResponse;
+import com.sandbox.runtime.models.http.HTTPRequest;
+import com.sandbox.runtime.models.http.HTTPResponse;
+import com.sandbox.runtime.models.http.HttpRuntimeResponse;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sandbox.runtime.models.SandboxScriptEngine;
 import com.sandbox.runtime.models.ServiceScriptException;
@@ -228,7 +228,7 @@ public abstract class Service {
         // verify match was found
         if (!sandbox.isMatched()) {
             // the requested path and method.
-            throw new ServiceScriptException("Could not find a route definition matching your requested route " + req.getMethod() + " " + req.getPath());
+            throw new ServiceScriptException("Could not find a route definition matching your requested route " + req.method() + " " + req.path());
         }
 
         // save state

@@ -3,6 +3,8 @@ package com.sandbox.runtime.js.models;
 import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.ScriptSource;
 import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.runtime.models.http.HTTPRouteDetails;
+import com.sandbox.runtime.models.jms.JMSRouteDetails;
 import jdk.nashorn.internal.objects.NativeError;
 import jdk.nashorn.internal.runtime.ScriptFunction;
 import jdk.nashorn.internal.runtime.ScriptObject;
@@ -28,7 +30,14 @@ public class ServiceBox implements ISandboxScriptObject{
             return;
         });
 
-        RouteDetails routeDetails = new RouteDetails(method, path, propertiesMap);
+        RouteDetails routeDetails = null;
+        if(transport.equals("http")){
+            routeDetails = new HTTPRouteDetails(method, path, propertiesMap);
+
+        }else if(transport.equals("jms")){
+            routeDetails = new JMSRouteDetails();
+
+        }
         routeDetails.setTransport(transport);
         routeDetails.setFunctionSource(new ScriptSource(callback));
         routeDetails.setDefineSource(new ScriptSource(error, "<sandbox-internal>"));
