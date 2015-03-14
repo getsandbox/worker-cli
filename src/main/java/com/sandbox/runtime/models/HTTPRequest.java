@@ -20,25 +20,42 @@ import java.util.Map;
 /**
  * Created by drew on 30/07/2014.
  */
-public abstract class EngineRequest {
+public class HTTPRequest {
 
+    final String path;
+    final String method;
     final Map<String, String> headers;
     final Map<String, String> properties;
+    final Map<String, String> query;
+    final Map<String, String> params;
+    final Map<String, String> cookies;
     final Object body;
     final String contentType;
     final String ip;
+    final List<String> accepted;
+    final String url;
     final XMLDoc xmlDoc;
 
     private static MimetypesFileTypeMap mimeTypes = new MimetypesFileTypeMap();
 
-    public EngineRequest(ScriptEngine scriptEngine, Map<String, String> headers,
-                         Map<String, String> properties, Object body, String contentType, String ip) throws ServiceScriptException {
+    public HTTPRequest(ScriptEngine scriptEngine, String path, String method, Map<String, String> headers,
+                       Map<String, String> properties, Map<String, String> query, Map<String, String> params,
+                       Map<String, String> cookies, Object body, String contentType,
+                       String ip, List<String> accepted, String url) throws ServiceScriptException {
 
         // set default values
+        this.path = path != null ? path : "";
+        this.method = method != null ? method : "";
         this.headers = headers != null ? headers : new HashMap<String, String>();
         this.properties = properties != null ? properties : new HashMap<String, String>();
+        this.query = query != null ? query : new HashMap<String, String>();
+        this.params = params != null ? params : new HashMap<String, String>();
+        this.cookies = cookies != null ? cookies : new HashMap<String, String>();
         this.contentType = contentType != null ? contentType : "";
         this.ip = ip != null ? ip : "";
+        this.accepted = accepted != null ? accepted : new ArrayList<String>();
+        this.url = url != null ? url : "";
+
 
         Object _body = null;
         XMLDoc _xmlDoc = null;
@@ -90,6 +107,13 @@ public abstract class EngineRequest {
         return headers.get("Content-Type").toLowerCase().startsWith(contentType.toLowerCase());
     }
 
+    public String getPath() {
+        return path;
+    }
+
+    public String getMethod() {
+        return method;
+    }
 
     public Map<String, String> getHeaders() {
         return headers;
@@ -97,6 +121,18 @@ public abstract class EngineRequest {
 
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public Map<String, ?> getQuery() {
+        return query;
+    }
+
+    public Map<String, String> getParams() {
+        return params;
+    }
+
+    public Map<String, String> getCookies() {
+        return cookies;
     }
 
     public Object getBody() {
@@ -111,13 +147,21 @@ public abstract class EngineRequest {
         return ip;
     }
 
+    public List<String> getAccepted() {
+        return accepted;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
     @JsonIgnore
     public XMLDoc getXmlDoc() {
         return xmlDoc;
     }
 
     @JsonIgnore
-    public String getBodyAsString() { return body == null ? "" : body.toString(); }
+    public String getBodyAsString() { return body.toString(); }
 
     private HashMap<String, String> decodeBody(String body) throws Exception{
         HashMap<String, String> queryMap = new HashMap<>();

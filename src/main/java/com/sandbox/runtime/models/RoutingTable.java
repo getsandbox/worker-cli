@@ -1,8 +1,7 @@
 package com.sandbox.runtime.models;
 
-import com.sandbox.runtime.models.http.HTTPRouteDetails;
-import com.sandbox.runtime.models.http.HttpRuntimeRequest;
-
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,30 +42,23 @@ public class RoutingTable implements Serializable{
 
     }
 
-    public HTTPRouteDetails findMatch(String requestMethod, String requestPath, Map<String, String> properties) {
-        HttpRuntimeRequest request = new HttpRuntimeRequest();
-        request.setMethod(requestMethod);
-        request.setUrl(requestPath);
-        request.setProperties(properties);
-        return (HTTPRouteDetails) findMatch(request);
-    }
-
-    public RouteDetails findMatch(RuntimeRequest runtimeRequest){
+    public MatchedRouteDetails findMatch(String requestMethod, String requestPath, Map<String, String> properties){
         List<RouteDetails> routes = getRouteDetails();
 
         //sort, put the longest route literals at the top, should theoretically be the best matches?!
         if(!routesSorted){
             routes.sort((r1, r2) -> {
-                return r2.getProcessingKey().compareTo(r1.getProcessingKey());
+                return r2.process().getLiteralChars().compareTo(r1.process().getLiteralChars());
             });
             routesSorted = true;
         }
 
         if(routes == null) return null;
+        MultivaluedMap<String, String> pathParams = new MultivaluedHashMap<>();
 
         for(RouteDetails route : routes){
-            boolean isMatch = route.matchesRuntimeRequest(runtimeRequest);
-            if(isMatch) return route;
+            boolean isMatch = route.isMatch(requestMethod, requestPath, pathParams, properties);
+            if(isMatch) return new MatchedRouteDetails(route, pathParams);
         }
 
         return null;
