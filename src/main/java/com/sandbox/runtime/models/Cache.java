@@ -6,6 +6,8 @@ package com.sandbox.runtime.models;
 public interface Cache {
     String getRepositoryFile(String fullSandboxId, String filename);
 
+    void updateRemoteRepositoryFiles(String fullSandboxId);
+
     boolean hasRepositoryFile(String fullSandboxId, String filename);
 
     String getSandboxState(String sandboxId);

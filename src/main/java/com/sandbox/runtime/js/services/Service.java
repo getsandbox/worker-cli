@@ -14,9 +14,9 @@ import com.sandbox.runtime.js.utils.FileUtils;
 import com.sandbox.runtime.js.utils.INashornUtils;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
-import com.sandbox.runtime.models.http.HTTPRequest;
-import com.sandbox.runtime.models.http.HTTPResponse;
-import com.sandbox.runtime.models.http.HttpRuntimeResponse;
+import com.sandbox.runtime.models.HTTPRequest;
+import com.sandbox.runtime.models.HTTPResponse;
+import com.sandbox.runtime.models.HttpRuntimeResponse;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sandbox.runtime.models.SandboxScriptEngine;
 import com.sandbox.runtime.models.ServiceScriptException;
@@ -228,7 +228,7 @@ public abstract class Service {
         // verify match was found
         if (!sandbox.isMatched()) {
             // the requested path and method.
-            throw new ServiceScriptException("Could not find a route definition matching your requested route " + req.method() + " " + req.path());
+            throw new ServiceScriptException("Could not find a route definition matching your requested route " + req.getMethod() + " " + req.getPath());
         }
 
         // save state
@@ -244,7 +244,11 @@ public abstract class Service {
 
             // get template from cache
             String template = cache.getRepositoryFile(fullSandboxId, "templates/" + res.getTemplateName() + ".liquid");
-
+            if (template == null) {
+                //bit of a hack to ensure cache hasn't dropped files without dropping routing table
+                cache.updateRemoteRepositoryFiles(fullSandboxId);
+                template = cache.getRepositoryFile(fullSandboxId, "templates/" + res.getTemplateName() + ".liquid");
+            }
             if (template == null) {
                 throw new ServiceScriptException(String.format("Cannot find template with name '%1$s'", res.getTemplateName()));
             }
