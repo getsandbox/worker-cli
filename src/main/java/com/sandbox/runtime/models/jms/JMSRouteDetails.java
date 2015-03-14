@@ -5,10 +5,20 @@ import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.RuntimeRequest;
 
+import java.util.Map;
+
 /**
  * Created by nickhoughton on 3/08/2014.
  */
 public class JMSRouteDetails extends RouteDetails{
+
+    public JMSRouteDetails() {
+    }
+
+    public JMSRouteDetails(String destination, Map<String, String> properties) {
+        this.destination = destination;
+        setProperties(properties);
+    }
 
     String destination;
 
@@ -34,21 +44,16 @@ public class JMSRouteDetails extends RouteDetails{
 
     @Override
     public boolean matchesRoute(RouteDetails otherRoute) {
-        return false;
+        return otherRoute instanceof JMSRouteDetails && getDestination().equals(((JMSRouteDetails) otherRoute).getDestination());
     }
 
     @Override
     public boolean matchesRuntimeRequest(RuntimeRequest runtimeRequest) {
-        return false;
+        return runtimeRequest instanceof JMSRuntimeRequest && getDestination().equals(((JMSRuntimeRequest) runtimeRequest).getDestination());
     }
 
     //matches based on uncompiled path /blah/{smth}
     public boolean matchesEngineRequest(EngineRequest req){
-        if(req instanceof JMSRequest){
-            return destination.equals(((JMSRequest) req).getDestination());
-        }else{
-            return false;
-        }
-
+        return req instanceof JMSRequest && getDestination().equals(((JMSRequest)req).destination());
     }
 }

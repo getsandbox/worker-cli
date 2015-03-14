@@ -35,7 +35,7 @@ public class ServiceBox implements ISandboxScriptObject{
             routeDetails = new HTTPRouteDetails(method, path, propertiesMap);
 
         }else if(transport.equals("jms")){
-            routeDetails = new JMSRouteDetails();
+            routeDetails = new JMSRouteDetails(path, propertiesMap);
 
         }
         routeDetails.setTransport(transport);

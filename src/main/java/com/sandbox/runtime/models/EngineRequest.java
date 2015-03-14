@@ -74,9 +74,12 @@ public abstract class EngineRequest {
         return getHeaders().get(headerName);
     }
 
-    public boolean is(String type){
+    public abstract boolean is(String type);
+
+    public boolean is(String type, String header){
+
         if(type == null || type.length() == 0) return false;
-        if(headers == null || headers.get("Content-Type") == null) return false;
+        if(headers == null || headers.get(header) == null) return false;
 
         String contentType;
         if (type.contains("/")) {
@@ -87,7 +90,7 @@ public abstract class EngineRequest {
             contentType = mimeTypes.getContentType(type);
         }
 
-        return headers.get("Content-Type").toLowerCase().startsWith(contentType.toLowerCase());
+        return headers.get(header).toLowerCase().startsWith(contentType.toLowerCase());
     }
 
 
@@ -159,4 +162,10 @@ public abstract class EngineRequest {
 
         return accessibleProperties;
     }
+
+    public abstract Exception _getNoRouteDefinitionException();
+
+    public abstract RuntimeResponse _getErrorResponse(Error error);
+
+    public abstract EngineResponse _getMatchingResponse();
 }

@@ -4,7 +4,7 @@ package com.sandbox.runtime.js.models;
  * Created by drew on 6/08/2014.
  */
 
-import com.sandbox.runtime.models.http.HTTPResponse;
+import com.sandbox.runtime.models.EngineResponse;
 
 /**
  * Interface for the callback in Sandbox.define
@@ -13,5 +13,5 @@ import com.sandbox.runtime.models.http.HTTPResponse;
  * defined method on the interface.
  */
 public interface ISandboxDefineCallback {
-    public void run(Object req, HTTPResponse res);
+    public void run(Object req, EngineResponse res);
 }

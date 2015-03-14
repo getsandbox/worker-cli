@@ -1,7 +1,7 @@
 package com.sandbox.runtime.js.models;
 
-import com.sandbox.runtime.models.http.HTTPRequest;
-import com.sandbox.runtime.models.http.HTTPResponse;
+import com.sandbox.runtime.models.EngineRequest;
+import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.ServiceScriptException;
 import jdk.nashorn.internal.objects.NativeError;
@@ -13,8 +13,8 @@ import jdk.nashorn.internal.runtime.ScriptObject;
  */
 public class Sandbox extends ServiceBox {
 
-    HTTPRequest req;
-    HTTPResponse res;
+    EngineRequest req;
+    EngineResponse res;
     private boolean matched;
     private ISandboxDefineCallback matchedFunction;
 
@@ -22,7 +22,7 @@ public class Sandbox extends ServiceBox {
         return matched;
     }
 
-    public Sandbox(HTTPRequest req, HTTPResponse res) {
+    public Sandbox(EngineRequest req, EngineResponse res) {
         this.req = req;
         this.res = res;
     }

@@ -9,6 +9,7 @@ import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
+import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.http.HTTPRequest;
 import com.sandbox.runtime.models.http.HTTPRouteDetails;
 import com.sandbox.runtime.models.http.HttpRuntimeRequest;
@@ -99,7 +100,7 @@ public class HttpRequestHandler extends AbstractHandler {
 
             //run request
             HTTPRequest runtimeRequest = serviceConverter.fromInstanceHttpRequest(runtimeService.getSandboxScriptEngine().getEngine(), instanceRequest);
-            HttpRuntimeResponse runtimeResponse = runtimeService.handleRequest(sandboxId, sandboxId, runtimeRequest);
+            RuntimeResponse runtimeResponse = runtimeService.handleRequest(sandboxId, sandboxId, runtimeRequest);
             runtimeResponse.setDurationMillis(System.currentTimeMillis() - startedRequest);
 
             logConsole(runtimeService);
@@ -145,7 +146,7 @@ public class HttpRequestHandler extends AbstractHandler {
 
     }
 
-    private void logResponse(HttpRuntimeResponse response, String requestId){
+    private void logResponse(RuntimeResponse response, String requestId){
         //then response
         String bodyDescription = "No body found";
         if(StringUtils.hasLength(response.getBody())) {
@@ -153,10 +154,12 @@ public class HttpRequestHandler extends AbstractHandler {
             bodyDescription = "Body: '" + truncatedBody + "'";
         }
 
-        logger.info("<< Status: {} (took {}ms)\n" +
-                "<< Headers: {}\n" +
-                "<< {}",
-                response.getStatusCode(), response.getDurationMillis(), getSafe(response.getHeaders(), new HashMap<>()), bodyDescription);
+        if(response instanceof RuntimeResponse){
+            logger.info("<< Status: {} (took {}ms)\n" +
+                            "<< Headers: {}\n" +
+                            "<< {}",
+                    ((HttpRuntimeResponse)response).getStatusCode(), response.getDurationMillis(), getSafe(response.getHeaders(), new HashMap<>()), bodyDescription);
+        }
     }
 
     private String renderBody(String body, Map<String, String> headers){
@@ -204,28 +207,31 @@ public class HttpRequestHandler extends AbstractHandler {
     }
 
     //map a non-exception response, could be success or error
-    private void mapResponse(HttpRuntimeResponse runtimeResponse, HttpServletResponse response) throws Exception {
-        //status
-        if (runtimeResponse.getStatusCode() <= 0) {
-            response.setStatus(200);
-        } else {
-            response.setStatus(runtimeResponse.getStatusCode());
-        }
+    private void mapResponse(RuntimeResponse runtimeResponse, HttpServletResponse response) throws Exception {
 
         //headers
         if (runtimeResponse.getHeaders() != null) {
             for (String key : runtimeResponse.getHeaders().keySet()) {
                 response.setHeader(key, runtimeResponse.getHeaders().get(key));
             }
-
         }
 
-        //cookies
-        if (runtimeResponse.getCookies() != null) {
-            for (String[] cookie : runtimeResponse.getCookies()) {
-                response.addHeader("Set-Cookie", cookie[0] + "=" + cookie[1]);
+        if(runtimeResponse instanceof HttpRuntimeResponse){
+            HttpRuntimeResponse httpResponse = (HttpRuntimeResponse) runtimeResponse;
+            //status
+            if (httpResponse.getStatusCode() <= 0) {
+                response.setStatus(200);
+            } else {
+                response.setStatus(httpResponse.getStatusCode());
             }
 
+            //cookies
+            if (httpResponse.getCookies() != null) {
+                for (String[] cookie : httpResponse.getCookies()) {
+                    response.addHeader("Set-Cookie", cookie[0] + "=" + cookie[1]);
+                }
+
+            }
         }
 
         if(runtimeResponse.isError()){

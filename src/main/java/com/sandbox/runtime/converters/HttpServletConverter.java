@@ -20,13 +20,10 @@ import java.util.regex.Pattern;
  * Created by nickhoughton on 1/08/2014.
  */
 
-public class HttpServletConverter {
+public class HttpServletConverter extends RequestConverter{
 
     @Autowired
     MapUtils mapUtils;
-
-    Pattern jsonPattern = Pattern.compile("^application\\/([\\w!#\\$%&\\*`\\-\\.\\^~]*\\+)?json.*$", Pattern.CASE_INSENSITIVE);
-    Pattern xmlPattern = Pattern.compile("(text\\/xml|application\\/([\\w!#\\$%&\\*`\\-\\.\\^~]+\\+)?xml).*$", Pattern.CASE_INSENSITIVE);
 
     private static Logger logger = LoggerFactory.getLogger(HttpServletConverter.class);
 
@@ -119,14 +116,6 @@ public class HttpServletConverter {
 
         return accepted;
 
-    }
-
-    public Pattern getJsonPattern() {
-        return jsonPattern;
-    }
-
-    public Pattern getXmlPattern() {
-        return xmlPattern;
     }
 
     public MapUtils getMapUtils() {

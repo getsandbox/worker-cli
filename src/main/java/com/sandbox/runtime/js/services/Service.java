@@ -13,11 +13,11 @@ import com.sandbox.runtime.js.utils.ErrorUtils;
 import com.sandbox.runtime.js.utils.FileUtils;
 import com.sandbox.runtime.js.utils.INashornUtils;
 import com.sandbox.runtime.models.Cache;
+import com.sandbox.runtime.models.EngineRequest;
+import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.Error;
-import com.sandbox.runtime.models.http.HTTPRequest;
-import com.sandbox.runtime.models.http.HTTPResponse;
-import com.sandbox.runtime.models.http.HttpRuntimeResponse;
 import com.sandbox.runtime.models.RoutingTable;
+import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.SandboxScriptEngine;
 import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.services.LiquidRenderer;
@@ -47,8 +47,8 @@ public abstract class Service {
     protected final ScriptEngine engine;
     protected String sandboxId;
     protected String fullSandboxId;
-    HTTPRequest req;
-    HTTPResponse res;
+    EngineRequest req;
+    EngineResponse res;
 
     @Autowired
     protected Cache cache;
@@ -81,11 +81,11 @@ public abstract class Service {
         return sandboxScriptEngine.getConsole();
     }
 
-    public HttpRuntimeResponse handleRequest(String sandboxId, String fullSandboxId, HTTPRequest req) {
+    public RuntimeResponse handleRequest(String sandboxId, String fullSandboxId, EngineRequest req) {
         this.sandboxId = sandboxId;
         this.fullSandboxId = fullSandboxId;
         this.req = req;
-        this.res = new HTTPResponse();
+        this.res = req._getMatchingResponse();
 
         Sandbox box = new Sandbox(req, res);
         INashornUtils utils = (INashornUtils) applicationContext.getBean("nashornUtils", fullSandboxId);
@@ -95,7 +95,7 @@ public abstract class Service {
             loadState();
             loadService(utils);
             runService(box);
-            HttpRuntimeResponse result = postProcessContext(box);
+            RuntimeResponse result = postProcessContext(box);
 
             return result;
 
@@ -116,9 +116,8 @@ public abstract class Service {
                 error.setDisplayMessage("We encountered a system error. Please try again shortly");
             }
 
-            logger.info("Engine: " + sandboxScriptEngine.hashCode() + " - Exception handling the request: " + e.getMessage());
-            e.printStackTrace();
-            return new HttpRuntimeResponse(error);
+            logger.info("Engine: " + sandboxScriptEngine.hashCode() + " - Exception handling the request.", e);
+            return req._getErrorResponse(error);
 
         }
     }
@@ -224,11 +223,11 @@ public abstract class Service {
     }
 
     //after callback execution, get state/response/template etc and process
-    private HttpRuntimeResponse postProcessContext(Sandbox sandbox) throws Exception {
+    private RuntimeResponse postProcessContext(Sandbox sandbox) throws Exception {
         // verify match was found
         if (!sandbox.isMatched()) {
             // the requested path and method.
-            throw new ServiceScriptException("Could not find a route definition matching your requested route " + req.method() + " " + req.path());
+            throw req._getNoRouteDefinitionException();
         }
 
         // save state
@@ -237,7 +236,7 @@ public abstract class Service {
 
         String _body = null;
 
-        // process the response body and build the InstanceHttpResponse
+        // process the response body and build the RuntimeResponse
         if (res.wasRendered()) {
 
             Assert.hasText(res.getTemplateName(), "Invalid template name given");
@@ -274,14 +273,7 @@ public abstract class Service {
             }
         }
 
-        // check for a status code being set
-        // if an exception is thrown above, the Proxy will see the error at its end
-        // and replace the status code with 500
-        if (res.getStatus() == null) {
-            res.status(200);
-        }
-
-        return new HttpRuntimeResponse(_body, res.getStatus(), res.getHeaders(), res.getCookies());
+        return res._getRuntimeResponse(req, _body);
     }
 
     private void setInScope(String name, Object value, SandboxScriptEngine sandboxScriptEngine){

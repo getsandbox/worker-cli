@@ -2,6 +2,9 @@ package com.sandbox.runtime.models.http;
 
 
 import com.sandbox.runtime.models.EngineRequest;
+import com.sandbox.runtime.models.EngineResponse;
+import com.sandbox.runtime.models.Error;
+import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.models.XMLDoc;
 
@@ -81,7 +84,7 @@ public class HTTPRequest extends EngineRequest{
 
     @Override
     public boolean is(String type) {
-        return super.is(type);
+        return super.is(type, "Content-Type");
     }
 
     public Map<String, String> headers() {
@@ -115,4 +118,18 @@ public class HTTPRequest extends EngineRequest{
     public List<String> _getAccessibleProperties() {
         return super._getAccessibleProperties();
     }
+
+    public Exception _getNoRouteDefinitionException(){
+        return new ServiceScriptException("Could not find a route definition matching your requested route " + method() + " " + path());
+    }
+
+    public RuntimeResponse _getErrorResponse(Error error){
+        return new HttpRuntimeResponse(error);
+    }
+
+    @Override
+    public EngineResponse _getMatchingResponse() {
+        return new HTTPResponse();
+    }
+
 }
