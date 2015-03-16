@@ -8,7 +8,8 @@ import java.util.Map;
 /**
  * Created by nickhoughton on 20/10/2014.
  */
-public class RuntimeRequest {
+public abstract class RuntimeRequest {
+    String transport;
     String sandboxId;
     String sandboxName;
     String fullSandboxName;
@@ -21,6 +22,12 @@ public class RuntimeRequest {
     String ip;
     @JsonProperty(value = "received_timestamp")
     long receivedTimestamp = System.currentTimeMillis();
+
+    public abstract String getTransport();
+
+    public void setTransport(String transport) {
+        //noop, only here to keep jackson happy.
+    }
 
     public String getSandboxId() {
         return sandboxId;

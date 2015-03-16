@@ -1,6 +1,7 @@
 package com.sandbox.runtime.models.jms;
 
 import com.sandbox.runtime.models.*;
+import com.sandbox.runtime.models.enums.RuntimeTransportType;
 
 import java.util.Map;
 
@@ -28,4 +29,8 @@ public class JMSRuntimeResponse extends RuntimeResponse {
 
     }
 
+    @Override
+    public String getTransport() {
+        return RuntimeTransportType.JMS.toString();
+    }
 }

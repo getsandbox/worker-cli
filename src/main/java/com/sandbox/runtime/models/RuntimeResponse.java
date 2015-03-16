@@ -7,7 +7,8 @@ import java.util.Map;
 /**
  * Created by nickhoughton on 20/10/2014.
  */
-public class RuntimeResponse {
+public abstract class RuntimeResponse {
+    protected String transport;
     protected String body;
     protected Map<String, String> headers;
     protected Error error;
@@ -15,6 +16,12 @@ public class RuntimeResponse {
     private long respondedTimestamp = System.currentTimeMillis();
     @JsonProperty(value = "duration_ms")
     private long durationMillis;
+
+    public abstract String getTransport();
+
+    public void setTransport(String transport) {
+        //noop, only here to keep jackson happy.
+    }
 
     public String getBody() {
         return body;

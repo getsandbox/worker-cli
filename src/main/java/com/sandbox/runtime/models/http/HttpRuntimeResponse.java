@@ -2,6 +2,7 @@ package com.sandbox.runtime.models.http;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sandbox.runtime.models.*;
+import com.sandbox.runtime.models.enums.RuntimeTransportType;
 
 import java.util.List;
 import java.util.Map;
@@ -41,4 +42,8 @@ public class HttpRuntimeResponse extends RuntimeResponse {
         return cookies;
     }
 
+    @Override
+    public String getTransport() {
+        return RuntimeTransportType.HTTP.toString();
+    }
 }

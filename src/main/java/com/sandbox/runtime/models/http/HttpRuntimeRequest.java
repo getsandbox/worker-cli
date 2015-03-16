@@ -1,6 +1,7 @@
 package com.sandbox.runtime.models.http;
 
 import com.sandbox.runtime.models.RuntimeRequest;
+import com.sandbox.runtime.models.enums.RuntimeTransportType;
 
 import java.util.List;
 import java.util.Map;
@@ -99,4 +100,8 @@ public class HttpRuntimeRequest extends RuntimeRequest {
         this.path = path;
     }
 
+    @Override
+    public String getTransport() {
+        return RuntimeTransportType.HTTP.toString();
+    }
 }
