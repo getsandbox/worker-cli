@@ -66,7 +66,7 @@
     //<server{}>,<queue>,<callback>
     jms: function(){
       if(arguments.length == 3 && typeof arguments[0] == 'object'){
-          __mock.define('jms', 'define', arguments[1], 'LISTEN', arguments[0], arguments[2], arguments[2], new Error())
+          __mock.define('jms', 'jms', arguments[1], 'LISTEN', arguments[0], arguments[2], arguments[2], new Error())
 
       }else{
           throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", must have 3 parameters (path, action, function)")
