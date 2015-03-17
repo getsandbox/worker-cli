@@ -30,6 +30,9 @@ public class XMLNodeInvocationHandler implements InvocationHandler {
             methodName = "getTextContent";
         }
 
+        //if we have no target, return null, can't throw an exp as JS will flip out.
+        if(target == null) return null;
+
         Method targetMethod = null;
         if (!cachedMethodMap.containsKey(proxyMethod)) {
             targetMethod = target.getClass().getMethod(methodName,
