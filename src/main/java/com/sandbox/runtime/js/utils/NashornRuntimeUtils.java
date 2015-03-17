@@ -38,17 +38,7 @@ public class NashornRuntimeUtils implements INashornUtils{
     }
 
     public String readFile(String filename) {
-        String fileContents;
-        fileContents = cache.getRepositoryFile(fullSandboxId, filename);
-
-        if (fileContents == null) {
-            //if we get a miss, try refreshing the files and try again.
-            cache.updateRemoteRepositoryFiles(fullSandboxId);
-            fileContents = cache.getRepositoryFile(fullSandboxId, filename);
-            return fileContents;
-        }
-
-        return fileContents;
+        return cache.getRepositoryFile(fullSandboxId, filename);
     }
 
     public boolean hasFile(String filename) {

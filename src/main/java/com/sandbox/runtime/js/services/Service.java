@@ -244,11 +244,7 @@ public abstract class Service {
 
             // get template from cache
             String template = cache.getRepositoryFile(fullSandboxId, "templates/" + res.getTemplateName() + ".liquid");
-            if (template == null) {
-                //bit of a hack to ensure cache hasn't dropped files without dropping routing table
-                cache.updateRemoteRepositoryFiles(fullSandboxId);
-                template = cache.getRepositoryFile(fullSandboxId, "templates/" + res.getTemplateName() + ".liquid");
-            }
+
             if (template == null) {
                 throw new ServiceScriptException(String.format("Cannot find template with name '%1$s'", res.getTemplateName()));
             }
