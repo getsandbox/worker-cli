@@ -91,6 +91,7 @@ public class XMLDoc {
         } catch (XPathExpressionException e) {
             e.printStackTrace();
         }
+        if(obj == null) return null;
 
         if(returnType == Node.class){
             return returnType.cast(XMLNodeInvocationHandler.wrap((Node)(obj)));
