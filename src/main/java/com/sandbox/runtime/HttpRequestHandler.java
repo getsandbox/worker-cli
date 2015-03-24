@@ -32,6 +32,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,7 +83,7 @@ public class HttpRequestHandler extends AbstractHandler {
             String requestId = UUID.randomUUID().toString();
 
             //convert incoming request to InstanceHttpRequest
-            HttpRuntimeRequest instanceRequest = servletConverter.httpServletToInstanceHttpRequest(request);
+            HttpRuntimeRequest runtimeRequest = servletConverter.httpServletToInstanceHttpRequest(request);
 
             //get a runtime service instance
             RuntimeService runtimeService = context.getBean(RuntimeService.class);
@@ -93,14 +94,26 @@ public class HttpRequestHandler extends AbstractHandler {
                 routingTable = runtimeService.handleRoutingTableRequest(sandboxId);
                 cache.setRoutingTableForSandboxId(sandboxId, routingTable);
             }
-            HTTPRouteDetails routeMatch = findMatchedRoute(instanceRequest, routingTable);
+            HTTPRouteDetails routeMatch = findMatchedRoute(runtimeRequest, routingTable);
 
             //log request with route
-            logRequest(instanceRequest, routeMatch, requestId);
+            logRequest(runtimeRequest, routeMatch, requestId);
 
             //run request
-            HTTPRequest runtimeRequest = serviceConverter.fromInstanceHttpRequest(runtimeService.getSandboxScriptEngine().getEngine(), instanceRequest);
-            RuntimeResponse runtimeResponse = runtimeService.handleRequest(sandboxId, sandboxId, runtimeRequest);
+            HTTPRequest httpRequest = serviceConverter.fromInstanceHttpRequest(runtimeService.getSandboxScriptEngine().getEngine(), runtimeRequest);
+            HttpRuntimeResponse runtimeResponse = null;
+
+            if("options".equalsIgnoreCase(httpRequest.method())){
+                //if options request, send back CORS headers
+                runtimeResponse = new HttpRuntimeResponse("", 200, new HashMap<>(), new ArrayList<>());
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", httpRequest.getHeaders().getOrDefault("Origin", "*"));
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", httpRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
+            }else{
+                //otherwise process normally
+                runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(sandboxId, sandboxId, httpRequest);
+            }
             runtimeResponse.setDurationMillis(System.currentTimeMillis() - startedRequest);
 
             logConsole(runtimeService);
