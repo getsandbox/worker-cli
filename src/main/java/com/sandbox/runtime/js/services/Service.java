@@ -92,7 +92,7 @@ public abstract class Service {
 
         try {
             loadContext(box, utils);
-            loadState();
+            setState();
             loadService(utils);
             runService(box);
             HttpRuntimeResponse result = postProcessContext(box);
@@ -153,7 +153,7 @@ public abstract class Service {
         }
     }
 
-    public void handleFileChangeRequest(byte[] zipData) throws Exception {
+    public boolean handleFileChangeRequest(byte[] zipData) throws Exception {
         throw new RuntimeException("Not implemented");
     }
 
@@ -172,7 +172,7 @@ public abstract class Service {
         setInScope("state", NashornConverter.instance().convert(engine, new JsonNode("{}").getJsonObject()), sandboxScriptEngine);
     }
 
-    protected abstract void loadState() throws Exception;
+    protected abstract void setState() throws Exception;
 
     protected abstract void saveState(Object state) throws Exception;
 

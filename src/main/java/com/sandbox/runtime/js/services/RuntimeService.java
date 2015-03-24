@@ -20,7 +20,7 @@ public class RuntimeService extends Service {
     static Object convertedState = null;
 
     @Override
-    protected void loadState() throws Exception {
+    protected void setState() throws Exception {
 
         if(convertedState == null){
             String currentState = cache.getSandboxState(sandboxId);
