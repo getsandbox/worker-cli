@@ -12,6 +12,7 @@ import java.util.*;
 public class MapUtils {
 
     public Map<String, String> flattenMultiValue(Map<String, ?> multiMap, String... keysToIgnore) {
+        if(multiMap == null) return null;
 
         Map<String,String> results = new HashMap<String, String>();
         List keysToIgnoreList = Arrays.asList(keysToIgnore);

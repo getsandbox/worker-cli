@@ -6,9 +6,11 @@ import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.runtime.models.XMLDoc;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.script.ScriptEngine;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +34,43 @@ public class JMSRequest extends EngineRequest {
     @Override
     public boolean is(String type){
         return super.is(type, "contentType");
+    }
+
+    public String get(String headerName){
+        if(getHeaders() == null) return null;
+        return getHeaders().get(headerName);
+    }
+
+    public Map<String, String> headers() {
+        return super.getHeaders();
+    }
+
+    public Map<String, String> properties() {
+        return super.getProperties();
+    }
+
+    public Object body() {
+        return super.getBody();
+    }
+
+    public String contentType() {
+        return super.getContentType();
+    }
+
+    public String ip() {
+        return super.getIp();
+    }
+
+    public XMLDoc xmlDoc() {
+        return super.getXmlDoc();
+    }
+
+    public String bodyAsString() {
+        return super.getBodyAsString();
+    }
+
+    public List<String> _getAccessibleProperties() {
+        return super._getAccessibleProperties();
     }
 
     @Override

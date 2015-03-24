@@ -5,9 +5,11 @@ import jdk.nashorn.internal.runtime.ScriptObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -16,17 +18,21 @@ import java.util.stream.Collectors;
  */
 public abstract class EngineResponse {
 
-    private Object body;
-    private HashMap<String, String> headers = new HashMap<String, String>();
-
-    private boolean rendered;
-    private String templateName;
-    private Map templateLocals;
-
+    List<EngineResponseMessage> messages = new ArrayList<>();
     private static final Logger logger = LoggerFactory.getLogger(EngineResponse.class);
 
-    public void render(String templateName, Object templateLocals) {
-        this.templateName = templateName;
+    public EngineResponse() {
+        //start response with 1 message, HTTP by default will just have one.
+        completeActiveMessage();
+    }
+
+    protected void completeActiveMessage(){
+        messages.add(new EngineResponseMessage());
+    }
+
+    public void render(String templateName, Object templateLocals) throws ServiceScriptException {
+        EngineResponseMessage message = getActiveMessage();
+        message.setTemplateName(templateName);
         Map locals = null;
 
         //be defensive against crap being passed in, only maps are supported. Could be 'Undefined' or any junk.
@@ -43,17 +49,18 @@ public abstract class EngineResponse {
             logger.error("Invalid object passed to render(), return new map, {}",templateLocals.getClass());
             locals = new HashMap<>();
         }
-        this.templateLocals = locals;
-        rendered = true;
+        message.setTemplateLocals(locals);
+        message.setRendered(true);
     }
 
-    public void render(String templateName) {
-        this.templateName = templateName;
-        rendered = true;
+    public void render(String templateName) throws ServiceScriptException {
+        EngineResponseMessage message = getActiveMessage();
+        message.setTemplateName(templateName);
+        message.setRendered(true);
     }
 
     public void header(String header, String value) {
-        headers.put(header, value);
+        getActiveMessage().getHeaders().put(header, value);
     }
 
     public void set(String header, String value) {
@@ -77,41 +84,50 @@ public abstract class EngineResponse {
     }
 
     public String get(String header) {
-        return headers.get(header);
+        return getActiveMessage().getHeaders().get(header);
     }
 
     // utilities for service
-    public boolean wasRendered() { return rendered; }
+    public boolean wasRendered() { return getActiveMessage().isRendered(); }
 
     public void setRendered(boolean rendered) {
-        this.rendered = rendered;
+        getActiveMessage().setRendered(rendered);
     }
 
     public HashMap<String, String> getHeaders() {
-        return headers;
+        return getActiveMessage().getHeaders();
     }
 
-    public Object getBody() { return body; }
+    public Object getBody() { return getActiveMessage().getBody(); }
 
     public void setBody(Object body) {
-        this.body = body;
+        getActiveMessage().setBody(body);
     }
 
     public String getTemplateName() {
-        return templateName;
+        return getActiveMessage().getTemplateName();
     }
 
     public void setTemplateName(String templateName) {
-        this.templateName = templateName;
+        getActiveMessage().setTemplateName(templateName);
     }
 
     public Map getTemplateLocals() {
-        return templateLocals;
+        return getActiveMessage().getTemplateLocals();
     }
 
     public void setTemplateLocals(Map templateLocals) {
-        this.templateLocals = templateLocals;
+        getActiveMessage().setTemplateLocals(templateLocals);
     }
 
-    public abstract RuntimeResponse _getRuntimeResponse(EngineRequest req, String body) throws Exception;
+    public abstract RuntimeResponse _getRuntimeResponse(EngineRequest req, EngineResponseMessage message, String body) throws Exception;
+
+    protected EngineResponseMessage getActiveMessage(){
+        return messages.get(messages.size()-1);
+    }
+
+    public List<EngineResponseMessage> getMessages() {
+        //if we have more than 1 message, trim off the last one as it will be an empty obj because of completeActiveMessage()
+        return messages.size() > 1 ? messages.subList(0, messages.size()-1) : messages;
+    }
 }

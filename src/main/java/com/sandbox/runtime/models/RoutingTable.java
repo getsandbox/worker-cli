@@ -2,6 +2,7 @@ package com.sandbox.runtime.models;
 
 import com.sandbox.runtime.models.http.HTTPRouteDetails;
 import com.sandbox.runtime.models.http.HttpRuntimeRequest;
+import com.sandbox.runtime.models.jms.JMSRuntimeRequest;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -44,11 +45,24 @@ public class RoutingTable implements Serializable{
     }
 
     public HTTPRouteDetails findMatch(String requestMethod, String requestPath, Map<String, String> properties) {
-        HttpRuntimeRequest request = new HttpRuntimeRequest();
-        request.setMethod(requestMethod);
-        request.setUrl(requestPath);
-        request.setProperties(properties);
-        return (HTTPRouteDetails) findMatch(request);
+        return (HTTPRouteDetails) findMatch("HTTP", requestMethod, requestPath, properties);
+    }
+
+    public RouteDetails findMatch(String requestTransport, String requestMethod, String requestPath, Map<String, String> properties) {
+        if("HTTP".equalsIgnoreCase(requestTransport)) {
+            HttpRuntimeRequest request = new HttpRuntimeRequest();
+            request.setMethod(requestMethod);
+            request.setUrl(requestPath);
+            request.setProperties(properties);
+            return findMatch(request);
+        }else if("JMS".equalsIgnoreCase(requestTransport)){
+            JMSRuntimeRequest request = new JMSRuntimeRequest();
+            request.setDestination(requestPath);
+            request.setProperties(properties);
+            return findMatch(request);
+        }else{
+            return null;
+        }
     }
 
     public RouteDetails findMatch(RuntimeRequest runtimeRequest){

@@ -2,8 +2,9 @@ package com.sandbox.runtime.models.jms;
 
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
+import com.sandbox.runtime.models.EngineResponseMessage;
 import com.sandbox.runtime.models.RuntimeResponse;
-import jdk.nashorn.internal.objects.NativeArray;
+import com.sandbox.runtime.models.ServiceScriptException;
 import jdk.nashorn.internal.runtime.ScriptObject;
 
 import java.util.Collection;
@@ -14,10 +15,14 @@ import java.util.Map;
  */
 public class JMSResponse extends EngineResponse {
 
-    private String responseDestination;
+    public void send(Object obj) throws ServiceScriptException {
+        throw new ServiceScriptException("Invalid send() call, JMS send() must have 2 parameters, send(queueName, content)");
+    }
 
     // contentType defaulted to 'application/json'
-    public void send(Object body) {
+    public void send(String destination, Object body) {
+        getActiveMessage().setResponseDestination(destination);
+
         if (body instanceof ScriptObject || body instanceof Map || body instanceof Collection) {
             // if contentType not already set then do it.
             if (!getHeaders().containsKey("contentType"))
@@ -32,26 +37,13 @@ public class JMSResponse extends EngineResponse {
 
         // set route matched
         setRendered(false);
+
+        //complete current message, get ready to start a new one..
+        completeActiveMessage();
     }
 
-    public void send(String destination, Object body) {
-        this.responseDestination = destination;
-        this.send(body);
-    }
-
-    public void send(NativeArray body) {
-        // if contentType not already set then do it.
-        if (!getHeaders().containsKey("contentType"))
-            getHeaders().put("contentType", "application/json");
-
-        setBody(body);
-
-        setRendered(false);
-    }
-
-    public void send(String destination, NativeArray body) {
-        this.responseDestination = destination;
-        this.send(body);
+    public void json(Object obj) throws ServiceScriptException {
+        throw new ServiceScriptException("Invalid send() call, JMS json() must have 2 parameters, json(queueName, content)");
     }
 
     /**
@@ -59,18 +51,35 @@ public class JMSResponse extends EngineResponse {
      * @param body
      */
     public void json(String destination, Object body) {
-        this.responseDestination = destination;
-        this.json(body);
-    }
-
-    public void json(Object body) {
         getHeaders().put("contentType", "application/json");
-        this.send(body);
+        this.send(destination, body);
     }
 
     @Override
-    public RuntimeResponse _getRuntimeResponse(EngineRequest req, String body) throws Exception {
-        return new JMSRuntimeResponse(body, getHeaders(), req.getHeaders(), responseDestination);
+    public void render(String templateName) throws ServiceScriptException {
+        throw new ServiceScriptException("Invalid send() call, JMS json() must have 2 parameters, send(queueName, content)");
+    }
+
+    @Override
+    public void render(String templateName, Object templateLocals) throws ServiceScriptException {
+        render(templateName);
+    }
+
+    public void render(String destination, String templateName) throws ServiceScriptException {
+        getActiveMessage().setResponseDestination(destination);
+        super.render(templateName);
+        completeActiveMessage();
+    }
+
+    public void render(String destination, String templateName, Object templateLocals) throws ServiceScriptException {
+        getActiveMessage().setResponseDestination(destination);
+        super.render(templateName, templateLocals);
+        completeActiveMessage();
+    }
+
+    @Override
+    public RuntimeResponse _getRuntimeResponse(EngineRequest req, EngineResponseMessage message, String body) throws Exception {
+        return new JMSRuntimeResponse(body, message.getHeaders(), req.getHeaders(), message.getResponseDestination());
     }
 
 }

@@ -42,6 +42,7 @@ public class JSEngineQueue extends GenericEngineQueue {
                 globalScope = engine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
             }
 
+            loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", globalScope, engine);
             loadAndSealScript("lodash-2.4.1.js","lib/lodash-2.4.1.min", "_", globalScope, engine);
             loadAndSealScript("moment.js","lib/moment-2.8.2.min", "moment", globalScope, engine);
             loadAndSealScript("amanda.js","lib/amanda-0.4.8.min", "amanda", globalScope, engine);

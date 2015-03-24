@@ -2,6 +2,7 @@ package com.sandbox.runtime.models.http;
 
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
+import com.sandbox.runtime.models.EngineResponseMessage;
 import com.sandbox.runtime.models.RuntimeResponse;
 import jdk.nashorn.internal.objects.NativeArray;
 import jdk.nashorn.internal.runtime.ScriptObject;
@@ -112,7 +113,7 @@ public class HTTPResponse extends EngineResponse {
         return cookies;
     }
 
-    public RuntimeResponse _getRuntimeResponse(EngineRequest req, String body) throws Exception {
+    public RuntimeResponse _getRuntimeResponse(EngineRequest req, EngineResponseMessage message, String body) throws Exception {
         // check for a status code being set
         // if an exception is thrown above, the Proxy will see the error at its end
         // and replace the status code with 500

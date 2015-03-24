@@ -17,11 +17,9 @@ public class JMSRuntimeResponse extends RuntimeResponse {
         this.body = body;
         this.headers = responseHeaders;
         this.error = null;
-        //default response queue to inbound header, override if specified.
-        if(requestHeaders != null && requestHeaders.containsKey("JMSReplyTo")) responseHeaders.put("JMSReplyTo", requestHeaders.get("JMSReplyTo"));
-        if(responseDestination != null) responseHeaders.put("JMSReplyTo", responseDestination);
+        if(responseDestination != null) responseHeaders.put("JMSDestination", responseDestination);
         //if still not set, throw exception
-        if(!responseHeaders.containsKey("JMSReplyTo")) throw new ServiceScriptException("No response queue has been set, either via JMSReplyTo or via send().");
+        if(!responseHeaders.containsKey("JMSDestination")) throw new ServiceScriptException("No response queue has been set, either via JMSReplyTo or via send().");
     }
 
     public JMSRuntimeResponse(com.sandbox.runtime.models.Error error) {

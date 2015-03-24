@@ -1,26 +1,14 @@
 package com.sandbox.runtime.models;
 
 import com.sandbox.runtime.config.Context;
-import com.sandbox.runtime.utils.XMLNodeInvocationHandler;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.StringReader;
-import java.io.StringWriter;
 
 /**
  * Created by drew on 3/08/2014.
@@ -34,24 +22,21 @@ import java.io.StringWriter;
  * xmlDoc.get(..).text()
  * test for xmlDoc.get(..) == null
  */
-public class XMLDoc {
+public class XMLDoc extends XPathNode{
 
     //this is crap, need to fix
     DocumentBuilder db = Context.xmlDocumentBuilder();
 
-    XPathFactory xPathFactory = Context.xPathFactory();
-
     Document doc;
-    XPath xPath;
     NodeList nodes;
     String docString;
-    boolean cached = false;
 
     public XMLDoc(Object body) throws Exception{
+        super();
         try {
             doc = db.parse(new InputSource(new StringReader((String) body)));
-            xPath = xPathFactory.newXPath();
             nodes = doc.getChildNodes();
+            super.setNode(doc);
         } catch(Exception e) {
             System.out.println("Exception parsing XML body: " + e.getMessage());
             throw new Exception("Failed to parse xml body");
@@ -79,67 +64,8 @@ public class XMLDoc {
         return doc.getXmlEncoding();
     }
 
-    /**
-     * Returns the first node matching the xPath search string
-     * @param searchString
-     * @return Node
-     */
-    public <T> T get(String searchString, QName type, Class<T> returnType) {
-        Object obj = null;
-        try {
-            obj = xPath.evaluate(searchString, doc, type);
-        } catch (XPathExpressionException e) {
-            e.printStackTrace();
-        }
-        if(obj == null) return null;
-
-        if(returnType == Node.class){
-            return returnType.cast(XMLNodeInvocationHandler.wrap((Node)(obj)));
-        }else{
-            return returnType.cast(obj);
-        }
-    }
-
-    public Node get(String searchString) {
-        return get(searchString, XPathConstants.NODE, Node.class);
-    }
-
-    /**
-     * Returns all nodes matching the xpath search string
-     * @param searchString
-     * @return NodeList
-     */
-    public NodeList find(String searchString) {
-        NodeList nodeList = null;
-        try {
-            nodeList = (NodeList) xPath.evaluate(searchString, doc, XPathConstants.NODESET);
-        } catch (XPathExpressionException e) {
-            e.printStackTrace();
-        }
-        return nodeList;
-    }
-
     public Element root() {
         return doc.getDocumentElement();
     }
 
-    @Override
-    public String toString() {
-        if (!cached) {
-            try {
-                DOMSource domSource = new DOMSource(doc);
-                StringWriter writer = new StringWriter();
-                StreamResult result = new StreamResult(writer);
-                TransformerFactory tf = TransformerFactory.newInstance();
-                Transformer transformer = tf.newTransformer();
-                transformer.transform(domSource, result);
-                docString = writer.toString();
-            } catch (TransformerException ex) {
-                ex.printStackTrace();
-                docString = null;
-            }
-            cached = true;
-        }
-        return docString;
-    }
 }

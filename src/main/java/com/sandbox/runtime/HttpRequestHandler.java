@@ -112,7 +112,7 @@ public class HttpRequestHandler extends AbstractHandler {
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
             }else{
                 //otherwise process normally
-                runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(sandboxId, sandboxId, httpRequest);
+                runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(sandboxId, sandboxId, httpRequest).get(0);
             }
             runtimeResponse.setDurationMillis(System.currentTimeMillis() - startedRequest);
 

@@ -15,6 +15,7 @@ import com.sandbox.runtime.js.utils.INashornUtils;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
+import com.sandbox.runtime.models.EngineResponseMessage;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sandbox.runtime.models.RuntimeResponse;
@@ -33,8 +34,11 @@ import org.springframework.util.Assert;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -81,7 +85,7 @@ public abstract class Service {
         return sandboxScriptEngine.getConsole();
     }
 
-    public RuntimeResponse handleRequest(String sandboxId, String fullSandboxId, EngineRequest req) {
+    public List<RuntimeResponse> handleRequest(String sandboxId, String fullSandboxId, EngineRequest req) {
         this.sandboxId = sandboxId;
         this.fullSandboxId = fullSandboxId;
         this.req = req;
@@ -95,21 +99,23 @@ public abstract class Service {
             setState();
             loadService(utils);
             runService(box);
-            RuntimeResponse result = postProcessContext(box);
 
-            return result;
+            return postProcessContext(box);
 
         } catch (Exception e) {
+            Throwable cause = e;
+            //unwrap exception, apply logic to the underlying cause if it is wrapped
+            if(e instanceof RuntimeException && e.getCause() != null) cause = e.getCause();
 
             Error error = new Error();
 
-            if (e instanceof IllegalArgumentException) {
-                error = errorUtils.extractError(e);
+            if (cause instanceof IllegalArgumentException) {
+                error = errorUtils.extractError(cause);
 
-            } else if (e instanceof ServiceScriptException) {
-                error = errorUtils.extractError(e);
+            } else if (cause instanceof ServiceScriptException) {
+                error = errorUtils.extractError(cause);
 
-            } else if (e instanceof RuntimeException) {
+            } else if (cause instanceof RuntimeException) {
                 error.setDisplayMessage("There was a problem handling your request. Please try again in a minute");
 
             } else {
@@ -117,7 +123,7 @@ public abstract class Service {
             }
 
             logger.info("Engine: " + sandboxScriptEngine.hashCode() + " - Exception handling the request.", e);
-            return req._getErrorResponse(error);
+            return Arrays.asList(req._getErrorResponse(error));
 
         }
     }
@@ -223,7 +229,7 @@ public abstract class Service {
     }
 
     //after callback execution, get state/response/template etc and process
-    private RuntimeResponse postProcessContext(Sandbox sandbox) throws Exception {
+    private List<RuntimeResponse> postProcessContext(Sandbox sandbox) throws Exception {
         // verify match was found
         if (!sandbox.isMatched()) {
             // the requested path and method.
@@ -234,46 +240,53 @@ public abstract class Service {
         Object convertedState = sandboxScriptEngine.getContext().getAttribute("state");
         saveState(convertedState);
 
-        String _body = null;
+        List<RuntimeResponse> responses = new ArrayList<>();
 
-        // process the response body and build the RuntimeResponse
-        if (res.wasRendered()) {
+        for (EngineResponseMessage message : res.getMessages()){
+            String _body = null;
 
-            Assert.hasText(res.getTemplateName(), "Invalid template name given");
+            // process the response body and build the RuntimeResponse
+            if (message.isRendered()) {
 
-            // get template from cache
-            String template = cache.getRepositoryFile(fullSandboxId, "templates/" + res.getTemplateName() + ".liquid");
+                Assert.hasText(message.getTemplateName(), "Invalid template name given");
 
-            if (template == null) {
-                throw new ServiceScriptException(String.format("Cannot find template with name '%1$s'", res.getTemplateName()));
-            }
+                // get template from cache
+                String template = cache.getRepositoryFile(fullSandboxId, "templates/" + message.getTemplateName() + ".liquid");
 
-            Map templateLocals = res.getTemplateLocals();
-            liquidRenderer.prepareValues(templateLocals);
+                if (template == null) {
+                    throw new ServiceScriptException(String.format("Cannot find template with name '%1$s'", message.getTemplateName()));
+                }
 
-            Map<String, Object> locals = new HashMap<String, Object>();
-            locals.put("res", templateLocals);
-            locals.put("req", req);
-            locals.put("data", templateLocals);
+                Map templateLocals = message.getTemplateLocals();
+                liquidRenderer.prepareValues(templateLocals);
 
-            _body = liquidRenderer.render(template, locals);
+                Map<String, Object> locals = new HashMap<String, Object>();
+                locals.put("res", templateLocals);
+                locals.put("req", req);
+                locals.put("data", templateLocals);
 
-        } else if (res.getBody() == null) {
-            throw new ServiceScriptException("No body has been set in route, you must call one of .json(), .send(), .render() etc");
+                _body = liquidRenderer.render(template, locals);
 
-        } else {
-            if (res.getBody() instanceof ScriptObject || res.getBody() instanceof Map || res.getBody() instanceof Collection || res.getBody() instanceof
-            JSError) {
-                // convert JS object to JSON string
-                _body = mapper.writeValueAsString(res.getBody());
+            } else if (message.getBody() == null) {
+                throw new ServiceScriptException("No body has been set in route, you must call one of .json(), .send(), .render() etc");
 
             } else {
-                // treat everything else as plain text
-                _body = res.getBody().toString();
+                if (message.getBody() instanceof ScriptObject || message.getBody() instanceof Map || message.getBody() instanceof Collection || message.getBody() instanceof
+                        JSError) {
+                    // convert JS object to JSON string
+                    _body = mapper.writeValueAsString(message.getBody());
+
+                } else {
+                    // treat everything else as plain text
+                    _body = message.getBody().toString();
+                }
             }
+            RuntimeResponse runtimeResponse = res._getRuntimeResponse(req, message, _body);
+            responses.add(runtimeResponse);
         }
 
-        return res._getRuntimeResponse(req, _body);
+
+        return responses;
     }
 
     private void setInScope(String name, Object value, SandboxScriptEngine sandboxScriptEngine){

@@ -48,10 +48,13 @@ public class LiquidRendererTest {
         Map<String, Object> vars = new HashMap<String, Object>();
         vars.put("hash", outer);
 
-        String result = new LiquidRenderer().render("{% for item in hash %}{{item[0]}}: {{ item[1].blah }}{% endfor %}", vars);
+        String result = new LiquidRenderer().render("{% for item in hash %}\n{{item[0]}}: {{ item[1].blah }}\n{% endfor %}", vars);
         assertEquals("a.b: meep",result);
+
+        result = new LiquidRenderer().render("{% for item in hash %}stuff!\n{{item[0]}}: {{ item[1].blah }}\nonnewline{% endfor %}", vars);
+        assertEquals("stuff!\n" +
+                "a.b: meep\n" +
+                "onnewline",result);
     }
-
-
 
 }
