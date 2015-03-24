@@ -60,4 +60,9 @@ public class ServiceScriptException extends Exception {
             return String.format("%1$s:%2$s:%3$s %4$s",filename, lineNumber, columnNumber, super.getMessage());
         }
     }
+
+    @Override
+    public String toString() {
+        return getMessage();
+    }
 }
