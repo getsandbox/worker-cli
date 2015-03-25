@@ -113,6 +113,7 @@
 
   // export console
   global.console = new Console(_console, _console)
+  global.print = global.console.log
 
   function _format(f) {
     var formatRegExp = /%[sdj%]/g;
