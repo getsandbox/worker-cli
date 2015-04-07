@@ -133,15 +133,12 @@ public class RouteDetails implements Serializable{
     }
 
     @JsonIgnore
-    public boolean isWildcardMethod(){
+    public boolean isWildcardMethod(String method){
         return method.equals("*") || method.equalsIgnoreCase("all");
     }
 
     public boolean matchesMethod(String method){
-        if(isWildcardMethod()) {
-            return true;
-        }else if(method.equalsIgnoreCase("options")){
-            //always match options
+        if(isWildcardMethod(method)) {
             return true;
         }else{
             return this.method.equalsIgnoreCase(method);
@@ -180,11 +177,11 @@ public class RouteDetails implements Serializable{
         //if headers arent right, skip!
         if(!matchesProperties(properties)) return false;
 
-        //method matches, so continue..
-        ExactMatchURITemplate template = process();
-
         //if paths are exactly the same then match
         if(getPath().equals(url)) return true;
+
+        //method matches, so continue..
+        ExactMatchURITemplate template = process();
 
         //if we have a match, then set it as the best match, because we could match more than one, we want the BEST match.. which i think should be the one with the shortest 'finalMatchGroup'..
         if(template.match(url, urlParams)) {
