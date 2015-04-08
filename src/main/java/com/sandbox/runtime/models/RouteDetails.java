@@ -137,6 +137,11 @@ public class RouteDetails implements Serializable{
         return method.equals("*") || method.equalsIgnoreCase("all");
     }
 
+    @JsonIgnore
+    public boolean isWildcardMethod(){
+        return isWildcardMethod(this.method);
+    }
+
     public boolean matchesMethod(String method){
         if(isWildcardMethod(method)) {
             return true;
