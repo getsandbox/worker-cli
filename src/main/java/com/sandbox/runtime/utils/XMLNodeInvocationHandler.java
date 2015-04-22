@@ -1,5 +1,6 @@
 package com.sandbox.runtime.utils;
 
+import com.sandbox.runtime.models.XPathNode;
 import org.w3c.dom.Node;
 
 import java.lang.reflect.InvocationHandler;
@@ -13,12 +14,14 @@ import java.util.Map;
  */
 public class XMLNodeInvocationHandler implements InvocationHandler {
 
-    static Map<Method, Method> cachedMethodMap = new HashMap<Method, Method>();
+    static Map<String, Method> cachedMethodMap = new HashMap<String, Method>();
 
     Object target = null;
+    XPathNode xPathNode;
 
-    public XMLNodeInvocationHandler(Object target) {
+    public XMLNodeInvocationHandler(Node target) {
         this.target = target;
+        this.xPathNode = new XPathNode(target);
     }
 
     public Object invoke(Object proxy, Method proxyMethod, Object[] args)
@@ -28,23 +31,40 @@ public class XMLNodeInvocationHandler implements InvocationHandler {
         //if someone calls the text() method, reroute it to getTextContent() for backwards compat.
         if("text".equals(methodName)){
             methodName = "getTextContent";
+
+        }else if("get".equals(methodName)){
+            //if .get() is call on node, route to xpathnode obj
+            return handleReturnValue(xPathNode.get((String) args[0]));
+
+        }else if("find".equals(methodName)){
+            //if .find() is call on node, route to xpathnode obj
+            return handleReturnValue(xPathNode.find((String) args[0]));
+
+        }else if("toString".equals(methodName)){
+            //if .find() is call on node, route to xpathnode obj
+            return handleReturnValue(xPathNode.toString());
+
         }
 
         //if we have no target, return null, can't throw an exp as JS will flip out.
         if(target == null) return null;
 
         Method targetMethod = null;
-        if (!cachedMethodMap.containsKey(proxyMethod)) {
-            targetMethod = target.getClass().getMethod(methodName,
-                    proxyMethod.getParameterTypes());
-            cachedMethodMap.put(proxyMethod, targetMethod);
+        String cacheKey = target.getClass().getCanonicalName()+proxyMethod;
+
+        if (!cachedMethodMap.containsKey(cacheKey)) {
+            targetMethod = target.getClass().getMethod(methodName, proxyMethod.getParameterTypes());
+            cachedMethodMap.put(cacheKey, targetMethod);
         } else {
-            targetMethod = cachedMethodMap.get(proxyMethod);
+            targetMethod = cachedMethodMap.get(cacheKey);
         }
         Object retVal = targetMethod.invoke(target, args);
 
-        if(retVal instanceof Node) retVal = XMLNodeInvocationHandler.wrap((Node) retVal);
+        return handleReturnValue(retVal);
+    }
 
+    private Object handleReturnValue(Object retVal){
+        if(retVal instanceof Node) retVal = XMLNodeInvocationHandler.wrap((Node) retVal);
         return retVal;
     }
 
