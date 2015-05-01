@@ -16,26 +16,29 @@ import java.util.Map;
  */
 public class LiquidRenderer {
 
-    public String render (String templateData, Map<String, Object> parameters) {
+    public String render(String templateData, Map<String, Object> parameters, String contentType) {
         //compile template out of raw string, this could be cached for multiple calls.
         Template compiledTemplate = Template.parse(templateData);
 
         //render vars into template
         String rendered = compiledTemplate.render(parameters);
-        return processResponse(rendered);
+        return processResponse(rendered, contentType);
     }
 
-    public String render(String templateData) {
+    public String render(String templateData, String contentType) {
         Template compiledTemplate = Template.parse(templateData);
 
         //render vars into template
         String rendered = compiledTemplate.render();
-        return processResponse(rendered);
+        return processResponse(rendered, contentType);
     }
 
-    public String processResponse(String rendered){
-        //remove empty lines, liqp creates empty lines on {% if %} conditions
-        return rendered.replaceAll("(?m)^\\s*$[\n\r]{1,}", "");
+    public String processResponse(String rendered, String contentType){
+        if(contentType != null && (contentType.contains("xml") || contentType.contains("json"))) {
+            //remove empty lines, liqp creates empty lines on {% if %} conditions, only for json/xml types that have a syntax
+            return rendered.replaceAll("(?m)^\\s*$[\n\r]{1,}", "");
+        }
+        return rendered;
     }
 
     public Map prepareValues(Map<String, Object> values){

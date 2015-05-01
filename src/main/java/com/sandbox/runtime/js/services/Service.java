@@ -257,7 +257,7 @@ public abstract class Service {
             locals.put("req", req);
             locals.put("data", templateLocals);
 
-            _body = liquidRenderer.render(template, locals);
+            _body = liquidRenderer.render(template, locals, res.get("Content-Type"));
 
         } else if (res.getBody() == null) {
             throw new ServiceScriptException("No body has been set in route, you must call one of .json(), .send(), .render() etc");
