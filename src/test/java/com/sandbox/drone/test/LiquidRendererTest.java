@@ -19,7 +19,7 @@ public class LiquidRendererTest {
 
         Map<String, Object> vars = new HashMap<String, Object>();
         vars.put("name","ando");
-        String result = new LiquidRenderer().render("hi {{name}}", vars, null);
+        String result = new LiquidRenderer().render("hi {{name}}", vars);
         assertEquals("hi ando",result);
     }
 
@@ -32,7 +32,7 @@ public class LiquidRendererTest {
         form.put("a.b","ando");
         vars.put("list", list);
 
-        String result = new LiquidRenderer().render("hi {{list[0][\"a.b\"]}}", vars, null);
+        String result = new LiquidRenderer().render("hi {{list[0][\"a.b\"]}}", vars);
         assertEquals("hi ando",result);
     }
 
@@ -48,28 +48,13 @@ public class LiquidRendererTest {
         Map<String, Object> vars = new HashMap<String, Object>();
         vars.put("hash", outer);
 
-        String result = new LiquidRenderer().render("{% for item in hash %}{{item[0]}}: {{ item[1].blah }}{% endfor %}", vars, null);
+        String result = new LiquidRenderer().render("{% for item in hash %}\n{{item[0]}}: {{ item[1].blah }}\n{% endfor %}", vars);
         assertEquals("a.b: meep",result);
+
+        result = new LiquidRenderer().render("{% for item in hash %}stuff!\n{{item[0]}}: {{ item[1].blah }}\nonnewline{% endfor %}", vars);
+        assertEquals("stuff!\n" +
+                "a.b: meep\n" +
+                "onnewline",result);
     }
-
-    @Test
-    public void testRemoveNewlines() throws Exception {
-
-        Map<String, Object> vars = new HashMap<String, Object>();
-        vars.put("name","ando");
-        String result = new LiquidRenderer().render("<xml>\n\n{{name}}</xml>", vars, "application/xml");
-        assertEquals("<xml>\nando</xml>",result);
-    }
-
-    @Test
-    public void testLeaveNewlines() throws Exception {
-
-        Map<String, Object> vars = new HashMap<String, Object>();
-        vars.put("name","ando");
-        String result = new LiquidRenderer().render("hi\n\n{{name}}", vars, null);
-        assertEquals("hi\n\nando",result);
-    }
-
-
 
 }
