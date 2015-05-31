@@ -5,6 +5,7 @@ import jdk.nashorn.internal.runtime.ScriptObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.activation.MimetypesFileTypeMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +21,8 @@ public abstract class EngineResponse {
 
     List<EngineResponseMessage> messages = new ArrayList<>();
     private static final Logger logger = LoggerFactory.getLogger(EngineResponse.class);
+
+    protected static MimetypesFileTypeMap mimeTypes = new MimetypesFileTypeMap();
 
     public EngineResponse() {
         //start response with 1 message, HTTP by default will just have one.

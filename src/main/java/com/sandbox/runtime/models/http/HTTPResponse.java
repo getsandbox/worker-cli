@@ -7,7 +7,6 @@ import com.sandbox.runtime.models.RuntimeResponse;
 import jdk.nashorn.internal.objects.NativeArray;
 import jdk.nashorn.internal.runtime.ScriptObject;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -20,8 +19,6 @@ public class HTTPResponse extends EngineResponse {
 
     private List<String[]> cookies = new ArrayList<String[]>();
     private Integer status = null;
-
-    private static MimetypesFileTypeMap mimeTypes = new MimetypesFileTypeMap();
 
     // Content-Type defaulted to 'application/json'
     public void send(Object body) {

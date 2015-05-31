@@ -77,6 +77,20 @@ public class JMSResponse extends EngineResponse {
         completeActiveMessage();
     }
 
+    // sets the content-type to the mime lookup of type
+    public void type(String type) {
+        String contentType;
+        if (type.contains("/")) {
+            contentType = type;
+        } else if (!type.contains(".")) {
+            contentType = mimeTypes.getContentType("." + type);
+        } else {
+            contentType = mimeTypes.getContentType(type);
+        }
+        // set Content-Type header
+        header("contenType", contentType);
+    }
+
     @Override
     public RuntimeResponse _getRuntimeResponse(EngineRequest req, EngineResponseMessage message, String body) throws Exception {
         return new JMSRuntimeResponse(body, message.getHeaders(), req.getHeaders(), message.getResponseDestination());
