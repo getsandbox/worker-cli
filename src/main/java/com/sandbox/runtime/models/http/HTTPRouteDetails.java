@@ -103,9 +103,6 @@ public class HTTPRouteDetails extends RouteDetails {
     public boolean matchesMethod(String method){
         if(isWildcardMethod()) {
             return true;
-        }else if(method.equalsIgnoreCase("options")){
-            //always match options
-            return true;
         }else{
             return this.method.equalsIgnoreCase(method);
         }
