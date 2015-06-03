@@ -143,6 +143,8 @@ public class RouteDetails implements Serializable{
     }
 
     public boolean matchesMethod(String method){
+        if(method == null || this.method == null) return false;
+
         if(isWildcardMethod(method)) {
             return true;
         }else{
