@@ -97,7 +97,7 @@ public class HTTPRouteDetails extends RouteDetails {
 
     @JsonIgnore
     public boolean isWildcardMethod(){
-        return return method != null && ((method.equals("*") || method.equalsIgnoreCase("all"));
+        return method != null && (method.equals("*") || method.equalsIgnoreCase("all"));
     }
 
     public boolean matchesMethod(String method){
