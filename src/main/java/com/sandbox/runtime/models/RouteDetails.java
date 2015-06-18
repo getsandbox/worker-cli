@@ -69,7 +69,7 @@ public class RouteDetails implements Serializable{
     }
 
     public String getMethod() {
-        return method;
+        return method == null ? "" : method;
     }
 
     public void setMethod(String method) {
@@ -77,7 +77,7 @@ public class RouteDetails implements Serializable{
     }
 
     public String getPath() {
-        return path;
+        return path == null ? "" : path;
     }
 
     public void setPath(String path) {
@@ -185,7 +185,7 @@ public class RouteDetails implements Serializable{
         if(!matchesProperties(properties)) return false;
 
         //if paths are exactly the same then match
-        if(getPath().equals(url)) return true;
+        if (getPath().equals(url)) return true;
 
         //method matches, so continue..
         ExactMatchURITemplate template = process();
