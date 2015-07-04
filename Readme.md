@@ -36,7 +36,7 @@ Options:
 --verbose (Increases logging verbosity, full request and response bodies etc)
 ```
 
-_Note for Windows Users:_ The above commands are for for *nix/mac operating systems that support shell scripts (the binary linked above is basically just a JAR file with a sh wrapper), so Windows users will have to run the standard Java start commands like:
+**Note for Windows Users:** The above commands are for for *nix/mac operating systems that support shell scripts (the binary linked above is basically just a JAR file with a sh wrapper), so Windows users will have to run the standard Java start commands like:
 ```java -jar sandbox --port=8080 run```
 
 
