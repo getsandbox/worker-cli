@@ -94,6 +94,14 @@ public class HttpRequestHandler extends AbstractHandler {
                 cache.setRoutingTableForSandboxId(sandboxId, routingTable);
             }
             MatchedRouteDetails routeMatch = findMatchedRoute(runtimeRequest, routingTable);
+            //if no route match for given request, then log message and send error response.
+            if(routeMatch == null){
+                logger.warn("** Error processing request for {} {} - Invalid route", runtimeRequest.getMethod(), runtimeRequest.getPath() == null ? request.getRequestURI() : runtimeRequest.getPath());
+                response.setStatus(500);
+                response.setHeader("Content-Type","application/json");
+                response.getWriter().write(convertExceptionMessageToResponse("Invalid route"));
+                return;
+            }
 
             //log request with route
             logRequest(runtimeRequest, routeMatch, requestId);
@@ -195,9 +203,7 @@ public class HttpRequestHandler extends AbstractHandler {
     //gets the matching route (if any) out of the routing table
     private MatchedRouteDetails findMatchedRoute(HttpRuntimeRequest request, RoutingTable table) throws Exception {
         MatchedRouteDetails match = table.findMatch(request.getMethod(), request.getUrl(), request.getHeaders());
-        if(match == null){
-            throw new Exception("Invalid route");
-        }
+        if(match == null) return null;
 
         Map<String, String> flattenedPathParams = mapUtils.flattenMultiValue(match.getPathParams(), URITemplate.FINAL_MATCH_GROUP);
         request.setPath(match.getPath());
@@ -207,13 +213,17 @@ public class HttpRequestHandler extends AbstractHandler {
     }
 
     //wraps the exception message to mimic the standard sandbox proxy response
-    private String convertExceptionToResponse(Exception e){
+    private String convertExceptionMessageToResponse(String message){
         ObjectNode errorWrapper = mapper.createObjectNode();
 
-        ObjectNode error = mapper.convertValue(new Error(e.getMessage()), ObjectNode.class);
+        ObjectNode error = mapper.convertValue(new Error(message), ObjectNode.class);
         errorWrapper.put("errors", mapper.convertValue(Arrays.asList(error), ArrayNode.class));
 
         return errorWrapper.toString();
+    }
+
+    private String convertExceptionToResponse(Exception e){
+        return convertExceptionMessageToResponse(e.getMessage());
     }
 
     //map a non-exception response, could be success or error
