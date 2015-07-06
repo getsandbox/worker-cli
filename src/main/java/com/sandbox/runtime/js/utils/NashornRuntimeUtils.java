@@ -3,6 +3,8 @@ package com.sandbox.runtime.js.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.runtime.models.Cache;
+import jdk.nashorn.internal.objects.NativeArray;
+import jdk.nashorn.internal.runtime.ScriptObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +30,26 @@ public class NashornRuntimeUtils implements INashornUtils{
 
     public String getFullSandboxId() { return fullSandboxId; }
 
-    public String jsonStringify(Object o) {
+    public String doJsonStringify(Object o) {
         try {
             return mapper.writeValueAsString(o);
         } catch (JsonProcessingException e) {
             logger.error("Error in jsonStringify with obj: " + o,e);
             return null;
         }
+    }
+
+    //dumb but necessary because of nashorn's auto magic typing nonsense.
+    public String jsonStringify(Object o) {
+        return doJsonStringify(o);
+    }
+
+    public String jsonStringify(ScriptObject o) {
+        return doJsonStringify(o);
+    }
+
+    public String jsonStringify(NativeArray o) {
+        return doJsonStringify(o);
     }
 
     public String readFile(String filename) {
