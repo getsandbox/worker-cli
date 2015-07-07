@@ -19,6 +19,9 @@ The code can be cloned and compiled by itself (Gradle is used for dependency man
 * _Java 8 Update 20 or later_ - important! you actually might not have this, it is pretty recent.
 * Mac or Linux
 
+### Operating System
+The runtime is Java based, so it will run on any OS that Java 8 supports.
+
 ### Commands
 
 The CLI currently supports one action `sandbox run` which will start the runtime with the base directory being the current directory.
@@ -32,6 +35,11 @@ Options:
 --base=<base directory> (Overrides working directory)
 --verbose (Increases logging verbosity, full request and response bodies etc)
 ```
+
+**Note for Windows Users:** The above commands are for for *nix/mac operating systems that support shell scripts (the binary linked above is basically just a JAR file with a sh wrapper), so Windows users will have to run the standard Java start commands like:
+```java -jar sandbox --port=8080 run```
+
+
 
 ## Getting Started
 

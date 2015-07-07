@@ -56,7 +56,7 @@ public class ScriptObjectSerializer extends StdSerializer<ScriptObject> {
                         new StdConverter<ScriptObject, String>() {
                             @Override
                             public String convert(ScriptObject value) {
-                                return NativeDate.toJSON(value, null).toString();
+                                return NativeDate.toISOString(value);
                             }
                         }).createContextual(provider, null);
             }

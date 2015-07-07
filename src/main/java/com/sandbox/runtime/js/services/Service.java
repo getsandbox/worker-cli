@@ -21,6 +21,7 @@ import com.sandbox.runtime.models.RoutingTable;
 import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.SandboxScriptEngine;
 import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.runtime.models.SuppressedServiceScriptException;
 import com.sandbox.runtime.services.LiquidRenderer;
 import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.internal.runtime.ScriptObject;
@@ -122,7 +123,9 @@ public abstract class Service {
                 error.setDisplayMessage("We encountered a system error. Please try again shortly");
             }
 
-            logger.info("Engine: " + sandboxScriptEngine.hashCode() + " - Exception handling the request.", e);
+            //if not suppressed exception then log
+            if(!(e instanceof SuppressedServiceScriptException))
+                logger.info("Engine: " + sandboxScriptEngine.hashCode() + " - Exception handling the request: " + e.getMessage(), e);
             return Arrays.asList(req._getErrorResponse(error));
 
         }

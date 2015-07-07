@@ -31,6 +31,22 @@ public abstract class RouteDetails implements Serializable{
         this.transport = transport;
     }
 
+    public String getMethod() {
+        return method == null ? "" : method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
+    }
+
+    public String getPath() {
+        return path == null ? "" : path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
     public Map<String, String> getProperties() {
         if(properties == null) properties = new HashMap<>();
         return properties;
