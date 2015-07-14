@@ -85,11 +85,6 @@ public class JMSRequest extends EngineRequest {
 
     @Override
     public EngineResponse _getMatchingResponse() {
-        JMSResponse response = new JMSResponse();
-        //if we have a correlation ID set it in the response
-        if(getHeaders().containsKey("JMSCorrelationID")) response.getHeaders().put("JMSCorrelationID", getHeaders().get("JMSCorrelationID"));
-        response.getHeaders().put("JMSDeliveryMode","NON_PERSISTENT");
-
-        return response;
+        return new JMSResponse();
     }
 }
