@@ -10,6 +10,7 @@ import com.sandbox.runtime.models.XMLDoc;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.script.ScriptEngine;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,10 @@ public class JMSRequest extends EngineRequest {
     }
 
     public String destination() {
+        return destination;
+    }
+
+    public String getDestination() {
         return destination;
     }
 
@@ -69,8 +74,9 @@ public class JMSRequest extends EngineRequest {
         return super.getBodyAsString();
     }
 
+    private static List<String> accessibleProperties = new ArrayList();
     public List<String> _getAccessibleProperties() {
-        return super._getAccessibleProperties();
+        return super._getAccessibleProperties(accessibleProperties, JMSRequest.class);
     }
 
     @Override

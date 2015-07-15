@@ -12,7 +12,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,15 +147,15 @@ public abstract class EngineRequest {
         return queryMap;
     }
 
-    private static List<String> accessibleProperties = new ArrayList();
-    public List<String> _getAccessibleProperties() {
+
+    protected List<String> _getAccessibleProperties(List<String> accessibleProperties, Class targetClass) {
         if(!accessibleProperties.isEmpty()) return accessibleProperties;
 
-        for (Field field : this.getClass().getDeclaredFields()){
+        for (Field field : targetClass.getDeclaredFields()){
             if(!Modifier.isPrivate(field.getModifiers())) accessibleProperties.add(field.getName());
         }
 
-        for (Method method: this.getClass().getDeclaredMethods()){
+        for (Method method: targetClass.getDeclaredMethods()){
             if(Modifier.isPublic(method.getModifiers())) accessibleProperties.add(method.getName());
         }
 

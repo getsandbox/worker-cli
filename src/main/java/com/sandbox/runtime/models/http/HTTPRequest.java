@@ -58,7 +58,15 @@ public class HTTPRequest extends EngineRequest{
         return path;
     }
 
+    public String getPath() {
+        return path;
+    }
+
     public String method() {
+        return method;
+    }
+
+    public String getMethod() {
         return method;
     }
 
@@ -66,7 +74,15 @@ public class HTTPRequest extends EngineRequest{
         return query;
     }
 
+    public Map<String, String> getQuery() {
+        return query;
+    }
+
     public Map<String, String> params() {
+        return params;
+    }
+
+    public Map<String, String> getParams() {
         return params;
     }
 
@@ -74,11 +90,23 @@ public class HTTPRequest extends EngineRequest{
         return cookies;
     }
 
+    public Map<String, String> getCookies() {
+        return cookies;
+    }
+
     public List<String> accepted() {
         return accepted;
     }
 
+    public List<String> getAccepted() {
+        return accepted;
+    }
+
     public String url() {
+        return url;
+    }
+
+    public String getUrl() {
         return url;
     }
 
@@ -115,8 +143,9 @@ public class HTTPRequest extends EngineRequest{
         return super.getBodyAsString();
     }
 
+    private static List<String> accessibleProperties = new ArrayList();
     public List<String> _getAccessibleProperties() {
-        return super._getAccessibleProperties();
+        return super._getAccessibleProperties(accessibleProperties, HTTPRequest.class);
     }
 
     public Exception _getNoRouteDefinitionException(){
