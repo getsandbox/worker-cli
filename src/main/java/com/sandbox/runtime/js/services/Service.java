@@ -253,14 +253,20 @@ public abstract class Service {
             }
 
             Map templateLocals = res.getTemplateLocals();
-            liquidRenderer.prepareValues(templateLocals);
 
-            Map<String, Object> locals = new HashMap<String, Object>();
-            locals.put("res", templateLocals);
-            locals.put("req", req);
-            locals.put("data", templateLocals);
+            //allow unrendered templates to be passed, special param to support edge cases
+            if(templateLocals != null && templateLocals.get("_passUnrenderedTemplate") != null){
+                _body = template;
+            }else{
+                liquidRenderer.prepareValues(templateLocals);
 
-            _body = liquidRenderer.render(template, locals);
+                Map<String, Object> locals = new HashMap<String, Object>();
+                locals.put("res", templateLocals);
+                locals.put("req", req);
+                locals.put("data", templateLocals);
+
+                _body = liquidRenderer.render(template, locals);
+            }
 
         } else if (res.getBody() == null) {
             throw new ServiceScriptException("No body has been set in route, you must call one of .json(), .send(), .render() etc");
