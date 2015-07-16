@@ -36,6 +36,10 @@ public class NashornSerializer {
 
     public String serialize(Object value){
         Object result = jsonParser.callMember("stringify", value, null, 2);
+        if(!(result instanceof String)){
+            result = "null";
+            logger.warn("Serialized unsupported object, returning null..");
+        }
         return (String) result;
     }
 
