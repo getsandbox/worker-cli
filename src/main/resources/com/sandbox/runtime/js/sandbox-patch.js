@@ -1,9 +1,5 @@
 (function(global) {
 
-  JSON.stringify = function(o) {
-    return nashornUtils.jsonStringify(o);
-  }
-
   var mock = {
 
     //<path> <method> <properties {}> <callback>
