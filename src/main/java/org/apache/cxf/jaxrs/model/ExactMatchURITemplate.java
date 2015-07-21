@@ -81,11 +81,12 @@ public final class ExactMatchURITemplate {
         }
         literals = literalChars.toString();
 
-        int endPos = patternBuilder.length() - 1;
-        boolean endsWithSlash = (endPos >= 0) ? patternBuilder.charAt(endPos) == '/' : false;
-        if (endsWithSlash) {
-            patternBuilder.deleteCharAt(endPos);
-        }
+        //do not remove the last char if it is a slash, exact match should allow a trailing slash if they want it
+//        int endPos = patternBuilder.length() - 1;
+//        boolean endsWithSlash = (endPos >= 0) ? patternBuilder.charAt(endPos) == '/' : false;
+//        if (endsWithSlash) {
+//            patternBuilder.deleteCharAt(endPos);
+//        }
         //do not append a match all, match exactly
 //        patternBuilder.append(LIMITED_REGEX_SUFFIX);
 
