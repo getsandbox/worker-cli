@@ -1,6 +1,5 @@
 package com.sandbox.runtime.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,7 +7,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.models.Console;
-import com.sandbox.runtime.js.serializers.NashornSerializer;
+import com.sandbox.runtime.js.serializers.ScriptObjectMirrorSerializer;
+import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
+import com.sandbox.runtime.js.serializers.UndefinedSerializer;
 import com.sandbox.runtime.js.services.JSEngineQueue;
 import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.js.utils.INashornUtils;
@@ -19,9 +20,6 @@ import com.sandbox.runtime.models.SandboxScriptEngine;
 import com.sandbox.runtime.services.CommandLineProcessor;
 import com.sandbox.runtime.services.InMemoryCache;
 import com.sandbox.runtime.services.LiquidRenderer;
-import com.sandbox.runtime.js.serializers.ScriptObjectMirrorSerializer;
-import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
-import com.sandbox.runtime.js.serializers.UndefinedSerializer;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,9 +95,6 @@ public class Context {
 
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
-        mapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return mapper;
     }
 
