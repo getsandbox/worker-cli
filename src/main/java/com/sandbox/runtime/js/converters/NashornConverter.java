@@ -2,6 +2,7 @@ package com.sandbox.runtime.js.converters;
 
 import com.sandbox.runtime.js.models.JSError;
 import jdk.nashorn.internal.objects.Global;
+import jdk.nashorn.internal.runtime.Property;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import jdk.nashorn.internal.runtime.arrays.ArrayData;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by nickhoughton on 8/08/2014.
@@ -58,9 +60,9 @@ public class NashornConverter {
         if(object != null && (object instanceof List || object.getClass().isArray() )) {
             List listObject = null;
             //if an array but not a list (String[] etc), convert to list to use same logic
-            if(object instanceof List){
+            if (object instanceof List) {
                 listObject = (List) object;
-            }else{
+            } else {
                 listObject = getListFromPrimitive(object);
             }
 
@@ -77,7 +79,14 @@ public class NashornConverter {
 
             Map mapObject = (Map)object;
             for (Object hashKey : mapObject.keySet()){
-                nativeObject.put(hashKey, convert(global, mapObject.get(hashKey)), false);
+                Object convertedValue = convert(global, mapObject.get(hashKey));
+                nativeObject.put(hashKey, convertedValue, false);
+
+                //if our source map is a case insensitive treemap
+                if(object instanceof TreeMap && ((TreeMap) object).comparator().getClass() == String.CASE_INSENSITIVE_ORDER.getClass()) {
+                    //also put lowercase variant of key, can use it later to do case insensitive gets
+                    nativeObject.addOwnProperty(hashKey.toString().toLowerCase(), Property.NOT_ENUMERABLE, convertedValue);
+                }
             }
 
             return nativeObject;

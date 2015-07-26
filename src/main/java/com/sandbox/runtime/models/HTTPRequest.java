@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.js.models.JsonNode;
 import com.sandbox.runtime.utils.URISupport;
+import jdk.nashorn.internal.runtime.ScriptObject;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.script.ScriptEngine;
@@ -24,11 +25,11 @@ public class HTTPRequest {
 
     final String path;
     final String method;
-    final Map<String, String> headers;
+    final ScriptObject headers;
     final Map<String, String> properties;
-    final Map<String, String> query;
-    final Map<String, String> params;
-    final Map<String, String> cookies;
+    final ScriptObject query;
+    final ScriptObject params;
+    final ScriptObject cookies;
     final Object body;
     final String contentType;
     final String ip;
@@ -41,16 +42,21 @@ public class HTTPRequest {
     public HTTPRequest(ScriptEngine scriptEngine, String path, String method, Map<String, String> headers,
                        Map<String, String> properties, Map<String, String> query, Map<String, String> params,
                        Map<String, String> cookies, Object body, String contentType,
-                       String ip, List<String> accepted, String url) throws ServiceScriptException {
+                       String ip, List<String> accepted, String url) throws Exception {
 
         // set default values
         this.path = path != null ? path : "";
         this.method = method != null ? method : "";
-        this.headers = headers != null ? headers : new HashMap<String, String>();
+        Map javaHeaders = headers != null ? headers : new HashMap<String, String>();
+        this.headers = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaHeaders);
+        Map javaQuery= query != null ? query : new HashMap<String, String>();
+        this.query = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaQuery);
+        Map javaParams= params != null ? params : new HashMap<String, String>();
+        this.params = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaParams);
+        Map javaCookies= cookies != null ? cookies : new HashMap<String, String>();
+        this.cookies = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaCookies);
+
         this.properties = properties != null ? properties : new HashMap<String, String>();
-        this.query = query != null ? query : new HashMap<String, String>();
-        this.params = params != null ? params : new HashMap<String, String>();
-        this.cookies = cookies != null ? cookies : new HashMap<String, String>();
         this.contentType = contentType != null ? contentType : "";
         this.ip = ip != null ? ip : "";
         this.accepted = accepted != null ? accepted : new ArrayList<String>();
@@ -88,7 +94,8 @@ public class HTTPRequest {
 
     public String get(String headerName){
         if(getHeaders() == null) return null;
-        return getHeaders().get(headerName);
+        //get lowercase key as should be case insensitive
+        return getHeaders().get(headerName.toLowerCase()).toString();
     }
 
     public boolean is(String type){
@@ -104,7 +111,7 @@ public class HTTPRequest {
             contentType = mimeTypes.getContentType(type);
         }
 
-        return headers.get("Content-Type").toLowerCase().startsWith(contentType.toLowerCase());
+        return headers.get("Content-Type").toString().toLowerCase().startsWith(contentType.toLowerCase());
     }
 
     public String getPath() {
@@ -115,7 +122,7 @@ public class HTTPRequest {
         return method;
     }
 
-    public Map<String, String> getHeaders() {
+    public ScriptObject getHeaders() {
         return headers;
     }
 
@@ -123,15 +130,15 @@ public class HTTPRequest {
         return properties;
     }
 
-    public Map<String, ?> getQuery() {
+    public ScriptObject getQuery() {
         return query;
     }
 
-    public Map<String, String> getParams() {
+    public ScriptObject getParams() {
         return params;
     }
 
-    public Map<String, String> getCookies() {
+    public ScriptObject getCookies() {
         return cookies;
     }
 

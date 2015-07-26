@@ -2,7 +2,6 @@ package com.sandbox.runtime.js.converters;
 
 import com.sandbox.runtime.models.HTTPRequest;
 import com.sandbox.runtime.models.HttpRuntimeRequest;
-import com.sandbox.runtime.models.ServiceScriptException;
 import org.springframework.stereotype.Component;
 
 import javax.script.ScriptEngine;
@@ -13,7 +12,7 @@ import javax.script.ScriptEngine;
 @Component
 public class HTTPRequestConverter {
 
-    public HTTPRequest fromInstanceHttpRequest(ScriptEngine scriptEngine, HttpRuntimeRequest request) throws ServiceScriptException {
+    public HTTPRequest fromInstanceHttpRequest(ScriptEngine scriptEngine, HttpRuntimeRequest request) throws Exception {
 
         return new HTTPRequest(scriptEngine,
                 request.getPath(),
