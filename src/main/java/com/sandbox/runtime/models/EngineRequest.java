@@ -125,7 +125,7 @@ public abstract class EngineRequest {
     }
 
     @JsonIgnore
-    public String getBodyAsString() { return body.toString(); }
+    public String getBodyAsString() { return body == null ? "" : body.toString(); }
 
     private HashMap<String, String> decodeBody(String body) throws Exception{
         HashMap<String, String> queryMap = new HashMap<>();

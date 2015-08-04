@@ -7,6 +7,7 @@ import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.models.XMLDoc;
+import jdk.nashorn.internal.runtime.ScriptObject;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.script.ScriptEngine;
@@ -26,6 +27,16 @@ public class JMSRequest extends EngineRequest {
     public JMSRequest(ScriptEngine scriptEngine, String destination, Map<String, String> headers, Map<String, String> properties, Object body, String contentType, String ip) throws Exception {
         super(scriptEngine, headers, properties, body, contentType, ip);
         this.destination = destination;
+    }
+
+    @Override
+    public ScriptObject headers() {
+        return super.headers();
+    }
+
+    @Override
+    public ScriptObject getHeaders() {
+        return super.getHeaders();
     }
 
     public String destination() {

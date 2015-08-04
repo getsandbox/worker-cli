@@ -76,6 +76,16 @@ public class HTTPRequest extends EngineRequest{
         return method;
     }
 
+    @Override
+    public ScriptObject headers() {
+        return super.headers();
+    }
+
+    @Override
+    public ScriptObject getHeaders() {
+        return super.getHeaders();
+    }
+
     public ScriptObject query() {
         return query;
     }
