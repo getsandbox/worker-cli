@@ -93,7 +93,7 @@ public class JMSResponse extends EngineResponse {
 
     @Override
     public RuntimeResponse _getRuntimeResponse(EngineRequest req, EngineResponseMessage message, String body) throws Exception {
-        return new JMSRuntimeResponse(body, message.getHeaders(), req.getHeaders(), message.getResponseDestination());
+        return new JMSRuntimeResponse(body, message.getHeaders(), message.getResponseDestination());
     }
 
 }

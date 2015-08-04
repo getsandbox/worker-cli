@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.js.models.JsonNode;
 import com.sandbox.runtime.utils.URISupport;
+import jdk.nashorn.internal.runtime.ScriptObject;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.script.ScriptEngine;
@@ -21,7 +22,7 @@ import java.util.Map;
  */
 public abstract class EngineRequest {
 
-    final Map<String, String> headers;
+    final ScriptObject headers;
     final Map<String, String> properties;
     final Object body;
     final String contentType;
@@ -31,10 +32,11 @@ public abstract class EngineRequest {
     private static MimetypesFileTypeMap mimeTypes = new MimetypesFileTypeMap();
 
     public EngineRequest(ScriptEngine scriptEngine, Map<String, String> headers,
-                         Map<String, String> properties, Object body, String contentType, String ip) throws ServiceScriptException {
+                         Map<String, String> properties, Object body, String contentType, String ip) throws Exception {
 
         // set default values
-        this.headers = headers != null ? headers : new HashMap<String, String>();
+        Map javaHeaders = headers != null ? headers : new HashMap<String, String>();
+        this.headers = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaHeaders);
         this.properties = properties != null ? properties : new HashMap<String, String>();
         this.contentType = contentType != null ? contentType : "";
         this.ip = ip != null ? ip : "";
@@ -70,7 +72,8 @@ public abstract class EngineRequest {
 
     public String get(String headerName){
         if(getHeaders() == null) return null;
-        return getHeaders().get(headerName);
+        //get lowercase key as should be case insensitive
+        return getHeaders().get(headerName.toLowerCase()).toString();
     }
 
     public abstract boolean is(String type);
@@ -89,11 +92,14 @@ public abstract class EngineRequest {
             contentType = mimeTypes.getContentType(type);
         }
 
-        return headers.get(header).toLowerCase().startsWith(contentType.toLowerCase());
+        return headers.get(header).toString().toLowerCase().startsWith(contentType.toLowerCase());
     }
 
+    public ScriptObject headers() {
+        return headers;
+    }
 
-    public Map<String, String> getHeaders() {
+    public ScriptObject getHeaders() {
         return headers;
     }
 
@@ -119,7 +125,7 @@ public abstract class EngineRequest {
     }
 
     @JsonIgnore
-    public String getBodyAsString() { return body == null ? "" : body.toString(); }
+    public String getBodyAsString() { return body.toString(); }
 
     private HashMap<String, String> decodeBody(String body) throws Exception{
         HashMap<String, String> queryMap = new HashMap<>();

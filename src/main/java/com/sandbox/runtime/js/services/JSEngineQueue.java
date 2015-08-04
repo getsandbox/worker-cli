@@ -27,42 +27,19 @@ public class JSEngineQueue extends GenericEngineQueue {
         super(context, targetInQueue);
     }
 
-    //executed once when the engine is created, load in a seal all the libs
+    //executed once when the engine is created
     @Override
     protected SandboxScriptEngine initializeEngine(SandboxScriptEngine sandboxEngine){
         logger.debug("Initializing engine..");
-
-        try {
-            //apply generic configuration before queueing
-            ScriptEngine engine = sandboxEngine.getEngine();
-
-            Bindings globalScope = engine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
-            if(globalScope == null) {
-                engine.getContext().setBindings(new SimpleBindings(), ScriptContext.GLOBAL_SCOPE);
-                globalScope = engine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
-            }
-
-            loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", globalScope, engine);
-            loadAndSealScript("lodash-2.4.1.js","lib/lodash-2.4.1.min", "_", globalScope, engine);
-            loadAndSealScript("moment.js","lib/moment-2.8.2.min", "moment", globalScope, engine);
-            loadAndSealScript("amanda.js","lib/amanda-0.4.8.min", "amanda", globalScope, engine);
-            loadAndSealScript("validator.js","lib/validator.min", "validator", globalScope, engine);
-            loadAndSealScript("sandbox-validator.js","sandbox-validator", "sandboxValidator", globalScope, engine);
-
-            engine.eval("quit = undefined",globalScope);
-
-        } catch (ScriptException e) {
-            logger.error("Error configuring script engine",e);
-        }
+        //noop not really needed anymore, because nashorn now has a code cache we can do it in the prepare stage and use the same context, simplifies things.
 
         return sandboxEngine;
     }
 
-    private void loadAndSealScript(String name, String file, String objectName, Bindings globalScope, ScriptEngine engine) throws ScriptException {
-        globalScope.put(ScriptEngine.FILENAME, name);
-        engine.eval(FileUtils.loadJSFromResource(file), globalScope);
-        engine.eval("Object.freeze(" + objectName + "); Object.seal(" + objectName + ");", globalScope);
-        globalScope.put(objectName, engine.eval(objectName, globalScope));
+    private void loadAndSealScript(String name, String file, String objectName, Bindings scope, ScriptEngine engine) throws ScriptException {
+        scope.put(ScriptEngine.FILENAME, name);
+        engine.eval(FileUtils.loadJSFromResource(file), scope);
+        engine.eval("Object.freeze(" + objectName + "); Object.seal(" + objectName + ");", scope);
     }
 
     //this is the executed per request, so everytime the engine goes back into the queue this runs to clear any junk the user might have left
@@ -73,18 +50,27 @@ public class JSEngineQueue extends GenericEngineQueue {
 
         NashornRuntimeUtils nashornRuntimeUtils = (NashornRuntimeUtils) context.getBean("nashornUtils","temporary");
 
-        final Bindings globalScope = sandboxEngine.getEngine().getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
         final Bindings engineScope = new SimpleBindings();
         final ScriptContext ctx = new SimpleScriptContext();
-        ctx.setBindings(globalScope, ScriptContext.GLOBAL_SCOPE);
         ctx.setBindings(engineScope, ScriptContext.ENGINE_SCOPE);
-        ctx.setAttribute("_console", sandboxEngine.getConsole(),ScriptContext.ENGINE_SCOPE);
+        ctx.setAttribute("_console", sandboxEngine.getConsole(), ScriptContext.ENGINE_SCOPE);
 
-        ctx.setAttribute("nashornUtils", nashornRuntimeUtils,ScriptContext.ENGINE_SCOPE);
+        ctx.setAttribute("nashornUtils", nashornRuntimeUtils, ScriptContext.ENGINE_SCOPE);
+
+        try {
+            loadAndSealScript("lodash-2.4.1.js","lib/lodash-2.4.1.min", "_", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("moment.js", "lib/moment-2.8.2.min", "moment", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("amanda.js", "lib/amanda-0.4.8.min", "amanda", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("validator.js", "lib/validator.min", "validator", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("sandbox-validator.js", "sandbox-validator", "sandboxValidator", engineScope, sandboxEngine.getEngine());
+        } catch (ScriptException e) {
+            logger.error("Error loading 3rd party JS", e);
+        }
 
         // monkey patch nashorn
         try {
-            globalScope.put(ScriptEngine.FILENAME, "<sandbox-internal>");
+            engineScope.put(ScriptEngine.FILENAME, "<sandbox-internal>");
             sandboxEngine.getEngine().eval(FileUtils.loadJSFromResource("sandbox-patch"), ctx);
         } catch (ScriptException e) {
             logger.error("Error postProcessing engine",e);

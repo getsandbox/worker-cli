@@ -1,12 +1,14 @@
 package com.sandbox.runtime.models.http;
 
 
+import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.models.XMLDoc;
+import jdk.nashorn.internal.runtime.ScriptObject;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.script.ScriptEngine;
@@ -22,9 +24,9 @@ public class HTTPRequest extends EngineRequest{
 
     final String path;
     final String method;
-    final Map<String, String> query;
-    final Map<String, String> params;
-    final Map<String, String> cookies;
+    final ScriptObject query;
+    final ScriptObject params;
+    final ScriptObject cookies;
     final List<String> accepted;
     final String url;
 
@@ -33,23 +35,27 @@ public class HTTPRequest extends EngineRequest{
     public HTTPRequest(ScriptEngine scriptEngine, String path, String method, Map<String, String> headers,
                        Map<String, String> properties, Map<String, String> query, Map<String, String> params,
                        Map<String, String> cookies, Object body, String contentType,
-                       String ip, List<String> accepted, String url) throws ServiceScriptException {
+                       String ip, List<String> accepted, String url) throws Exception {
 
         super(scriptEngine, headers, properties, body, contentType, ip);
 
         // set default values
         this.path = path != null ? path : "";
         this.method = method != null ? method : "";
-        this.query = query != null ? query : new HashMap<String, String>();
-        this.params = params != null ? params : new HashMap<String, String>();
-        this.cookies = cookies != null ? cookies : new HashMap<String, String>();
+        Map javaQuery= query != null ? query : new HashMap<String, String>();
+        this.query = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaQuery);
+        Map javaParams= params != null ? params : new HashMap<String, String>();
+        this.params = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaParams);
+        Map javaCookies= cookies != null ? cookies : new HashMap<String, String>();
+        this.cookies = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaCookies);
         this.accepted = accepted != null ? accepted : new ArrayList<String>();
         this.url = url != null ? url : "";
     }
 
     public String get(String headerName){
         if(getHeaders() == null) return null;
-        return getHeaders().get(headerName);
+        //get lowercase key as should be case insensitive
+        return getHeaders().get(headerName.toLowerCase()).toString();
     }
 
     //using lowercase, non get prefixed method names so JS can find them when we do 'req.query.blah'.
@@ -70,27 +76,27 @@ public class HTTPRequest extends EngineRequest{
         return method;
     }
 
-    public Map<String, ?> query() {
+    public ScriptObject query() {
         return query;
     }
 
-    public Map<String, String> getQuery() {
+    public ScriptObject getQuery() {
         return query;
     }
 
-    public Map<String, String> params() {
+    public ScriptObject params() {
         return params;
     }
 
-    public Map<String, String> getParams() {
+    public ScriptObject getParams() {
         return params;
     }
 
-    public Map<String, String> cookies() {
+    public ScriptObject cookies() {
         return cookies;
     }
 
-    public Map<String, String> getCookies() {
+    public ScriptObject getCookies() {
         return cookies;
     }
 
@@ -113,10 +119,6 @@ public class HTTPRequest extends EngineRequest{
     @Override
     public boolean is(String type) {
         return super.is(type, "Content-Type");
-    }
-
-    public Map<String, String> headers() {
-        return super.getHeaders();
     }
 
     public Map<String, String> properties() {

@@ -23,7 +23,7 @@ public class JMSRequest extends EngineRequest {
 
     private final String destination;
 
-    public JMSRequest(ScriptEngine scriptEngine, String destination, Map<String, String> headers, Map<String, String> properties, Object body, String contentType, String ip) throws ServiceScriptException {
+    public JMSRequest(ScriptEngine scriptEngine, String destination, Map<String, String> headers, Map<String, String> properties, Object body, String contentType, String ip) throws Exception {
         super(scriptEngine, headers, properties, body, contentType, ip);
         this.destination = destination;
     }
@@ -43,11 +43,9 @@ public class JMSRequest extends EngineRequest {
 
     public String get(String headerName){
         if(getHeaders() == null) return null;
-        return getHeaders().get(headerName);
-    }
+        //get lowercase key as should be case insensitive
+        return getHeaders().get(headerName.toLowerCase()).toString();
 
-    public Map<String, String> headers() {
-        return super.getHeaders();
     }
 
     public Map<String, String> properties() {

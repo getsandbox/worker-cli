@@ -13,7 +13,7 @@ public class JMSRuntimeResponse extends RuntimeResponse {
     public JMSRuntimeResponse() {
     }
 
-    public JMSRuntimeResponse(String body, Map<String, String> responseHeaders, Map<String, String> requestHeaders, String responseDestination) throws Exception {
+    public JMSRuntimeResponse(String body, Map<String, String> responseHeaders, String responseDestination) throws Exception {
         this.body = body;
         this.headers = responseHeaders;
         this.error = null;
