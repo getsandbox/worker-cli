@@ -4,7 +4,8 @@
 
 Sandbox Runtime is the core processing component of the Sandbox product, it is responsible for executing HTTP requests against your definition files (main.js etc) and templates (template.liquid) to produce a response. 
 
-This project consists of both the core runtime code, and a lightweight wrapper to simplify command line use. The compiled version is around 10mb and can be run on mac and linux. 
+This project consists of both the core runtime code, and a lightweight wrapper to simplify command line use. The compiled version is around 10mb and can be run on mac and linux.
+
 
 ## Installation
 
@@ -40,6 +41,10 @@ Options:
 ## Getting Started
 
 For a basic example checkout the `examples` directory, more detail is available on the Sandbox [Getting Started](https://getsandbox.com/docs/getting-started) and the [API Definition](https://getsandbox.com/docs/sandbox-api) pages.
+
+## Sandbox-configuration extension
+
+Sandbox-configuration is an extention to the Sandbox Runtime that allows you to control the timeouts and failures of your routes. The code is available [here](https://github.com/luisrpp/sandbox-configuration).
 
 ## License
 
