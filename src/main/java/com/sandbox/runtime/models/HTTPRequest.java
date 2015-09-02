@@ -180,8 +180,7 @@ public class HTTPRequest {
         }
     }
 
-    @JsonIgnore
-    public void wait(Long millis) {
+    public void sleep(long millis) {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
