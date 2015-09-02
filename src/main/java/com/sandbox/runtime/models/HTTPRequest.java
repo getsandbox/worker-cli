@@ -6,9 +6,12 @@ import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.js.models.JsonNode;
 import com.sandbox.runtime.utils.URISupport;
 import jdk.nashorn.internal.runtime.ScriptObject;
+import org.apache.http.client.fluent.Form;
+import org.apache.http.client.fluent.Request;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.script.ScriptEngine;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -168,6 +171,25 @@ public class HTTPRequest {
     }
 
     @JsonIgnore
+    public XMLDoc newXmlDoc(String xml) {
+        try {
+            return new XMLDoc(xml);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public void wait(Long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @JsonIgnore
     public String getBodyAsString() { return body.toString(); }
 
     private HashMap<String, String> decodeBody(String body) throws Exception{
@@ -209,5 +231,61 @@ public class HTTPRequest {
         }
 
         return accessibleProperties;
+    }
+
+    // TODO: Needs refactoring
+    private void sendNotification(String url, String method, Map<String, String> headers, Map<String, String> body)
+            throws IOException {
+        Request request;
+        if (method.equalsIgnoreCase("get")) {
+            request = Request.Get(url);
+
+            for (String key : headers.keySet()) {
+                request.addHeader(key, headers.get(key));
+            }
+        } else {
+            request = Request.Post(url);
+
+            Form form = Form.form();
+            for (String key : body.keySet()) {
+                form.add(key, body.get(key));
+            }
+
+            for (String key : headers.keySet()) {
+                request.addHeader(key, headers.get(key));
+            }
+            request.bodyForm(form.build());
+        }
+
+        request.connectTimeout(5000)
+                .socketTimeout(5000)
+                .execute();
+    }
+
+    // TODO: Needs refactoring
+    public String sendPostNotification(String targetUrl) {
+        try {
+            // Set body
+            Map<String, String> body = new HashMap<>();
+            if (this.body instanceof HashMap) {
+                for (Object key : ((HashMap) this.body).keySet()) {
+                    body.put(key.toString(), ((HashMap) this.body).get(key)
+                            .toString());
+                }
+            }
+
+            // Set headers
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", this.headers.get("Content-Type")
+                    .toString());
+            headers.put("User-Agent", this.headers.get("Content-Type")
+                    .toString());
+
+            sendNotification(targetUrl, "post", headers, body);
+
+            return "{ \"status\": \"OK\", \"message\": \"Request successfully executed!\" }";
+        } catch (IOException e) {
+            return "{ \"status\": \"ERROR\", \"message\": \"" + e.toString() + "\" }";
+        }
     }
 }

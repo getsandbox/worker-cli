@@ -39,6 +39,10 @@ public class HTTPResponse {
                 headers.put("Content-Type", "text/plain");
         }
 
+        if (!headers.containsKey("Access-Control-Allow-Origin")){
+            headers.put("Access-Control-Allow-Origin", "*");
+        }
+
         this.body = body;
 
         // set route matched
