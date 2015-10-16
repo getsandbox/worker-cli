@@ -67,8 +67,6 @@ public class HTTPRequest {
         this.accepted = accepted != null ? accepted : new ArrayList<String>();
         this.url = url != null ? url : "";
 
-        this.properties.putAll(javaHeaders);
-
         Object _body = null;
         XMLDoc _xmlDoc = null;
 
