@@ -31,6 +31,7 @@ public class HTTPRequest {
     final ScriptObject headers;
     final Map<String, String> properties;
     final ScriptObject query;
+    final Map<String, String> paramsMap;
     final ScriptObject params;
     final ScriptObject cookies;
     final Object body;
@@ -56,6 +57,7 @@ public class HTTPRequest {
         this.query = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaQuery);
         Map javaParams= params != null ? params : new HashMap<String, String>();
         this.params = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaParams);
+        this.paramsMap = javaParams;
         Map javaCookies= cookies != null ? cookies : new HashMap<String, String>();
         this.cookies = (ScriptObject) NashornConverter.instance().convert(scriptEngine, javaCookies);
 
@@ -65,6 +67,7 @@ public class HTTPRequest {
         this.accepted = accepted != null ? accepted : new ArrayList<String>();
         this.url = url != null ? url : "";
 
+        this.properties.putAll(javaHeaders);
 
         Object _body = null;
         XMLDoc _xmlDoc = null;
@@ -141,7 +144,11 @@ public class HTTPRequest {
         return params;
     }
 
-    public ScriptObject getCookies() {
+    public Map<String, String> getParamsMap() {
+      return paramsMap;
+   }
+
+   public ScriptObject getCookies() {
         return cookies;
     }
 
