@@ -200,7 +200,7 @@ public class RouteDetails implements Serializable{
 
     //matches based on uncompiled path /blah/{smth}
     public boolean equals(HTTPRequest req){
-        return matchesMethod(req.getMethod()) && req.getPath().equalsIgnoreCase(path) && matchesProperties(req.getProperties());
+        return matchesMethod(req.getMethod()) && req.getPath().equalsIgnoreCase(path) && matchesProperties(req.getHeadersMap());
 
     }
 }
