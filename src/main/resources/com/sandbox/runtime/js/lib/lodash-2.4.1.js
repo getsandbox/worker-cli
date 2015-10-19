@@ -333,7 +333,7 @@
      * @returns {Array} The array from the pool.
      */
     function getArray() {
-        return arrayPool.pop() || [];
+        return [];
     }
 
     /**
@@ -360,18 +360,19 @@
         };
     }
 
-    /**
-     * Releases the given array back to the array pool.
-     *
-     * @private
-     * @param {Array} [array] The array to release.
-     */
-    function releaseArray(array) {
-        array.length = 0;
-        if (arrayPool.length < maxPoolSize) {
-            arrayPool.push(array);
-        }
-    }
+    ///**
+    // * Releases the given array back to the array pool.
+    // *
+    // * @private
+    // * @param {Array} [array] The array to release.
+    // */
+    //function releaseArray(array) {
+    //    if(typeof array == 'Array')
+    //    array.length = 0;
+    //    if (arrayPool.length < maxPoolSize) {
+    //        arrayPool.push(array);
+    //    }
+    //}
 
     /**
      * Releases the given object back to the object pool.
@@ -818,8 +819,8 @@
             });
 
             if (initedStack) {
-                releaseArray(stackA);
-                releaseArray(stackB);
+                //releaseArray(stackA);
+                //releaseArray(stackB);
             }
             return result;
         }
@@ -1206,8 +1207,8 @@
             stackB.pop();
 
             if (initedStack) {
-                releaseArray(stackA);
-                releaseArray(stackB);
+                //releaseArray(stackA);
+                //releaseArray(stackB);
             }
             return result;
         }
@@ -1329,10 +1330,10 @@
                 }
             }
             if (isLarge) {
-                releaseArray(seen.array);
+                //releaseArray(seen.array);
                 releaseObject(seen);
             } else if (callback) {
-                releaseArray(seen);
+                //releaseArray(seen);
             }
             return result;
         }
@@ -2700,8 +2701,8 @@
             while (++index < length) {
                 baseMerge(object, sources[index], callback, stackA, stackB);
             }
-            releaseArray(stackA);
-            releaseArray(stackB);
+            //releaseArray(stackA);
+            //releaseArray(stackB);
             return object;
         }
 
@@ -4039,7 +4040,7 @@
                 var object = result[length];
                 result[length] = object.value;
                 if (!isArr) {
-                    releaseArray(object.criteria);
+                    //releaseArray(object.criteria);
                 }
                 releaseObject(object);
             }
@@ -4532,8 +4533,8 @@
                     releaseObject(cache);
                 }
             }
-            releaseArray(caches);
-            releaseArray(seen);
+            //releaseArray(caches);
+            //releaseArray(seen);
             return result;
         }
 
