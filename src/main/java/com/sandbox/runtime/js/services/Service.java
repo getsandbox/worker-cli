@@ -248,6 +248,10 @@ public abstract class Service {
             // get template from cache
             String template = cache.getRepositoryFile(fullSandboxId, "templates/" + res.getTemplateName() + ".liquid");
 
+            if (template == null && res.getTemplateNameNotFound() != null) {
+               template = cache.getRepositoryFile(fullSandboxId, "templates/" + res.getTemplateNameNotFound() + ".liquid");
+            }
+            
             if (template == null) {
                 throw new ServiceScriptException(String.format("Cannot find template with name '%1$s'", res.getTemplateName()));
             }

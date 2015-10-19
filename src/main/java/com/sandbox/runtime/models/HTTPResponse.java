@@ -22,6 +22,7 @@ public class HTTPResponse {
 
     private boolean rendered;
     private String templateName;
+    private String templateNameNotFound;
     private Map templateLocals;
 
     private static MimetypesFileTypeMap mimeTypes = new MimetypesFileTypeMap();
@@ -37,6 +38,10 @@ public class HTTPResponse {
             // treat everything else as plain text
             if (!headers.containsKey("Content-Type"))
                 headers.put("Content-Type", "text/plain");
+        }
+
+        if (!headers.containsKey("Access-Control-Allow-Origin")){
+            headers.put("Access-Control-Allow-Origin", "*");
         }
 
         this.body = body;
@@ -79,8 +84,9 @@ public class HTTPResponse {
         this.send(body);
     }
 
-    public void render(String templateName, Object templateLocals) {
+    public void render(String templateName, String templateNameNotFound, Object templateLocals) {
         this.templateName = templateName;
+        this.templateNameNotFound = templateNameNotFound;
         Map locals = null;
 
         //be defensive against crap being passed in, only maps are supported. Could be 'Undefined' or any junk.
@@ -102,8 +108,11 @@ public class HTTPResponse {
     }
 
     public void render(String templateName) {
-        this.templateName = templateName;
-        rendered = true;
+        this.render(templateName, new HashMap<>());
+    }
+    
+    public void render(String templateName, Object templateLocals) {
+       this.render(templateName, null, templateLocals);
     }
 
     // if user passes a non-int param Nashorn converts it to 0.
@@ -181,8 +190,12 @@ public class HTTPResponse {
     public String getTemplateName() {
         return templateName;
     }
+    
+    public String getTemplateNameNotFound() {
+      return templateNameNotFound;
+   }
 
-    public Map getTemplateLocals() {
+   public Map getTemplateLocals() {
         return templateLocals;
     }
 

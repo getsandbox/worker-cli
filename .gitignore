@@ -1,1 +1,33 @@
-build
+# Java
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# Eclipse
+.classpath
+.project
+.settings/
+.externalToolBuilders
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# SublimeText
+*.sublime-workspace
+
+# Others
+*.log
+
+#Gradle
+.gradle
+build/
+gradle-app.setting
+!gradle-wrapper.jar
