@@ -92,10 +92,10 @@ public class HTTPRequest {
         this.xmlDoc = _xmlDoc;
     }
 
-    public String get(String headerName){
+    public Object get(String headerName){
         if(getHeaders() == null) return null;
         //get lowercase key as should be case insensitive
-        return getHeaders().get(headerName.toLowerCase()).toString();
+        return getHeaders().get(headerName.toLowerCase());
     }
 
     public boolean is(String type){
