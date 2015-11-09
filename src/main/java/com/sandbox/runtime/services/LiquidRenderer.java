@@ -1,9 +1,12 @@
 package com.sandbox.runtime.services;
 
 
+import com.sandbox.runtime.js.utils.INashornUtils;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import org.jliquid.liqp.Template;
+import org.jliquid.liqp.nodes.LNode;
+import org.jliquid.liqp.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +21,31 @@ import java.util.regex.Pattern;
  */
 public class LiquidRenderer {
 
+    public LiquidRenderer() {
+        Tag.registerTag(new Tag("include") {
+            @Override
+            public Object render(Map<String, Object> context, LNode... nodes) {
+                String fileNameWithoutExt = super.asString(nodes[0].render(context));
+                if(!fileNameWithoutExt.endsWith(".liquid")) fileNameWithoutExt += ".liquid";
+
+                INashornUtils nashornUtils = (INashornUtils) context.get("__nashornUtils");
+                String includeTemplate = nashornUtils.readFile(fileNameWithoutExt);
+                if(includeTemplate == null) throw new LiquidRendererException("Can't find template: " + fileNameWithoutExt);
+                if(Thread.currentThread().getStackTrace().length > 150) throw new LiquidRendererException("Stack level too deep! Possible recursive template.");
+                Template include = Template.parse(includeTemplate);
+
+                // check if there's a optional "with expression"
+                if (nodes.length > 1) {
+                    Object value = nodes[1].render(context);
+                    context.put(fileNameWithoutExt, value);
+                }
+
+                return include.render(context);
+
+            }
+        });
+    }
+
     public String render(String templateData, Map<String, Object> parameters) {
         //compile template out of raw string, this could be cached for multiple calls.
         Template compiledTemplate = Template.parse(prepareTemplate(templateData));
@@ -27,24 +55,16 @@ public class LiquidRenderer {
         return rendered;
     }
 
-    public String render(String templateData) {
-        Template compiledTemplate = Template.parse(prepareTemplate(templateData));
-
-        //render vars into template
-        String rendered = compiledTemplate.render();
-        return rendered;
-    }
-
-    public Map prepareValues(Map<String, Object> values){
+    public Map prepareValues(Map<String, Object> values) {
         return processRenderMap(values);
     }
 
     //this cleans up a template before we parse/use it to render, because of the liquid syntax we often have lines just for syntacic reasons (like for/endfor) that
     //leave new line characters in the output, in a parsed output like json or xml that doesn't matter, for a human readable output this isn't great
-    public String prepareTemplate(String template){
+    public String prepareTemplate(String template) {
         //matches with a end of line (incl whitespace) and a {% %} expression, replaces with just the expression
         //or matches an start of line with a {% %} expression, replaces with just expression
-        Pattern pattern = Pattern.compile("^\\s*(\\{%.*%\\})\\s*[\\r\\n]|\\s*[\\r\\n](\\{%.*%\\})$",Pattern.MULTILINE);
+        Pattern pattern = Pattern.compile("^\\s*(\\{%.*%\\})\\s*[\\r\\n]|\\s*[\\r\\n](\\{%.*%\\})$", Pattern.MULTILINE);
         Matcher m = pattern.matcher(template);
         //replace the match with just the capture group, $1 is the first half $2 is second half, they are mutually exclusive so can put both in
         return m.replaceAll("$1$2");

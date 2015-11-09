@@ -96,7 +96,7 @@ public abstract class Service {
             setState();
             loadService(utils);
             runService(box);
-            HttpRuntimeResponse result = postProcessContext(box);
+            HttpRuntimeResponse result = postProcessContext(box, utils);
 
             return result;
 
@@ -227,7 +227,7 @@ public abstract class Service {
     }
 
     //after callback execution, get state/response/template etc and process
-    private HttpRuntimeResponse postProcessContext(Sandbox sandbox) throws Exception {
+    private HttpRuntimeResponse postProcessContext(Sandbox sandbox, INashornUtils nashornUtils) throws Exception {
         // verify match was found
         if (!sandbox.isMatched()) {
             // the requested path and method.
@@ -264,8 +264,15 @@ public abstract class Service {
                 locals.put("res", templateLocals);
                 locals.put("req", req);
                 locals.put("data", templateLocals);
+                locals.put("__nashornUtils", nashornUtils);
 
-                _body = liquidRenderer.render(template, locals);
+                try {
+                    _body = liquidRenderer.render(template, locals);
+
+                } catch (Exception e) {
+                    //if we get a liquid runtime exception, from our custom tags, then rethrow as a script exception so it gets logged.
+                    throw new ServiceScriptException(e.getMessage());
+                }
             }
 
         } else if (res.getBody() == null) {
