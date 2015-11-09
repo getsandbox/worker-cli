@@ -25,7 +25,7 @@ public class LiquidRenderer {
         Tag.registerTag(new Tag("include") {
             @Override
             public Object render(Map<String, Object> context, LNode... nodes) {
-                String fileNameWithoutExt = super.asString(nodes[0].render(context));
+                String fileNameWithoutExt = "templates/" + super.asString(nodes[0].render(context));
                 if(!fileNameWithoutExt.endsWith(".liquid")) fileNameWithoutExt += ".liquid";
 
                 INashornUtils nashornUtils = (INashornUtils) context.get("__nashornUtils");

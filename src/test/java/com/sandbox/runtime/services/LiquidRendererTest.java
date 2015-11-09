@@ -70,7 +70,7 @@ public class LiquidRendererTest {
 
             @Override
             public String readFile(String filename) {
-                if(filename.equals("blah.liquid")){
+                if(filename.equals("templates/blah.liquid")){
                     return "hi {{name}}";
                 }else{
                     return null;
@@ -100,7 +100,7 @@ public class LiquidRendererTest {
 
             @Override
             public String readFile(String filename) {
-                if(filename.equals("blah.liquid")){
+                if(filename.equals("templates/blah.liquid")){
                     return "hi {{name}}";
                 }else{
                     return null;
