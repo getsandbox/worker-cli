@@ -56,7 +56,6 @@ public abstract class GenericEngineQueue {
         SandboxScriptEngine engine = engines.poll();
         if(engine == null){
             //if failed, probably empty, so just get a fresh one.
-            logger.warn("Had to create engine during processing, engine queue is empty?");
             ScriptEngine scriptEngine = context.getBean(ScriptEngine.class);
             engine = new SandboxScriptEngine(scriptEngine);
 

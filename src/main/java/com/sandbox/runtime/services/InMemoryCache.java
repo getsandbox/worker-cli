@@ -20,6 +20,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -38,6 +39,8 @@ public class InMemoryCache implements Cache {
 
     String state = "{}";
 
+    private HashMap<String, String> fileContents = new HashMap<>();
+
     private static Logger logger = LoggerFactory.getLogger(InMemoryCache.class);
 
     @PostConstruct
@@ -47,9 +50,14 @@ public class InMemoryCache implements Cache {
 
     @Override
     public String getRepositoryFile(String fullSandboxId, String filename) {
+        if(fileContents.containsKey(filename)){
+           return fileContents.get(filename);
+        }
         if(Files.exists(commandLine.getBasePath().resolve(filename))){
             try {
-                return FileUtils.readFileToString(commandLine.getBasePath().resolve(filename).toFile());
+                String result = FileUtils.readFileToString(commandLine.getBasePath().resolve(filename).toFile());
+                fileContents.put(filename, result);
+                return result;
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -108,6 +116,7 @@ public class InMemoryCache implements Cache {
                         for (WatchEvent event : key.pollEvents()) {
                             if(event.context().toString().endsWith(".js")){
                                 setRoutingTableForSandboxId("1",null);
+                                fileContents.clear();
                                 logger.info("Clearing routing table on JS file change");
                             }
                         }
