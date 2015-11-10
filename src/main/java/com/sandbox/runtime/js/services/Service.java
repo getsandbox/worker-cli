@@ -265,10 +265,11 @@ public abstract class Service {
                 //allow unrendered templates to be passed, special param to support edge cases
                 if(templateLocals != null && templateLocals.get("_passUnrenderedTemplate") != null){
                     _body = template;
-                }else{
+                }else {
                     liquidRenderer.prepareValues(templateLocals);
+                }
 
-                    Map<String, Object> locals = new HashMap<String, Object>();
+                Map<String, Object> locals = new HashMap<String, Object>();
                 try {
                     locals.put("res", templateLocals);
                     locals.put("req", req);
