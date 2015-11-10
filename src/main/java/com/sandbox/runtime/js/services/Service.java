@@ -274,6 +274,7 @@ public abstract class Service {
                     locals.put("res", templateLocals);
                     locals.put("req", req);
                     locals.put("data", templateLocals);
+                    locals.put("__nashornUtils", nashornUtils);
 
                     _body = liquidRenderer.render(template, locals);
 
