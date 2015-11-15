@@ -1,9 +1,10 @@
 package com.sandbox.runtime.models.jms;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sandbox.common.models.jms.JMSRuntimeRequest;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.RouteDetails;
-import com.sandbox.runtime.models.RuntimeRequest;
+import com.sandbox.common.models.RuntimeRequest;
 
 import java.util.Map;
 

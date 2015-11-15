@@ -1,13 +1,5 @@
 apply plugin: 'java'
 apply plugin: 'maven'
-
-buildscript {
-    repositories { jcenter() }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.1.1'
-    }
-}
-
 apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = 1.8
@@ -19,8 +11,17 @@ repositories {
     mavenCentral()
 }
 
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+    }
+}
+
 dependencies {
-    compile files('./lib/jliquid.jar')
+    compile project(':model')
+
+    compile files('./libs/jliquid.jar')
     compile 'org.antlr:antlr-runtime:3.4'
 
     compile 'javax.servlet:javax.servlet-api:3.0.1'

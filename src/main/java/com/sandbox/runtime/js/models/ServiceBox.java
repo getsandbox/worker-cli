@@ -2,7 +2,7 @@ package com.sandbox.runtime.js.models;
 
 import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.ScriptSource;
-import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.common.models.ServiceScriptException;
 import com.sandbox.runtime.models.http.HTTPRouteDetails;
 import com.sandbox.runtime.models.jms.JMSRouteDetails;
 import jdk.nashorn.internal.objects.NativeError;

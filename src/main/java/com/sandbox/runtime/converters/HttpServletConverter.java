@@ -1,6 +1,6 @@
 package com.sandbox.runtime.converters;
 
-import com.sandbox.runtime.models.http.HttpRuntimeRequest;
+import com.sandbox.common.models.http.HttpRuntimeRequest;
 import com.sandbox.runtime.utils.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 
 /**
  * Created by nickhoughton on 1/08/2014.

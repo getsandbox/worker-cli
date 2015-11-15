@@ -1,7 +1,7 @@
 package com.sandbox.runtime.js.converters;
 
 import com.sandbox.runtime.models.jms.JMSRequest;
-import com.sandbox.runtime.models.jms.JMSRuntimeRequest;
+import com.sandbox.common.models.jms.JMSRuntimeRequest;
 import org.springframework.stereotype.Component;
 
 import javax.script.ScriptEngine;

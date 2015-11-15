@@ -1,0 +1,3 @@
+[submodule "libs/model"]
+	path = libs/model
+	url = https://github.com/getsandbox/sandbox-model.git

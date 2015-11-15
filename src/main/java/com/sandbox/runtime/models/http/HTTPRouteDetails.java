@@ -1,9 +1,10 @@
 package com.sandbox.runtime.models.http;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sandbox.common.models.http.HttpRuntimeRequest;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.RouteDetails;
-import com.sandbox.runtime.models.RuntimeRequest;
+import com.sandbox.common.models.RuntimeRequest;
 import org.apache.cxf.jaxrs.model.ExactMatchURITemplate;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -140,7 +141,7 @@ public class HTTPRouteDetails extends RouteDetails {
     public boolean matchesRuntimeRequest(RuntimeRequest runtimeRequest) {
         pathParams = new MultivaluedHashMap<>();
 
-        if(runtimeRequest instanceof  HttpRuntimeRequest){
+        if(runtimeRequest instanceof HttpRuntimeRequest){
             HttpRuntimeRequest httpReq = (HttpRuntimeRequest) runtimeRequest;
 
             return isMatch(httpReq.getMethod(), httpReq.getUrl(), pathParams, httpReq.getProperties());

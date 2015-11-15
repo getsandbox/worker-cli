@@ -1,8 +1,9 @@
 package com.sandbox.runtime.models;
 
+import com.sandbox.common.models.RuntimeRequest;
 import com.sandbox.runtime.models.http.HTTPRouteDetails;
-import com.sandbox.runtime.models.http.HttpRuntimeRequest;
-import com.sandbox.runtime.models.jms.JMSRuntimeRequest;
+import com.sandbox.common.models.http.HttpRuntimeRequest;
+import com.sandbox.common.models.jms.JMSRuntimeRequest;
 
 import java.io.Serializable;
 import java.util.ArrayList;

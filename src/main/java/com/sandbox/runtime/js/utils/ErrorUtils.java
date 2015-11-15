@@ -1,7 +1,7 @@
 package com.sandbox.runtime.js.utils;
 
-import com.sandbox.runtime.models.*;
-import com.sandbox.runtime.models.Error;
+import com.sandbox.common.models.ServiceScriptException;
+import com.sandbox.common.models.Error;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -11,7 +11,7 @@ import org.springframework.util.StringUtils;
 @Component
 public class ErrorUtils {
 
-    public com.sandbox.runtime.models.Error extractError(Throwable e) {
+    public Error extractError(Throwable e) {
         Error error = new Error();
 
         if (e instanceof ServiceScriptException) {

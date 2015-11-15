@@ -1,9 +1,10 @@
 package com.sandbox.runtime.models.http;
 
+import com.sandbox.common.models.http.HttpRuntimeResponse;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.EngineResponseMessage;
-import com.sandbox.runtime.models.RuntimeResponse;
+import com.sandbox.common.models.RuntimeResponse;
 import jdk.nashorn.internal.objects.NativeArray;
 import jdk.nashorn.internal.runtime.ScriptObject;
 

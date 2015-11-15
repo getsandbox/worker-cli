@@ -1,11 +1,12 @@
 package com.sandbox.runtime.models.jms;
 
 
+import com.sandbox.common.models.jms.JMSRuntimeResponse;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
-import com.sandbox.runtime.models.Error;
-import com.sandbox.runtime.models.RuntimeResponse;
-import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.common.models.Error;
+import com.sandbox.common.models.RuntimeResponse;
+import com.sandbox.common.models.ServiceScriptException;
 import com.sandbox.runtime.models.XMLDoc;
 import jdk.nashorn.internal.runtime.ScriptObject;
 

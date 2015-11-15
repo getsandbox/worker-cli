@@ -1,0 +1,2 @@
+include ':model'
+project(':model').projectDir = new File(settingsDir, './libs/model')

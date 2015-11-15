@@ -1,5 +1,7 @@
 package com.sandbox.runtime.models;
 
+import com.sandbox.common.models.RuntimeRequest;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;

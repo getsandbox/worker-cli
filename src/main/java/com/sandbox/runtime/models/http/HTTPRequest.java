@@ -1,12 +1,13 @@
 package com.sandbox.runtime.models.http;
 
 
+import com.sandbox.common.models.http.HttpRuntimeResponse;
 import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
-import com.sandbox.runtime.models.Error;
-import com.sandbox.runtime.models.RuntimeResponse;
-import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.common.models.Error;
+import com.sandbox.common.models.RuntimeResponse;
+import com.sandbox.common.models.ServiceScriptException;
 import com.sandbox.runtime.models.XMLDoc;
 import jdk.nashorn.internal.runtime.ScriptObject;
 

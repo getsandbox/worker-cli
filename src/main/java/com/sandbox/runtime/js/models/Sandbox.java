@@ -3,7 +3,7 @@ package com.sandbox.runtime.js.models;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.RouteDetails;
-import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.common.models.ServiceScriptException;
 import jdk.nashorn.internal.objects.NativeError;
 import jdk.nashorn.internal.runtime.ScriptFunction;
 import jdk.nashorn.internal.runtime.ScriptObject;
