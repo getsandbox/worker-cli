@@ -28,13 +28,16 @@ public class JsonNode {
             jsonObject = new HashMap<String, Object>();
         } else {
             try {
+                //bit crap, but some incoming json is encoded already,
+                if(trimmedValue.startsWith("\"") && trimmedValue.endsWith("\"")) json = mapper.writeValueAsString(mapper.readValue(trimmedValue, JsonNode.class));
+
                 //is either JSON, or crappy escaped JSON
-                if (json.startsWith("{") || trimmedValue.startsWith("\"{") && trimmedValue.endsWith("\"")){
+                if (json.startsWith("{")){
 
                     TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
                     jsonObject = mapper.readValue(json, typeRef);
 
-                } else if(json.startsWith("[") || trimmedValue.startsWith("\"[") && trimmedValue.endsWith("\"")){
+                } else if(json.startsWith("[")){
 
                     TypeReference<ArrayList<Object>> typeRef = new TypeReference<ArrayList<Object>>() {};
                     jsonObject = mapper.readValue(json, typeRef);
