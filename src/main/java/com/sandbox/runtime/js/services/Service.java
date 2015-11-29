@@ -11,7 +11,7 @@ import com.sandbox.runtime.js.models.Sandbox;
 import com.sandbox.runtime.js.models.ValidateBox;
 import com.sandbox.runtime.js.utils.ErrorUtils;
 import com.sandbox.runtime.js.utils.FileUtils;
-import com.sandbox.runtime.js.utils.INashornUtils;
+import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.HTTPRequest;
@@ -89,7 +89,7 @@ public abstract class Service {
         this.res = new HTTPResponse();
 
         Sandbox box = new Sandbox(req, res);
-        INashornUtils utils = (INashornUtils) applicationContext.getBean("nashornUtils", fullSandboxId);
+        NashornUtils utils = (NashornUtils) applicationContext.getBean("nashornUtils", fullSandboxId);
 
         try {
             loadContext(box, utils);
@@ -131,7 +131,7 @@ public abstract class Service {
         this.fullSandboxId = fullSandboxId;
 
         ValidateBox box = new ValidateBox();
-        INashornUtils utils = (INashornUtils) applicationContext.getBean("nashornUtils", fullSandboxId);
+        NashornUtils utils = (NashornUtils) applicationContext.getBean("nashornUtils", fullSandboxId);
 
         try {
             // load context
@@ -162,7 +162,7 @@ public abstract class Service {
 
 
     //lower level steps
-    protected INashornUtils loadContext(ISandboxScriptObject _sandbox, INashornUtils nashornUtils) throws Exception {
+    protected NashornUtils loadContext(ISandboxScriptObject _sandbox, NashornUtils nashornUtils) throws Exception {
 
         // bootstrap the context with minimal environment
         setInScope("__mock", _sandbox, sandboxScriptEngine);
@@ -180,7 +180,7 @@ public abstract class Service {
     protected abstract void saveState(Object state) throws Exception;
 
     //load service checks the main file exists and injects/evals it in the context, doesnt trigger the callback tho
-    protected void loadService(INashornUtils nashornUtils) throws Exception {
+    protected void loadService(NashornUtils nashornUtils) throws Exception {
         // get it from cache, throw if not found
         String mainjs = nashornUtils.readFile("main.js");
         if (mainjs == null || mainjs.isEmpty()) {
@@ -227,7 +227,7 @@ public abstract class Service {
     }
 
     //after callback execution, get state/response/template etc and process
-    private HttpRuntimeResponse postProcessContext(Sandbox sandbox, INashornUtils nashornUtils) throws Exception {
+    private HttpRuntimeResponse postProcessContext(Sandbox sandbox, NashornUtils nashornUtils) throws Exception {
         // verify match was found
         if (!sandbox.isMatched()) {
             // the requested path and method.

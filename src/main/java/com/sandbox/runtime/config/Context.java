@@ -12,7 +12,7 @@ import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
 import com.sandbox.runtime.js.serializers.UndefinedSerializer;
 import com.sandbox.runtime.js.services.JSEngineQueue;
 import com.sandbox.runtime.js.services.RuntimeService;
-import com.sandbox.runtime.js.utils.INashornUtils;
+import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
 import com.sandbox.runtime.js.utils.NashornValidationUtils;
 import com.sandbox.runtime.models.Cache;
@@ -111,7 +111,7 @@ public class Context {
     @Bean(name = "nashornValidationUtils")
     @Scope("prototype")
     @Lazy
-    public INashornUtils nashornValidationUtils() { return new NashornValidationUtils(); }
+    public NashornUtils nashornValidationUtils() { return new NashornValidationUtils(); }
 
     @Bean
     @Lazy
