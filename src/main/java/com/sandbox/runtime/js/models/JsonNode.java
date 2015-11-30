@@ -23,10 +23,15 @@ public class JsonNode {
     public JsonNode(String json) throws Exception {
 
         // sanity check
-        if (json == null || "".equals(json.trim())) {
+        String trimmedValue = json.trim();
+        if (json == null || "".equals(trimmedValue)) {
             jsonObject = new HashMap<String, Object>();
         } else {
             try {
+                //bit crap, but some incoming json is encoded already,
+                if(trimmedValue.startsWith("\"") && trimmedValue.endsWith("\"")) json = mapper.writeValueAsString(mapper.readValue(trimmedValue, JsonNode.class));
+
+                //is either JSON, or crappy escaped JSON
                 if (json.startsWith("{")){
 
                     TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
@@ -36,6 +41,8 @@ public class JsonNode {
 
                     TypeReference<ArrayList<Object>> typeRef = new TypeReference<ArrayList<Object>>() {};
                     jsonObject = mapper.readValue(json, typeRef);
+                }else{
+                    jsonObject = new HashMap();
                 }
 
             } catch (Exception e) {

@@ -1,6 +1,6 @@
 package com.sandbox.runtime.services;
 
-import com.sandbox.runtime.js.utils.INashornUtils;
+import com.sandbox.runtime.js.utils.NashornUtils;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import org.jliquid.liqp.Template;
@@ -27,7 +27,7 @@ public class LiquidRenderer {
                 String fileNameWithoutExt = "templates/" + super.asString(nodes[0].render(context));
                 if(!fileNameWithoutExt.endsWith(".liquid")) fileNameWithoutExt += ".liquid";
 
-                INashornUtils nashornUtils = (INashornUtils) context.get("__nashornUtils");
+                NashornUtils nashornUtils = (NashornUtils) context.get("__nashornUtils");
                 String includeTemplate = nashornUtils.readFile(fileNameWithoutExt);
                 if(includeTemplate == null) throw new LiquidRendererException("Can't find template: " + fileNameWithoutExt);
                 if(Thread.currentThread().getStackTrace().length > 150) throw new LiquidRendererException("Stack level too deep! Possible recursive template.");

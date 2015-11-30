@@ -1,6 +1,6 @@
 package com.sandbox.runtime.services;
 
-import com.sandbox.runtime.js.utils.INashornUtils;
+import com.sandbox.runtime.js.utils.NashornUtils;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -62,7 +62,7 @@ public class LiquidRendererTest {
 
         Map<String, Object> vars = new HashMap<String, Object>();
         vars.put("name", "ando");
-        vars.put("__nashornUtils", new INashornUtils() {
+        vars.put("__nashornUtils", new NashornUtils() {
             @Override
             public String jsonStringify(Object o) {
                 return null;
@@ -92,7 +92,7 @@ public class LiquidRendererTest {
 
         Map<String, Object> vars = new HashMap<String, Object>();
         vars.put("name", "ando");
-        vars.put("__nashornUtils", new INashornUtils() {
+        vars.put("__nashornUtils", new NashornUtils() {
             @Override
             public String jsonStringify(Object o) {
                 return null;
@@ -122,7 +122,7 @@ public class LiquidRendererTest {
 
         Map<String, Object> vars = new HashMap<String, Object>();
         vars.put("name","ando");
-        vars.put("__nashornUtils", new INashornUtils() {
+        vars.put("__nashornUtils", new NashornUtils() {
             @Override
             public String jsonStringify(Object o) {
                 return null;
