@@ -43,6 +43,9 @@ public class JSEngineQueue extends GenericEngineQueue {
             }
 
             loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", globalScope, engine);
+            loadAndSealScript("moment.js", "lib/moment-2.8.2.min", "moment", globalScope, engine);
+            loadAndSealScript("amanda.js", "lib/amanda-0.4.8.min", "amanda", globalScope, engine);
+            loadAndSealScript("validator.js", "lib/validator.min", "validator", globalScope, engine);
         } catch (ScriptException e) {
             logger.error("Error configuring script engine",e);
         }
@@ -77,9 +80,9 @@ public class JSEngineQueue extends GenericEngineQueue {
         try {
             loadAndSealScript("lodash-2.4.1.js","lib/lodash-2.4.1.min", "_", engineScope, sandboxEngine.getEngine());
 //            loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", engineScope, sandboxEngine.getEngine());
-            loadAndSealScript("moment.js", "lib/moment-2.8.2.min", "moment", engineScope, sandboxEngine.getEngine());
-            loadAndSealScript("amanda.js", "lib/amanda-0.4.8.min", "amanda", engineScope, sandboxEngine.getEngine());
-            loadAndSealScript("validator.js", "lib/validator.min", "validator", engineScope, sandboxEngine.getEngine());
+//            loadAndSealScript("moment.js", "lib/moment-2.8.2.min", "moment", engineScope, sandboxEngine.getEngine());
+//            loadAndSealScript("amanda.js", "lib/amanda-0.4.8.min", "amanda", engineScope, sandboxEngine.getEngine());
+//            loadAndSealScript("validator.js", "lib/validator.min", "validator", engineScope, sandboxEngine.getEngine());
             loadAndSealScript("sandbox-validator.js", "sandbox-validator", "sandboxValidator", engineScope, sandboxEngine.getEngine());
         } catch (ScriptException e) {
             logger.error("Error loading 3rd party JS", e);
