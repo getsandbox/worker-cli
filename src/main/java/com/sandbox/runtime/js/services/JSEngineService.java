@@ -33,6 +33,18 @@ public class JSEngineService {
     @Autowired
     ApplicationContext context;
 
+    //total number of times this engine has been executed, number of times getEngine.. is called.
+    private int numberOfRuns = 0;
+    //the number of executions between 'refreshes' of the engine context, refresh is expensive and unnecessary for every call.
+    private int refreshThreshold = 2;
+
+    public JSEngineService() {
+    }
+
+    public JSEngineService(int refreshThreshold) {
+        this.refreshThreshold = refreshThreshold;
+    }
+
     @PostConstruct
     public void start(){
         this.engine = context.getBean(ScriptEngine.class);
@@ -40,14 +52,19 @@ public class JSEngineService {
 
     //reuse or create a new engine for a given sandboxid, we reuse engine across executions for the same sbid.
     public SandboxScriptEngine getEngineForSandboxId(String sandboxId){
+        numberOfRuns += 1;
+
         SandboxScriptEngine sandboxEngine = sandboxEngines.get(sandboxId);
         if(sandboxEngine == null) {
             sandboxEngine = createEngine();
             sandboxEngines.putIfAbsent(sandboxId, sandboxEngine);
         }else{
-            createNewContext(sandboxEngine);
-            injectLibraries(sandboxEngine);
-            patchEngine(sandboxEngine);
+            //execute refresh every N runs
+            if(numberOfRuns % refreshThreshold == 0) {
+                createNewContext(sandboxEngine);
+                injectLibraries(sandboxEngine);
+                patchEngine(sandboxEngine);
+            }
         }
 
         return sandboxEngine;
