@@ -85,12 +85,12 @@ public class HttpRequestHandler extends AbstractHandler {
             HttpRuntimeRequest runtimeRequest = servletConverter.httpServletToInstanceHttpRequest(request);
 
             //get a runtime service instance
-            RuntimeService runtimeService = context.getBean(RuntimeService.class);
+            RuntimeService routingService = context.getBean(RuntimeService.class);
 
             //create and lookup routing table
             RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId);
             if(routingTable == null) {
-                routingTable = runtimeService.handleRoutingTableRequest(sandboxId);
+                routingTable = routingService.handleRoutingTableRequest(sandboxId);
                 cache.setRoutingTableForSandboxId(sandboxId, routingTable);
             }
             MatchedRouteDetails routeMatch = findMatchedRoute(runtimeRequest, routingTable);
@@ -107,6 +107,7 @@ public class HttpRequestHandler extends AbstractHandler {
             logRequest(runtimeRequest, routeMatch, requestId);
 
             //run request
+            RuntimeService runtimeService = context.getBean(RuntimeService.class);
             HTTPRequest httpRequest = serviceConverter.fromInstanceHttpRequest(runtimeService.getSandboxScriptEngine().getEngine(), runtimeRequest);
             HttpRuntimeResponse runtimeResponse = null;
 

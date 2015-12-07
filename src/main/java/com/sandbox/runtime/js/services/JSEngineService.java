@@ -36,7 +36,7 @@ public class JSEngineService {
     //total number of times this engine has been executed, number of times getEngine.. is called.
     private int numberOfRuns = 0;
     //the number of executions between 'refreshes' of the engine context, refresh is expensive and unnecessary for every call.
-    private int refreshThreshold = 2;
+    private int refreshThreshold = 1;
 
     public JSEngineService() {
     }
