@@ -23,7 +23,6 @@ import java.util.Map;
 /**
  * Created by nickhoughton on 3/12/2015.
  */
-@Component
 public class JSEngineService {
 
     static Logger logger = LoggerFactory.getLogger(JSEngineService.class);

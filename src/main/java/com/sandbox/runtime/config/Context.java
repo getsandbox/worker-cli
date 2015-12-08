@@ -136,6 +136,11 @@ public class Context {
     }
 
     @Bean
+    public JSEngineService jsEngineService(){
+        return new JSEngineService(4);
+    }
+
+    @Bean
     public CommandLineProcessor getCommandLineProcessor() { return new CommandLineProcessor(); }
 
     @Bean

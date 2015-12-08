@@ -189,7 +189,8 @@ public abstract class Service {
         }
 
         try {
-            evalScript("main", mainjs, sandboxScriptEngine);
+            //when we eval in the user code, clear the require cache first so the other JS files get recompiled, otherwise they won't get reload. change now we aren't clearing the context everytime potentially.
+            evalScript("main", "require.cache = {}; " + mainjs, sandboxScriptEngine);
 
 
         } catch (NashornException ne) {
