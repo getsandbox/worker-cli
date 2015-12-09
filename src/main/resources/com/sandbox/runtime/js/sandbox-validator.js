@@ -233,7 +233,6 @@
                 //if we have everything then validate
                 jsonSchemaValidator.validate(req.body, schemaStr, { singleError: false }, function(error) {
                     if(!error) return;
-                    error = JSON.parse(error)
 
                     if (req._validationErrors === undefined) {
                         req._validationErrors = [];
