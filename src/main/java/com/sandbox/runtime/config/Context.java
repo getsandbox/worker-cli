@@ -10,7 +10,7 @@ import com.sandbox.runtime.js.models.Console;
 import com.sandbox.runtime.js.serializers.ScriptObjectMirrorSerializer;
 import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
 import com.sandbox.runtime.js.serializers.UndefinedSerializer;
-import com.sandbox.runtime.js.services.JSEngineQueue;
+import com.sandbox.runtime.js.services.JSEngineService;
 import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
@@ -115,14 +115,6 @@ public class Context {
 
     @Bean
     @Lazy
-    public JSEngineQueue engineQueue(){
-        JSEngineQueue JSEngineQueue = new JSEngineQueue(50, applicationContext);
-        JSEngineQueue.start();
-        return JSEngineQueue;
-    }
-
-    @Bean
-    @Lazy
     public ScriptEngine scriptEngine() {
         NashornScriptEngineFactory engineFactory = applicationContext.getBean(NashornScriptEngineFactory.class);
         ScriptEngine engine = createScriptEngine(engineFactory);
@@ -134,12 +126,18 @@ public class Context {
         return engine;
     }
 
-    @Bean
+    @Bean(name = "droneService")
     @Scope("prototype")
     @Lazy
-    public RuntimeService droneService() {
-        SandboxScriptEngine engine = applicationContext.getBean(JSEngineQueue.class).get();
+    public RuntimeService runtimeService() {
+        //defaulted because its always the same
+        SandboxScriptEngine engine = applicationContext.getBean(JSEngineService.class).getEngineForSandboxId("1");
         return new RuntimeService(engine);
+    }
+
+    @Bean
+    public JSEngineService jsEngineService(){
+        return new JSEngineService(4);
     }
 
     @Bean

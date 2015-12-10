@@ -1,7 +1,5 @@
 package com.sandbox.runtime.js.models;
 
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,7 +1,6 @@
 package com.sandbox.runtime;
 
 import com.sandbox.runtime.services.CommandLineProcessor;
-import com.sandbox.runtime.utils.GenericEngineQueue;
 import org.eclipse.jetty.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +28,6 @@ public class HttpServer {
 
     @Autowired
     CommandLineProcessor commandLine;
-
-    //not used, but wire it in so that the queue is eagerly loaded when the server is running, speed up first request time
-    @Autowired
-    GenericEngineQueue engineQueue;
 
     private static Logger logger = LoggerFactory.getLogger(HttpServer.class);
 

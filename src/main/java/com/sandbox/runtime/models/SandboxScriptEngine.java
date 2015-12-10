@@ -18,6 +18,8 @@ public class SandboxScriptEngine {
 
     Console console;
 
+    Object lodash;
+
     static Logger logger = LoggerFactory.getLogger(SandboxScriptEngine.class);
 
     public SandboxScriptEngine() {
@@ -43,12 +45,24 @@ public class SandboxScriptEngine {
         this.engine = engine;
     }
 
+    public Object getLodash() {
+        return lodash;
+    }
+
+    public void setLodash(Object lodash) {
+        this.lodash = lodash;
+    }
+
     public Console getConsole() {
         return console;
     }
 
     public void setConsole(Console console) {
         this.console = console;
+    }
+
+    public void passLodash(Object lodash){
+        this.lodash = lodash;
     }
 
 }
