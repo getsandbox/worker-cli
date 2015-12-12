@@ -69,7 +69,8 @@ public class Context {
             command.process();
 
         }catch(Throwable e){
-            logger.error("Error starting runtime - " + unwrapException(e).getMessage());
+            logger.error("Error starting runtime");
+            unwrapException(e).printStackTrace();
             System.exit(1);
         }
     }

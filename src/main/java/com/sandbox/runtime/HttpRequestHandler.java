@@ -70,8 +70,9 @@ public class HttpRequestHandler extends AbstractHandler {
 
     private static Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
 
+    //handle is synchronized so that the JS processing is done on one thread.
     @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public synchronized void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         baseRequest.setHandled(true);
 
         //defaulted

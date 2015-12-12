@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -30,10 +31,13 @@ public class CommandLineProcessor {
 
     private static Logger logger = LoggerFactory.getLogger(CommandLineProcessor.class);
 
-    public void process(){
+    @PostConstruct
+    public void start(){
         //pull out optional arguments
         extractOptionalArguments();
+    }
 
+    public void process(){
         //process command line args to figure out what to start/do
         String[] args = environment.getProperty("nonOptionArgs", String[].class, new String[]{});
         if(args.length == 0){
