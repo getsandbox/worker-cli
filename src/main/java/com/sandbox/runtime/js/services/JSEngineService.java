@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.script.Bindings;
@@ -47,6 +46,7 @@ public class JSEngineService {
     @PostConstruct
     public void start(){
         this.engine = context.getBean(ScriptEngine.class);
+        createEngine();
     }
 
     //reuse or create a new engine for a given sandboxid, we reuse engine across executions for the same sbid.
