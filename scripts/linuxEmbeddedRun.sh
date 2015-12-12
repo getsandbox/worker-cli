@@ -12,5 +12,5 @@ if [[ $@ == *--debug* ]] ; then
 	echo "Debugging"
 fi
 
-exec "$java" $java_args -jar $MYSELF "$@"
+exec "$java" $java_args -DSANDBOX_VERSION=$SANDBOX_VERSION -jar $MYSELF "$@"
 exit $?
