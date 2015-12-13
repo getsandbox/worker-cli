@@ -42,7 +42,7 @@ dependencies {
     compile 'org.apache.cxf:cxf-rt-frontend-jaxrs:3.0.1'
 
     //inbound http requests
-    compile 'org.eclipse.jetty:jetty-server:8.1.15.v20140411'
+    compile 'org.eclipse.jetty:jetty-server:9.2.11.v20150529'
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.mockito:mockito-all:1.8.4'
