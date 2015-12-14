@@ -138,7 +138,7 @@ public class JSEngineService {
             sandboxEngine.getEngine().eval("sandboxEngine.passLodash(_)", sandboxEngine.getContext());
             sandboxEngine.getContext().removeAttribute("sandboxEngine", ScriptContext.ENGINE_SCOPE);
 
-            loadAndSealScript("faker.js","lib/faker-2.1.5.min", "faker", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("moment.js", "lib/moment-2.8.2.min", "moment", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("amanda.js", "lib/amanda-0.4.8.min", "amanda", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("validator.js", "lib/validator.min", "validator", globalScope, sandboxEngine.getEngine());
