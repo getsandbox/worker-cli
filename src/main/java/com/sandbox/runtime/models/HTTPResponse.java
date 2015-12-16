@@ -79,6 +79,11 @@ public class HTTPResponse {
         this.send(body);
     }
 
+    public void json(ScriptObject body) {
+        headers.put("Content-Type", "application/json");
+        this.send(body);
+    }
+
     public void render(String templateName, Object templateLocals) {
         this.templateName = templateName;
         Map locals = null;
