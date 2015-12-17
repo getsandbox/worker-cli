@@ -125,19 +125,8 @@ public class JSEngineService {
         final Bindings globalScope = sandboxEngine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
         final Bindings engineScope = sandboxEngine.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
 
-        //if we have a lodash (weve already injected 3rd party before), then inject back into new engine scope. bit of a hack.
-        if(sandboxEngine.getLodash() != null){
-            engineScope.put("_", sandboxEngine.getLodash());
-            return sandboxEngine;
-        }
-
         try {
             loadAndSealScript("lodash-2.4.1.js","lib/lodash-2.4.1.min", "_", engineScope, sandboxEngine.getEngine());
-            //get the current lodash instance, and store in engine context to inject it again later. Lo-dash needs to be in the engine scope rather than global for some reason =/
-            sandboxEngine.getContext().setAttribute("sandboxEngine", sandboxEngine, ScriptContext.ENGINE_SCOPE);
-            sandboxEngine.getEngine().eval("sandboxEngine.passLodash(_)", sandboxEngine.getContext());
-            sandboxEngine.getContext().removeAttribute("sandboxEngine", ScriptContext.ENGINE_SCOPE);
-
             loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("moment.js", "lib/moment-2.8.2.min", "moment", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("amanda.js", "lib/amanda-0.4.8.min", "amanda", globalScope, sandboxEngine.getEngine());
