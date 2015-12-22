@@ -1,13 +1,18 @@
 package com.sandbox.runtime.models;
 
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import jdk.nashorn.internal.objects.NativeArray;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.activation.MimetypesFileTypeMap;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -45,12 +50,7 @@ public class HTTPResponse {
         rendered = false;
     }
 
-    public void send(int status, Object body) {
-        this.status = status;
-        this.send(body);
-    }
-
-    public void send(NativeArray body) {
+    public void send(ScriptObject body) {
         // if Content-Type not already set then do it.
         if (!headers.containsKey("Content-Type"))
             headers.put("Content-Type", "application/json");
@@ -60,7 +60,12 @@ public class HTTPResponse {
         rendered = false;
     }
 
-    public void send(int status, NativeArray body) {
+    public void send(int status, Object body) {
+        this.status = status;
+        this.send(body);
+    }
+
+    public void send(int status, ScriptObject body) {
         this.status = status;
         this.send(body);
     }
@@ -74,6 +79,12 @@ public class HTTPResponse {
         this.json(body);
     }
 
+    public void json(int status, ScriptObject body) {
+        this.status = status;
+        headers.put("Content-Type", "application/json");
+        this.send(body);
+    }
+
     public void json(Object body) {
         headers.put("Content-Type", "application/json");
         this.send(body);
@@ -82,6 +93,10 @@ public class HTTPResponse {
     public void json(ScriptObject body) {
         headers.put("Content-Type", "application/json");
         this.send(body);
+    }
+
+    public void render(String templateName, ScriptObject templateLocals) {
+        render(templateName, (Object)templateLocals);
     }
 
     public void render(String templateName, Object templateLocals) {
