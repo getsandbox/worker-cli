@@ -1,5 +1,6 @@
 package com.sandbox.runtime.services;
 
+import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sun.nio.file.SensitivityWatchEventModifier;
@@ -34,6 +35,9 @@ public class InMemoryCache implements Cache {
 
     @Autowired
     CommandLineProcessor commandLine;
+
+    @Autowired
+    ServiceManager serviceManager;
 
     RoutingTable routingTable;
 
@@ -117,6 +121,7 @@ public class InMemoryCache implements Cache {
                             if(event.context().toString().endsWith(".js")){
                                 setRoutingTableForSandboxId("1",null);
                                 fileContents.clear();
+                                serviceManager.refreshService("1", "1");
                                 logger.info("Clearing routing table on JS file change");
                             }
                         }

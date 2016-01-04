@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.converters.HTTPRequestConverter;
 import com.sandbox.runtime.js.services.RuntimeService;
+import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.HTTPRequest;
@@ -63,6 +64,9 @@ public class HttpRequestHandler extends AbstractHandler {
     CommandLineProcessor commandLine;
 
     @Autowired
+    ServiceManager serviceManager;
+
+    @Autowired
     private HttpServletConverter servletConverter;
 
     @Autowired
@@ -86,12 +90,12 @@ public class HttpRequestHandler extends AbstractHandler {
             HttpRuntimeRequest runtimeRequest = servletConverter.httpServletToInstanceHttpRequest(request);
 
             //get a runtime service instance
-            RuntimeService runtimeService = context.getBean(RuntimeService.class);
+            RuntimeService runtimeService = (RuntimeService) serviceManager.getService(sandboxId, sandboxId);
 
             //create and lookup routing table
             RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId);
             if(routingTable == null) {
-                routingTable = runtimeService.handleRoutingTableRequest(sandboxId);
+                routingTable = runtimeService.handleRoutingTableRequest();
                 cache.setRoutingTableForSandboxId(sandboxId, routingTable);
             }
             MatchedRouteDetails routeMatch = findMatchedRoute(runtimeRequest, routingTable);
@@ -120,7 +124,7 @@ public class HttpRequestHandler extends AbstractHandler {
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
             }else{
                 //otherwise process normally
-                runtimeResponse = runtimeService.handleRequest(sandboxId, sandboxId, httpRequest);
+                runtimeResponse = runtimeService.handleRequest(httpRequest);
             }
             runtimeResponse.setDurationMillis(System.currentTimeMillis() - startedRequest);
 

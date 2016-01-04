@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.js.models.Console;
 import com.sandbox.runtime.js.models.ISandboxDefineCallback;
-import com.sandbox.runtime.js.models.ISandboxScriptObject;
 import com.sandbox.runtime.js.models.JSError;
 import com.sandbox.runtime.js.models.JsonNode;
-import com.sandbox.runtime.js.models.Sandbox;
-import com.sandbox.runtime.js.models.ValidateBox;
+import com.sandbox.runtime.js.models.SandboxScriptObject;
 import com.sandbox.runtime.js.utils.ErrorUtils;
 import com.sandbox.runtime.js.utils.FileUtils;
 import com.sandbox.runtime.js.utils.NashornUtils;
@@ -45,11 +43,13 @@ public abstract class Service {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     protected final SandboxScriptEngine sandboxScriptEngine;
-    protected final ScriptEngine engine;
     protected String sandboxId;
     protected String fullSandboxId;
     HTTPRequest req;
     HTTPResponse res;
+    SandboxScriptObject scriptObject = new SandboxScriptObject();
+    NashornUtils nashornUtils;
+    private boolean initialized = false;
 
     @Autowired
     protected Cache cache;
@@ -69,9 +69,11 @@ public abstract class Service {
     @Autowired
     ErrorUtils errorUtils;
 
-    public Service(SandboxScriptEngine sandboxScriptEngine) {
-        this.engine = sandboxScriptEngine.getEngine();
+    public Service(SandboxScriptEngine sandboxScriptEngine, NashornUtils nashornUtils, String fullSandboxId, String sandboxId) {
         this.sandboxScriptEngine = sandboxScriptEngine;
+        this.fullSandboxId = fullSandboxId;
+        this.sandboxId = sandboxId;
+        this.nashornUtils = nashornUtils;
     }
 
     public SandboxScriptEngine getSandboxScriptEngine() {
@@ -82,21 +84,28 @@ public abstract class Service {
         return sandboxScriptEngine.getConsole();
     }
 
-    public HttpRuntimeResponse handleRequest(String sandboxId, String fullSandboxId, HTTPRequest req) {
-        this.sandboxId = sandboxId;
-        this.fullSandboxId = fullSandboxId;
+    public NashornUtils getNashornUtils() {
+        return nashornUtils;
+    }
+
+    public void initialize() throws Exception {
+        if(initialized) return;
+        initialized = true;
+
+        loadContext();
+        setState();
+        loadService();
+    }
+
+    public HttpRuntimeResponse handleRequest(HTTPRequest req) {
         this.req = req;
         this.res = new HTTPResponse();
 
-        Sandbox box = new Sandbox(req, res);
-        NashornUtils utils = (NashornUtils) applicationContext.getBean("nashornUtils", fullSandboxId);
-
         try {
-            loadContext(box, utils);
+            initialize();
             setState();
-            loadService(utils);
-            runService(box);
-            HttpRuntimeResponse result = postProcessContext(box, utils);
+            runService();
+            HttpRuntimeResponse result = postProcessContext();
 
             return result;
 
@@ -119,33 +128,22 @@ public abstract class Service {
 
             //if not suppressed exception then log
             if(!(e instanceof SuppressedServiceScriptException))
-                logger.info("Engine: " + sandboxScriptEngine.hashCode() + " - Exception handling the request: " + e.getMessage(), e);
+                logger.info("Exception handling the request: " + e.getMessage(), e);
 
             return new HttpRuntimeResponse(error);
 
         }
+
     }
 
-    public RoutingTable handleRoutingTableRequest(String fullSandboxId) throws Exception {
-
-        this.fullSandboxId = fullSandboxId;
-
-        ValidateBox box = new ValidateBox();
-        NashornUtils utils = (NashornUtils) applicationContext.getBean("nashornUtils", fullSandboxId);
+    public RoutingTable handleRoutingTableRequest() throws Exception {
 
         try {
-            // load context
-            loadContext(box, utils);
-
-            // load state
-            loadEmptyState();
-
-            // eval and extract routes
-            loadService(utils);
+            initialize();
 
             RoutingTable routingTable = new RoutingTable();
             routingTable.setRepositoryId(fullSandboxId);
-            routingTable.setRouteDetails(box.getRoutes());
+            routingTable.setRouteDetails(scriptObject.getRoutes());
 
             return routingTable;
 
@@ -162,17 +160,14 @@ public abstract class Service {
 
 
     //lower level steps
-    protected NashornUtils loadContext(ISandboxScriptObject _sandbox, NashornUtils nashornUtils) throws Exception {
-
+    protected void loadContext() throws Exception {
         // bootstrap the context with minimal environment
-        setInScope("__mock", _sandbox, sandboxScriptEngine);
-        setInScope("nashornUtils", nashornUtils, sandboxScriptEngine);
-
-        return nashornUtils;
-
+        setInScope("__mock", scriptObject, sandboxScriptEngine);
+        setInScope("nashornUtils", getNashornUtils(), sandboxScriptEngine);
     }
+
     protected void loadEmptyState() throws Exception{
-        setInScope("state", NashornConverter.instance().convert(engine, new JsonNode("{}").getJsonObject()), sandboxScriptEngine);
+        setInScope("state", NashornConverter.instance().convert(sandboxScriptEngine.getEngine(), new JsonNode("{}").getJsonObject()), sandboxScriptEngine);
     }
 
     protected abstract void setState() throws Exception;
@@ -180,9 +175,9 @@ public abstract class Service {
     protected abstract void saveState(Object state) throws Exception;
 
     //load service checks the main file exists and injects/evals it in the context, doesnt trigger the callback tho
-    protected void loadService(NashornUtils nashornUtils) throws Exception {
+    protected void loadService() throws Exception {
         // get it from cache, throw if not found
-        String mainjs = nashornUtils.readFile("main.js");
+        String mainjs = getNashornUtils().readFile("main.js");
         if (mainjs == null || mainjs.isEmpty()) {
             // throw an exception
             throw new ServiceScriptException("Application is missing main.js (or its empty) - please add this file and commit");
@@ -190,7 +185,7 @@ public abstract class Service {
 
         try {
             //when we eval in the user code, clear the require cache first so the other JS files get recompiled, otherwise they won't get reload. change now we aren't clearing the context everytime potentially.
-            evalScript("main", "require.cache = {}; " + mainjs, sandboxScriptEngine);
+            evalScript("main", mainjs, sandboxScriptEngine);
 
 
         } catch (NashornException ne) {
@@ -204,37 +199,33 @@ public abstract class Service {
     }
 
     //run service triggers the route callback, mainjs file should already be loaded
-    private void runService(Sandbox sandbox) throws Exception {
+    private void runService() throws Exception {
 
         try {
             //now script has fully evaled, run the matched function otherwise it might not have loaded stuff at the bottom of the file
-            ISandboxDefineCallback matchedFunction = sandbox.getMatchedFunction();
+            ISandboxDefineCallback matchedFunction = scriptObject.getMatchedFunction(req);
             if (matchedFunction != null) {
-                setInScope("_matchedFunction",matchedFunction, sandboxScriptEngine);
+                setInScope("_matchedFunction", matchedFunction, sandboxScriptEngine);
                 setInScope("_currentRequest", req, sandboxScriptEngine);
                 setInScope("_currentResponse", res, sandboxScriptEngine);
+                evalScript("sandbox-execute", "_matchedFunction.run(_currentRequest, _currentResponse)", sandboxScriptEngine);
 
-                evalScript("sandbox-execute", sandboxScriptEngine);
+            }else{
+                throw new SuppressedServiceScriptException("Could not find a route definition matching your requested route " + req.getMethod() + " " + req.getPath());
             }
 
         } catch (NashornException ne) {
             throw new ServiceScriptException(ne, ne.getFileName(), ne.getLineNumber(), ne.getColumnNumber());
 
-        }
-        catch (ScriptException ne) {
+        } catch (ScriptException ne) {
             throw new ServiceScriptException(ne, ne.getFileName(), ne.getLineNumber(), ne.getColumnNumber());
 
         }
+
     }
 
     //after callback execution, get state/response/template etc and process
-    private HttpRuntimeResponse postProcessContext(Sandbox sandbox, NashornUtils nashornUtils) throws Exception {
-        // verify match was found
-        if (!sandbox.isMatched()) {
-            // the requested path and method.
-            throw new SuppressedServiceScriptException("Could not find a route definition matching your requested route " + req.getMethod() + " " + req.getPath());
-        }
-
+    private HttpRuntimeResponse postProcessContext() throws Exception {
         // save state
         Object convertedState = sandboxScriptEngine.getContext().getAttribute("state");
         saveState(convertedState);
@@ -265,7 +256,7 @@ public abstract class Service {
                 locals.put("res", templateLocals);
                 locals.put("req", req);
                 locals.put("data", templateLocals);
-                locals.put("__nashornUtils", nashornUtils);
+                locals.put("__nashornUtils", getNashornUtils());
 
                 try {
                     _body = liquidRenderer.render(template, locals);

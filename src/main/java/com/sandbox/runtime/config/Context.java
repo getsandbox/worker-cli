@@ -12,6 +12,7 @@ import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
 import com.sandbox.runtime.js.serializers.UndefinedSerializer;
 import com.sandbox.runtime.js.services.JSEngineService;
 import com.sandbox.runtime.js.services.RuntimeService;
+import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
 import com.sandbox.runtime.js.utils.NashornValidationUtils;
@@ -130,16 +131,20 @@ public class Context {
     @Bean(name = "droneService")
     @Scope("prototype")
     @Lazy
-    public RuntimeService runtimeService() {
+    public RuntimeService runtimeService(String fullSandboxId, String sandboxId) {
         //defaulted because its always the same
-        SandboxScriptEngine engine = applicationContext.getBean(JSEngineService.class).getEngineForSandboxId("1");
-        return new RuntimeService(engine);
+        SandboxScriptEngine engine = applicationContext.getBean(JSEngineService.class).createEngine();
+        NashornUtils nashornUtils = (NashornUtils) applicationContext.getBean("nashornUtils", sandboxId);
+        return new RuntimeService(engine, nashornUtils, fullSandboxId, sandboxId);
     }
 
     @Bean
     public JSEngineService jsEngineService(){
-        return new JSEngineService(4);
+        return new JSEngineService();
     }
+
+    @Bean
+    public ServiceManager serviceManager(){ return new ServiceManager(50); }
 
     @Bean
     public CommandLineProcessor getCommandLineProcessor() { return new CommandLineProcessor(); }

@@ -2,6 +2,7 @@ package com.sandbox.runtime.js.services;
 
 import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.js.models.JsonNode;
+import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.models.SandboxScriptEngine;
 
 import javax.script.ScriptContext;
@@ -12,8 +13,8 @@ import javax.script.ScriptContext;
  */
 public class RuntimeService extends Service {
 
-    public RuntimeService(SandboxScriptEngine sandboxScriptEngine) {
-        super(sandboxScriptEngine);
+    public RuntimeService(SandboxScriptEngine sandboxScriptEngine, NashornUtils nashornUtils, String fullSandboxId, String sandboxId) {
+        super(sandboxScriptEngine, nashornUtils, fullSandboxId, sandboxId);
     }
 
     //state is persisted across requests, but not stored.

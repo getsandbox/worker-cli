@@ -198,9 +198,29 @@ public class RouteDetails implements Serializable{
         }
     }
 
-    //matches based on uncompiled path /blah/{smth}
-    public boolean equals(HTTPRequest req){
-        return matchesMethod(req.getMethod()) && req.getPath().equalsIgnoreCase(path) && matchesProperties(req.getProperties());
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o instanceof HTTPRequest) {
+            //matches based on uncompiled path /blah/{smth}
+            HTTPRequest req = (HTTPRequest)o;
+            return matchesMethod(req.getMethod()) && req.getPath().equalsIgnoreCase(path) && matchesProperties(req.getProperties());
+        }
+        if (o == null || getClass() != o.getClass()) return false;
 
+        RouteDetails that = (RouteDetails) o;
+
+        if (method != null ? !method.equals(that.method) : that.method != null) return false;
+        if (path != null ? !path.equals(that.path) : that.path != null) return false;
+        return !(properties != null ? !properties.equals(that.properties) : that.properties != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = method != null ? method.hashCode() : 0;
+        result = 31 * result + (path != null ? path.hashCode() : 0);
+        result = 31 * result + (properties != null ? properties.hashCode() : 0);
+        return result;
     }
 }
