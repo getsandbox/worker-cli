@@ -292,10 +292,17 @@ public abstract class Service {
         return new HttpRuntimeResponse(_body, res.getStatus(), res.getHeaders(), res.getCookies());
     }
 
-    private void setInScope(String name, Object value, SandboxScriptEngine sandboxScriptEngine){
+    protected void setInScope(String name, Object value, SandboxScriptEngine sandboxScriptEngine){
         sandboxScriptEngine.getContext().setAttribute(
                 name,
                 value,
+                ScriptContext.ENGINE_SCOPE
+        );
+    }
+
+    protected void removeFromScope(String name, SandboxScriptEngine sandboxScriptEngine){
+        sandboxScriptEngine.getContext().removeAttribute(
+                name,
                 ScriptContext.ENGINE_SCOPE
         );
     }
