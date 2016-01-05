@@ -6,6 +6,8 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -20,6 +22,7 @@ public class ServiceManager {
     private int refreshThreshold = 1;
     private Map<String, AtomicInteger> counters = new HashMap<>();
     private Map<String, Service> services = new ConcurrentHashMap<>();
+    private ExecutorService executorService = Executors.newCachedThreadPool();
 
     public ServiceManager() {
     }
@@ -34,11 +37,19 @@ public class ServiceManager {
 
     public Service getService(String fullSandboxId, String sandboxId){
         AtomicInteger counter = counters.getOrDefault(sandboxId, new AtomicInteger(0));
-        counter.incrementAndGet();
-        //if we don't have to refresh the service, and we have an existing service then return it
-        if(counter.get() % refreshThreshold != 0 && services.containsKey(sandboxId)) return services.get(sandboxId);
-
         counters.putIfAbsent(sandboxId, counter);
+        counter.incrementAndGet();
+        //if we have to refresh
+        if(counter.get() % refreshThreshold == 0) {
+            executorService.execute(() -> {
+                createService(fullSandboxId, sandboxId);
+            });
+        }
+        //we have an existing service then return it
+        if(services.containsKey(sandboxId)) {
+            return services.get(sandboxId);
+        }
+
         return createService(fullSandboxId, sandboxId);
     }
 
