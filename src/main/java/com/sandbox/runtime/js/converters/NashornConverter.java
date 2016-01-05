@@ -2,6 +2,8 @@ package com.sandbox.runtime.js.converters;
 
 import com.sandbox.runtime.js.models.JSError;
 import jdk.nashorn.internal.objects.Global;
+import jdk.nashorn.internal.objects.NativeJSON;
+import jdk.nashorn.internal.runtime.Context;
 import jdk.nashorn.internal.runtime.Property;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import jdk.nashorn.internal.runtime.arrays.ArrayData;
@@ -53,6 +55,28 @@ public class NashornConverter {
         Object result = convert(global, object);
         return result;
 
+    }
+
+    public String stringify(ScriptEngine engine, Object object) throws Exception {
+        Global currentGlobal = Context.getGlobal();
+        if(currentGlobal == null) {
+            Global global = (Global) getGlobalMethod.invoke(engine, engine.getContext());
+            Context.setGlobal(global);
+        }
+        String result = (String) NativeJSON.stringify(null, object, null, 2);
+        Context.setGlobal(currentGlobal);
+        return result;
+    }
+
+    public Object parse(ScriptEngine engine, String text) throws Exception {
+        Global currentGlobal = Context.getGlobal();
+        if(currentGlobal == null) {
+            Global global = (Global) getGlobalMethod.invoke(engine, engine.getContext());
+            Context.setGlobal(global);
+        }
+        Object result = NativeJSON.parse(null, text, null);
+        Context.setGlobal(currentGlobal);
+        return result;
     }
 
     private Object convert(Global global, Object object) throws IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchMethodException, ClassNotFoundException {
