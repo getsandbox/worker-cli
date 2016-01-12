@@ -54,7 +54,7 @@ public class SandboxScriptObject implements ISandboxScriptObject{
     public List<RouteDetails> getRoutes() { return new ArrayList<>(routes.keySet()); }
 
     public ISandboxDefineCallback getMatchedFunction(EngineRequest req) {
-        Optional<RouteDetails> matchedRoute = routes.keySet().stream().filter(r -> r.equals(req)).findFirst();
+        Optional<RouteDetails> matchedRoute = routes.keySet().stream().filter(r -> r.matchesEngineRequest(req)).findFirst();
         return matchedRoute.isPresent() ? routes.get(matchedRoute.get()) : null;
     }
 

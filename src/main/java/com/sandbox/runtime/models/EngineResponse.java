@@ -58,6 +58,11 @@ public abstract class EngineResponse {
         message.setRendered(true);
     }
 
+    public void render(String templateName, ScriptObject templateLocals) throws ServiceScriptException {
+        render(templateName, (Object) templateLocals);
+    }
+
+
     public void render(String templateName) throws ServiceScriptException {
         EngineResponseMessage message = getActiveMessage();
         message.setTemplateName(templateName);

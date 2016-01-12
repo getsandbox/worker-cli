@@ -203,29 +203,4 @@ public class HTTPRouteDetails extends RouteDetails {
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o instanceof HTTPRequest) {
-            //matches based on uncompiled path /blah/{smth}
-            HTTPRequest req = (HTTPRequest)o;
-            return matchesMethod(req.getMethod()) && req.getPath().equalsIgnoreCase(path) && matchesProperties(req.getProperties());
-        }
-        if (o == null || getClass() != o.getClass()) return false;
-
-        HTTPRouteDetails that = (HTTPRouteDetails) o;
-
-        if (method != null ? !method.equals(that.method) : that.method != null) return false;
-        if (path != null ? !path.equals(that.path) : that.path != null) return false;
-        return !(getProperties() != null ? !getProperties().equals(that.getProperties()) : that.getProperties() != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = method != null ? method.hashCode() : 0;
-        result = 31 * result + (path != null ? path.hashCode() : 0);
-        result = 31 * result + (getProperties() != null ? getProperties().hashCode() : 0);
-        return result;
-    }
 }

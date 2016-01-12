@@ -20,7 +20,6 @@ import com.sandbox.runtime.models.EngineResponseMessage;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sandbox.runtime.models.SandboxScriptEngine;
 import com.sandbox.runtime.models.SuppressedServiceScriptException;
-import com.sandbox.runtime.models.http.HTTPRequest;
 import com.sandbox.runtime.services.LiquidRenderer;
 import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.internal.runtime.ScriptObject;
@@ -102,7 +101,7 @@ public abstract class Service {
         loadService();
     }
 
-    public List<RuntimeResponse> handleRequest(HTTPRequest req) {
+    public List<RuntimeResponse> handleRequest(EngineRequest req) {
         this.req = req;
         this.res = req._getMatchingResponse();
 

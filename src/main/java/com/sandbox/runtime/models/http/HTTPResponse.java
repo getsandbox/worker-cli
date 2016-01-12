@@ -1,11 +1,10 @@
 package com.sandbox.runtime.models.http;
 
+import com.sandbox.common.models.RuntimeResponse;
 import com.sandbox.common.models.http.HttpRuntimeResponse;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.EngineResponseMessage;
-import com.sandbox.common.models.RuntimeResponse;
-import jdk.nashorn.internal.objects.NativeArray;
 import jdk.nashorn.internal.runtime.ScriptObject;
 
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ public class HTTPResponse extends EngineResponse {
         this.send(body);
     }
 
-    public void send(NativeArray body) {
+    public void send(ScriptObject body) {
         // if Content-Type not already set then do it.
         if (!getHeaders().containsKey("Content-Type"))
             getHeaders().put("Content-Type", "application/json");
@@ -54,8 +53,13 @@ public class HTTPResponse extends EngineResponse {
         setRendered(false);
     }
 
-    public void send(int status, NativeArray body) {
+    public void send(int status, ScriptObject body) {
         this.status = status;
+        this.send(body);
+    }
+
+    public void json(Object body) {
+        getHeaders().put("Content-Type", "application/json");
         this.send(body);
     }
 
@@ -68,7 +72,13 @@ public class HTTPResponse extends EngineResponse {
         this.json(body);
     }
 
-    public void json(Object body) {
+    public void json(ScriptObject body) {
+        getHeaders().put("Content-Type", "application/json");
+        this.send(body);
+    }
+
+    public void json(int status, ScriptObject body) {
+        this.status = status;
         getHeaders().put("Content-Type", "application/json");
         this.send(body);
     }

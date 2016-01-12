@@ -43,6 +43,10 @@ public class JMSResponse extends EngineResponse {
         completeActiveMessage();
     }
 
+    public void send(String destination, ScriptObject body) {
+        send(destination, (Object)body);
+    }
+
     public void json(Object obj) throws ServiceScriptException {
         throw new ServiceScriptException("Invalid send() call, JMS json() must have 2 parameters, json(queueName, content)");
     }
@@ -54,6 +58,10 @@ public class JMSResponse extends EngineResponse {
     public void json(String destination, Object body) {
         getHeaders().put("contentType", "application/json");
         this.send(destination, body);
+    }
+
+    public void json(String destination, ScriptObject body) {
+        json(destination, (Object)body);
     }
 
     @Override
@@ -76,6 +84,10 @@ public class JMSResponse extends EngineResponse {
         getActiveMessage().setResponseDestination(destination);
         super.render(templateName, templateLocals);
         completeActiveMessage();
+    }
+
+    public void render(String destination, String templateName, ScriptObject templateLocals) throws ServiceScriptException {
+        render(destination, templateName, (Object)templateLocals);
     }
 
     // sets the content-type to the mime lookup of type
