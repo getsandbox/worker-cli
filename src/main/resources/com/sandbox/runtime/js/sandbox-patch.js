@@ -1,4 +1,21 @@
 (function(global) {
+  var wrappedRequest = {}
+  sandboxValidator(wrappedRequest, nashornUtils)
+
+  var wrapCallback = function (callback) {
+    return function (callbackRequest, callbackResponse) {
+      _.each(callbackRequest._getAccessibleProperties(), function (property) {
+        if (typeof callbackRequest[property] == 'function') {
+          wrappedRequest[property] = function () {
+            return callbackRequest[property](Array.prototype.slice.call(arguments))
+          }
+        } else {
+          wrappedRequest[property] = callbackRequest[property]
+        }
+      })
+      return callback(wrappedRequest, callbackResponse)
+    }
+  }
 
   var mock = {
 
@@ -44,15 +61,15 @@
         throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", given function is undefined")
       }
 
-      __mock.define('http', 'define', path, method, properties, callback, callback, new Error())
+      __mock.define('http', 'define', path, method, properties, callback, wrapCallback(callback), new Error())
     },
     //<path> <action> <callback>
     soap: function(){
       if(arguments.length == 3 && typeof arguments[1] == 'string'){
-        __mock.define('http', 'soap', arguments[0], 'POST', {'SOAPAction':arguments[1]}, arguments[2], arguments[2], new Error())
+        __mock.define('http', 'soap', arguments[0], 'POST', {'SOAPAction':arguments[1]}, arguments[2], wrapCallback(arguments[2]), new Error())
 
       } else if(arguments.length == 4 && typeof arguments[1] == 'string'){
-          __mock.define('http', 'soap', arguments[0], 'POST', {'SOAPAction':arguments[1], 'SOAPOperationName':arguments[2]}, arguments[3], arguments[3], new Error())
+          __mock.define('http', 'soap', arguments[0], 'POST', {'SOAPAction':arguments[1], 'SOAPOperationName':arguments[2]}, arguments[3], wrapCallback(arguments[3]), new Error())
 
       }else{
         throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", must have 3 parameters (path, action, function)")

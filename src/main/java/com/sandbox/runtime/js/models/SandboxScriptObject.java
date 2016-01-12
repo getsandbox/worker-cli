@@ -1,8 +1,9 @@
 package com.sandbox.runtime.js.models;
 
+import com.sandbox.common.models.ServiceScriptException;
+import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.ScriptSource;
-import com.sandbox.common.models.ServiceScriptException;
 import com.sandbox.runtime.models.http.HTTPRouteDetails;
 import com.sandbox.runtime.models.jms.JMSRouteDetails;
 import jdk.nashorn.internal.objects.NativeError;
@@ -13,12 +14,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by nickhoughton on 25/09/2014.
  */
-public class ServiceBox implements ISandboxScriptObject{
-    private List<RouteDetails> routes = new ArrayList<RouteDetails>();
+public class SandboxScriptObject implements ISandboxScriptObject{
+    private HashMap<RouteDetails, ISandboxDefineCallback> routes = new HashMap<>();
 
     RouteDetails currentRoute;
 
@@ -46,10 +48,15 @@ public class ServiceBox implements ISandboxScriptObject{
         //set property for extension classes
         currentRoute = routeDetails;
 
-        routes.add(routeDetails);
+        routes.put(routeDetails, func);
     }
 
-    public List<RouteDetails> getRoutes() { return routes; }
+    public List<RouteDetails> getRoutes() { return new ArrayList<>(routes.keySet()); }
+
+    public ISandboxDefineCallback getMatchedFunction(EngineRequest req) {
+        Optional<RouteDetails> matchedRoute = routes.keySet().stream().filter(r -> r.equals(req)).findFirst();
+        return matchedRoute.isPresent() ? routes.get(matchedRoute.get()) : null;
+    }
 
     public void seedState(String func) { }
 }

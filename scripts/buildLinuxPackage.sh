@@ -15,6 +15,8 @@ set -e
 (cd $app_path/; gradle clean build shadowJar)
 
 # package it up
+git pull --unshallow
+
 echo "Creating runnable package: $package_path"
 sandbox_version=`git rev-list --all HEAD | wc -l`
 sandbox_sha=`git rev-parse --short HEAD`

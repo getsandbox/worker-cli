@@ -16,8 +16,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import javax.script.SimpleScriptContext;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by nickhoughton on 3/12/2015.
@@ -26,47 +24,17 @@ public class JSEngineService {
 
     static Logger logger = LoggerFactory.getLogger(JSEngineService.class);
     private ScriptEngine engine;
-    private Map<String, SandboxScriptEngine> sandboxEngines = new HashMap();
 
     @Autowired
     ApplicationContext context;
 
-    //total number of times this engine has been executed, number of times getEngine.. is called.
-    private int numberOfRuns = 0;
-    //the number of executions between 'refreshes' of the engine context, refresh is expensive and unnecessary for every call.
-    private int refreshThreshold = 1;
-
     public JSEngineService() {
-    }
-
-    public JSEngineService(int refreshThreshold) {
-        this.refreshThreshold = refreshThreshold;
     }
 
     @PostConstruct
     public void start(){
         this.engine = context.getBean(ScriptEngine.class);
         createEngine();
-    }
-
-    //reuse or create a new engine for a given sandboxid, we reuse engine across executions for the same sbid.
-    public SandboxScriptEngine getEngineForSandboxId(String sandboxId){
-        numberOfRuns += 1;
-
-        SandboxScriptEngine sandboxEngine = sandboxEngines.get(sandboxId);
-        if(sandboxEngine == null) {
-            sandboxEngine = createEngine();
-            sandboxEngines.putIfAbsent(sandboxId, sandboxEngine);
-        }else{
-            //execute refresh every N runs
-            if(numberOfRuns % refreshThreshold == 0) {
-                createNewContext(sandboxEngine);
-                injectLibraries(sandboxEngine);
-                patchEngine(sandboxEngine);
-            }
-        }
-
-        return sandboxEngine;
     }
 
     public SandboxScriptEngine createEngine(){
@@ -125,20 +93,9 @@ public class JSEngineService {
         final Bindings globalScope = sandboxEngine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
         final Bindings engineScope = sandboxEngine.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
 
-        //if we have a lodash (weve already injected 3rd party before), then inject back into new engine scope. bit of a hack.
-        if(sandboxEngine.getLodash() != null){
-            engineScope.put("_", sandboxEngine.getLodash());
-            return sandboxEngine;
-        }
-
         try {
             loadAndSealScript("lodash-2.4.1.js","lib/lodash-2.4.1.min", "_", engineScope, sandboxEngine.getEngine());
-            //get the current lodash instance, and store in engine context to inject it again later. Lo-dash needs to be in the engine scope rather than global for some reason =/
-            sandboxEngine.getContext().setAttribute("sandboxEngine", sandboxEngine, ScriptContext.ENGINE_SCOPE);
-            sandboxEngine.getEngine().eval("sandboxEngine.passLodash(_)", sandboxEngine.getContext());
-            sandboxEngine.getContext().removeAttribute("sandboxEngine", ScriptContext.ENGINE_SCOPE);
-
-            loadAndSealScript("faker.js","lib/faker-2.1.5.min", "faker", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("moment.js", "lib/moment-2.8.2.min", "moment", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("amanda.js", "lib/amanda-0.4.8.min", "amanda", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("validator.js", "lib/validator.min", "validator", globalScope, sandboxEngine.getEngine());
