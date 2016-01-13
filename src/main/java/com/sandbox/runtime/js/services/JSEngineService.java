@@ -16,6 +16,9 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import javax.script.SimpleScriptContext;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by nickhoughton on 3/12/2015.
@@ -24,6 +27,8 @@ public class JSEngineService {
 
     static Logger logger = LoggerFactory.getLogger(JSEngineService.class);
     private ScriptEngine engine;
+    //set capacity to arbitrary number of queued objects, how about 10?
+    private ArrayBlockingQueue<SandboxScriptEngine> createdEngines = new ArrayBlockingQueue<>(10);
 
     @Autowired
     ApplicationContext context;
@@ -34,7 +39,24 @@ public class JSEngineService {
     @PostConstruct
     public void start(){
         this.engine = context.getBean(ScriptEngine.class);
-        createEngine();
+        //start an executor to keep topping up the created engines so validation requests and first requests are faster.
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                while(createdEngines.remainingCapacity() > 0){
+                    long start = System.currentTimeMillis();
+                    createdEngines.add(createEngine());
+                    System.out.println("New engine took: " + (System.currentTimeMillis() - start) + " ms");
+                }
+            }
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
+    public SandboxScriptEngine createOrGetEngine(){
+        SandboxScriptEngine engine = createdEngines.poll();
+        if(engine != null) return engine;
+
+        return createEngine();
     }
 
     public SandboxScriptEngine createEngine(){
