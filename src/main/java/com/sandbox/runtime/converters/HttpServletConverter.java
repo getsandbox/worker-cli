@@ -60,8 +60,10 @@ public class HttpServletConverter extends RequestConverter{
         request.setRawQuery(rawRequest.getQueryString());
 
         Map<String, String> cookies = new HashMap<>();
-        for (javax.servlet.http.Cookie servletCookie : rawRequest.getCookies()){
-            cookies.put(servletCookie.getName(), servletCookie.getValue());
+        if(rawRequest.getCookies() != null) {
+            for (javax.servlet.http.Cookie servletCookie : rawRequest.getCookies()) {
+                cookies.put(servletCookie.getName(), servletCookie.getValue());
+            }
         }
         request.setCookies(cookies);
 
