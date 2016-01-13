@@ -44,9 +44,7 @@ public class JSEngineService {
             @Override
             public void run() {
                 while(createdEngines.remainingCapacity() > 0){
-                    long start = System.currentTimeMillis();
                     createdEngines.add(createEngine());
-                    System.out.println("New engine took: " + (System.currentTimeMillis() - start) + " ms");
                 }
             }
         }, 0, 1, TimeUnit.SECONDS);
