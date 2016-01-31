@@ -118,7 +118,7 @@ public class HttpRequestHandler extends AbstractHandler {
             if("options".equalsIgnoreCase(httpRequest.getMethod())){
                 //if options request, send back CORS headers
                 runtimeResponse = new HttpRuntimeResponse("", 200, new HashMap<>(), new ArrayList<>());
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", runtimeRequest.getHeaders().getOrDefault("Origin", "*"));
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", runtimeRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
