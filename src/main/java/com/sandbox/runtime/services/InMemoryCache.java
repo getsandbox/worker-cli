@@ -22,6 +22,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import java.util.Map;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -94,6 +95,12 @@ public class InMemoryCache implements Cache {
     @Override
     public RoutingTable getRoutingTableForSandboxId(String sandboxId) {
         return routingTable;
+    }
+
+    @Override
+    public Map<String, String> getConfigForSandboxId(String sandboxId) {
+        //TODO: Allow config to be set somehow, prolly JVM args?
+        return new HashMap<>();
     }
 
     private void listenForFileChange(Path base){

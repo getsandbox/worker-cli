@@ -21,7 +21,7 @@ import java.util.Optional;
  */
 public class SandboxScriptObject implements ISandboxScriptObject{
     private HashMap<RouteDetails, ISandboxDefineCallback> routes = new HashMap<>();
-
+    ScriptObject config;
     RouteDetails currentRoute;
 
     public void define(String transport, String defineType, String path, String method, ScriptObject properties, ScriptFunction callback, ISandboxDefineCallback func, NativeError error) throws ServiceScriptException {
@@ -35,11 +35,10 @@ public class SandboxScriptObject implements ISandboxScriptObject{
         RouteDetails routeDetails = null;
         if(transport.equals("http")){
             routeDetails = new HTTPRouteDetails(method, path, propertiesMap);
-
         }else if(transport.equals("jms")){
             routeDetails = new JMSRouteDetails(path, propertiesMap);
-
         }
+
         routeDetails.setTransport(transport);
         routeDetails.setFunctionSource(new ScriptSource(callback));
         routeDetails.setDefineSource(new ScriptSource(error, "<sandbox-internal>"));
@@ -52,6 +51,14 @@ public class SandboxScriptObject implements ISandboxScriptObject{
     }
 
     public List<RouteDetails> getRoutes() { return new ArrayList<>(routes.keySet()); }
+
+    public void setConfig(ScriptObject config) {
+        this.config = config;
+    }
+
+    public ScriptObject getConfig() {
+        return config;
+    }
 
     public ISandboxDefineCallback getMatchedFunction(EngineRequest req) {
         Optional<RouteDetails> matchedRoute = routes.keySet().stream().filter(r -> r.matchesEngineRequest(req)).findFirst();

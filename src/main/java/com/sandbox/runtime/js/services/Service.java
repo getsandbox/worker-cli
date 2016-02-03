@@ -51,7 +51,7 @@ public abstract class Service {
     protected String fullSandboxId;
     EngineRequest req;
     EngineResponse res;
-    SandboxScriptObject scriptObject = new SandboxScriptObject();
+    SandboxScriptObject scriptObject;
     NashornUtils nashornUtils;
     private boolean initialized = false;
 
@@ -78,6 +78,7 @@ public abstract class Service {
         this.fullSandboxId = fullSandboxId;
         this.sandboxId = sandboxId;
         this.nashornUtils = nashornUtils;
+        this.scriptObject = new SandboxScriptObject();
     }
 
     public SandboxScriptEngine getSandboxScriptEngine() {
@@ -168,6 +169,7 @@ public abstract class Service {
         // bootstrap the context with minimal environment
         setInScope("__mock", scriptObject, sandboxScriptEngine);
         setInScope("nashornUtils", getNashornUtils(), sandboxScriptEngine);
+        evalScript("sandbox-internal", "Sandbox.config = __mock.getConfig()", sandboxScriptEngine);
     }
 
     protected void loadEmptyState() throws Exception{
