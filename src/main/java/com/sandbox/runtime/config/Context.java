@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.models.Console;
+import com.sandbox.runtime.js.models.RuntimeVersion;
 import com.sandbox.runtime.js.serializers.ScriptObjectMirrorSerializer;
 import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
 import com.sandbox.runtime.js.serializers.UndefinedSerializer;
@@ -131,16 +132,15 @@ public class Context {
     @Bean(name = "droneService")
     @Scope("prototype")
     @Lazy
-    public RuntimeService runtimeService(String fullSandboxId, String sandboxId) {
-        //defaulted because its always the same
-        SandboxScriptEngine engine = applicationContext.getBean(JSEngineService.class).createEngine();
+    public RuntimeService runtimeService(SandboxScriptEngine engine, String fullSandboxId, String sandboxId) {
         NashornUtils nashornUtils = (NashornUtils) applicationContext.getBean("nashornUtils", sandboxId);
         return new RuntimeService(engine, nashornUtils, fullSandboxId, sandboxId);
     }
 
     @Bean
     public JSEngineService jsEngineService(){
-        return new JSEngineService();
+        //TODO Choose runtime version
+        return new JSEngineService(RuntimeVersion.getLatest());
     }
 
     @Bean

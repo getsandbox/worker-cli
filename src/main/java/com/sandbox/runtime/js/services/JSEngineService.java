@@ -1,6 +1,7 @@
 package com.sandbox.runtime.js.services;
 
 import com.sandbox.runtime.js.models.Console;
+import com.sandbox.runtime.js.models.RuntimeVersion;
 import com.sandbox.runtime.js.utils.FileUtils;
 import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
 import com.sandbox.runtime.models.SandboxScriptEngine;
@@ -27,13 +28,15 @@ public class JSEngineService {
 
     static Logger logger = LoggerFactory.getLogger(JSEngineService.class);
     private ScriptEngine engine;
+    private RuntimeVersion runtimeVersion;
     //set capacity to arbitrary number of queued objects, how about 10?
     private ArrayBlockingQueue<SandboxScriptEngine> createdEngines = new ArrayBlockingQueue<>(10);
 
     @Autowired
     ApplicationContext context;
 
-    public JSEngineService() {
+    public JSEngineService(RuntimeVersion runtimeVersion) {
+        this.runtimeVersion = runtimeVersion;
     }
 
     @PostConstruct
@@ -110,16 +113,47 @@ public class JSEngineService {
     }
 
     private SandboxScriptEngine injectLibraries(SandboxScriptEngine sandboxEngine){
+        if(runtimeVersion == RuntimeVersion.VERSION_1){
+            return injectLibrariesV1(sandboxEngine);
+        }else if(runtimeVersion == RuntimeVersion.VERSION_2){
+            return injectLibrariesV2(sandboxEngine);
+        }else{
+            throw new RuntimeException("Unsupported runtime version");
+        }
+    }
+
+    private SandboxScriptEngine injectLibrariesV1(SandboxScriptEngine sandboxEngine){
         final Bindings globalScope = sandboxEngine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
         final Bindings engineScope = sandboxEngine.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
 
         try {
-            loadAndSealScript("lodash-2.4.1.js","lib/lodash-2.4.1.min", "_", engineScope, sandboxEngine.getEngine());
-            loadAndSealScript("faker.js","lib/faker-2.1.2.min", "faker", globalScope, sandboxEngine.getEngine());
-            loadAndSealScript("moment.js", "lib/moment-2.8.2.min", "moment", globalScope, sandboxEngine.getEngine());
-            loadAndSealScript("amanda.js", "lib/amanda-0.4.8.min", "amanda", globalScope, sandboxEngine.getEngine());
-            loadAndSealScript("validator.js", "lib/validator.min", "validator", globalScope, sandboxEngine.getEngine());
-            loadAndSealScript("sandbox-validator.js", "sandbox-validator", "sandboxValidator", globalScope, sandboxEngine.getEngine());
+            String runtimeVersionPath = runtimeVersion.name().toLowerCase();
+            loadAndSealScript("lodash.js","lib/" + runtimeVersionPath + "/lodash-2.4.1.min", "_", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("faker.js","lib/" + runtimeVersionPath + "/faker-2.1.2.min", "faker", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("moment.js", "lib/" + runtimeVersionPath + "/moment-2.8.2.min", "moment", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("amanda.js", "lib/" + runtimeVersionPath + "/amanda-0.4.8.min", "amanda", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("validator.js", "lib/" + runtimeVersionPath + "/validator.min", "validator", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("sandbox-validator.js", "lib/" + runtimeVersionPath + "/sandbox-validator", "sandboxValidator", globalScope, sandboxEngine.getEngine());
+
+        } catch (ScriptException e) {
+            logger.error("Error loading 3rd party JS", e);
+        }
+
+        return sandboxEngine;
+    }
+
+    private SandboxScriptEngine injectLibrariesV2(SandboxScriptEngine sandboxEngine){
+        final Bindings globalScope = sandboxEngine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
+        final Bindings engineScope = sandboxEngine.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
+
+        try {
+            String runtimeVersionPath = runtimeVersion.name().toLowerCase();
+            loadAndSealScript("lodash.js","lib/" + runtimeVersionPath + "/lodash-4.2.1.min", "_", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("faker.js","lib/" + runtimeVersionPath + "/faker-3.0.1.min", "faker", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("moment.js", "lib/" + runtimeVersionPath + "/moment-2.11.2.min", "moment", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("amanda.js", "lib/" + runtimeVersionPath + "/amanda-0.4.8.min", "amanda", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("validator.js", "lib/" + runtimeVersionPath + "/validator-4.7.2.min", "validator", globalScope, sandboxEngine.getEngine());
+            loadAndSealScript("sandbox-validator.js", "lib/" + runtimeVersionPath + "/sandbox-validator", "sandboxValidator", globalScope, sandboxEngine.getEngine());
 
         } catch (ScriptException e) {
             logger.error("Error loading 3rd party JS", e);

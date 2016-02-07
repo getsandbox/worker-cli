@@ -1,7 +1,9 @@
 package com.sandbox.runtime.js.services;
 
 import com.sandbox.runtime.js.converters.NashornConverter;
+import com.sandbox.runtime.js.models.RuntimeVersion;
 import com.sandbox.runtime.models.Cache;
+import com.sandbox.runtime.models.SandboxScriptEngine;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,8 @@ public class ServiceManager {
     private int refreshThreshold = 1;
     private Map<String, AtomicInteger> counters = new HashMap<>();
     private Map<String, Service> services = new ConcurrentHashMap<>();
-    private Map<String, Map<String, String>> sandboxConfig = new ConcurrentHashMap<>();
+    private Map<String, Map<String, String>> configs = new ConcurrentHashMap<>();
+    private Map<RuntimeVersion, JSEngineService> engineServices = new ConcurrentHashMap<>();
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceManager.class);
@@ -43,7 +46,8 @@ public class ServiceManager {
     }
 
     public Service getValidationService(String fullSandboxId, String sandboxId){
-        Service result = (Service)context.getBean("droneValidationService", fullSandboxId, sandboxId);
+        SandboxScriptEngine engine = getEngineServiceForSandbox(sandboxId).createOrGetEngine();
+        Service result = (Service)context.getBean("droneValidationService", engine, fullSandboxId, sandboxId);
         addConfigToService(result);
         return result;
     }
@@ -67,7 +71,8 @@ public class ServiceManager {
     }
 
     private Service createService(String fullSandboxId, String sandboxId){
-        Service service = (Service)context.getBean("droneService", fullSandboxId, sandboxId);
+        SandboxScriptEngine engine = getEngineServiceForSandbox(sandboxId).createOrGetEngine();
+        Service service = (Service)context.getBean("droneService", engine, fullSandboxId, sandboxId);
         addConfigToService(service);
         services.put(sandboxId, service);
         return service;
@@ -75,23 +80,56 @@ public class ServiceManager {
 
     public void refreshService(String fullSandboxId, String sandboxId){
         //asked for a refresh, so get new config, otherwise it uses local cache.
-        sandboxConfig.remove(sandboxId);
+        configs.remove(sandboxId);
         //generate a new one with new changes
         createService(fullSandboxId, sandboxId);
     }
 
     public void removeService(String sandboxId){
         services.remove(sandboxId);
-        sandboxConfig.remove(sandboxId);
+        configs.remove(sandboxId);
         counters.remove(sandboxId);
     }
 
-    private Service addConfigToService(Service result){
-        Map<String, String> config = sandboxConfig.get(result.sandboxId);
-        if(config == null){
-            config = cache.getConfigForSandboxId(result.sandboxId);
-            sandboxConfig.put(result.sandboxId, config);
+    private JSEngineService getEngineServiceForSandbox(String sandboxId){
+        Map<String, String> config = getConfig(sandboxId);
+        RuntimeVersion runtimeVersion = null;
+        //get runtime version from sandbox config, might not be there, should be defaulted
+        String configRuntimeVersion = config.get("sandbox_runtime_version");
+        if(configRuntimeVersion != null){
+            try {
+                //get enum from value, throws IllegalArg if no matching enum is found
+                runtimeVersion = RuntimeVersion.valueOf(configRuntimeVersion);
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid runtime version number", e);
+            }
         }
+        //if we still dont have a runtime version, default to the latest
+        if(runtimeVersion == null){
+            runtimeVersion = RuntimeVersion.getLatest();
+        }
+
+        //use runtime version to get/create a engine service to give us our engine
+        JSEngineService result = engineServices.get(runtimeVersion);
+        if(result == null){
+            //no matching engine service, will have to create one!
+            result = context.getBean(JSEngineService.class, runtimeVersion);
+            engineServices.put(runtimeVersion, result);
+        }
+        return result;
+    }
+
+    private Map<String, String> getConfig(String sandboxId){
+        Map<String, String> config = configs.get(sandboxId);
+        if(config == null){
+            config = cache.getConfigForSandboxId(sandboxId);
+            configs.put(sandboxId, config);
+        }
+        return config;
+    }
+
+    private Service addConfigToService(Service result){
+        Map<String, String> config = getConfig(result.sandboxId);
         try {
             result.scriptObject.setConfig((ScriptObject) NashornConverter.instance().convert(result.getSandboxScriptEngine().getEngine(), config));
         } catch (Exception e) {
