@@ -100,6 +100,7 @@ public abstract class Service {
     public HttpRuntimeResponse handleRequest(HTTPRequest req) {
         this.req = req;
         this.res = new HTTPResponse();
+        sandboxScriptEngine.getConsole().clear();
 
         try {
             initialize();
