@@ -105,6 +105,7 @@ public abstract class Service {
     public List<RuntimeResponse> handleRequest(EngineRequest req) {
         this.req = req;
         this.res = req._getMatchingResponse();
+        sandboxScriptEngine.getConsole().clear();
 
         try {
             initialize();

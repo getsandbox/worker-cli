@@ -14,6 +14,8 @@ public class Console {
         _messages.add(msg);
     }
 
+    public void clear() { _messages.clear(); }
+
     public List<String> _getMessages(){
         return _messages;
     }
