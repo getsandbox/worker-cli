@@ -16,7 +16,7 @@ The code can be cloned and compiled by itself (Gradle is used for dependency man
 
 ### Dependencies
 
-* _Java 8 Update 20 or Update 25_ - important! you actually might not have this, Update 25 is recommended, after this behaviour becomes unstable.
+* _Java 8 Update 72_ - important! you actually might not have this.
 * Mac or Linux
 
 ### Operating System
