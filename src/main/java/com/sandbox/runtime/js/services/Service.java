@@ -251,7 +251,7 @@ public abstract class Service {
                 String template = cache.getRepositoryFile(fullSandboxId, "templates/" + message.getTemplateName() + ".liquid");
 
                 if (template == null) {
-                    throw req._getNoRouteDefinitionException();
+                    throw new ServiceScriptException("Template not found: " + message.getTemplateName());
                 }
 
                 Map templateLocals = message.getTemplateLocals();

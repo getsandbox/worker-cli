@@ -18,7 +18,8 @@ import java.util.Map;
 public class HTTPResponse extends EngineResponse {
 
     private List<String[]> cookies = new ArrayList<String[]>();
-    private Integer status = null;
+    private Integer statusCode = null;
+    private String statusText = null;
 
     // Content-Type defaulted to 'application/json'
     public void send(Object body) {
@@ -39,7 +40,7 @@ public class HTTPResponse extends EngineResponse {
     }
 
     public void send(int status, Object body) {
-        this.status = status;
+        this.statusCode = status;
         this.send(body);
     }
 
@@ -54,7 +55,7 @@ public class HTTPResponse extends EngineResponse {
     }
 
     public void send(int status, ScriptObject body) {
-        this.status = status;
+        this.statusCode = status;
         this.send(body);
     }
 
@@ -68,7 +69,7 @@ public class HTTPResponse extends EngineResponse {
      * @param body
      */
     public void json(int status, Object body) {
-        this.status = status;
+        this.statusCode = status;
         this.json(body);
     }
 
@@ -78,21 +79,37 @@ public class HTTPResponse extends EngineResponse {
     }
 
     public void json(int status, ScriptObject body) {
-        this.status = status;
+        this.statusCode = status;
         getHeaders().put("Content-Type", "application/json");
         this.send(body);
     }
 
     // if user passes a non-int param Nashorn converts it to 0.
     // could use ScriptMirror, inspect type and throw if not an int?
-    public HTTPResponse status(int _status) {
-        status = _status;
+    public HTTPResponse status(int statusCode) {
+        this.statusCode = statusCode;
         return this;
     }
 
-    public void statusCode(int _status) { status(_status); }
+    public HTTPResponse status(int statusCode, String statusText) {
+        this.statusCode = statusCode;
+        this.statusText = statusText;
+        return this;
+    }
 
-    public Integer getStatus() { return status; }
+    public void statusCode(int statusCode) {
+        status(statusCode);
+    }
+
+    public void statusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    public Integer getStatusCode() { return statusCode; }
+
+    public String getStatusText() {
+        return statusText;
+    }
 
     //TODO this is a super simple version, make a better one that does other props of cookies.
     public void cookie(String name, String value) {
@@ -125,10 +142,10 @@ public class HTTPResponse extends EngineResponse {
         // check for a status code being set
         // if an exception is thrown above, the Proxy will see the error at its end
         // and replace the status code with 500
-        if (getStatus() == null) {
+        if (getStatusCode() == null) {
             status(200);
         }
 
-        return new HttpRuntimeResponse(body, getStatus(), getHeaders(), getCookies());
+        return new HttpRuntimeResponse(body, getStatusCode(), getStatusText(), getHeaders(), getCookies());
     }
 }

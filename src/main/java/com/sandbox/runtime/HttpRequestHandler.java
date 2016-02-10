@@ -20,6 +20,7 @@ import com.sandbox.runtime.utils.FormatUtils;
 import com.sandbox.runtime.utils.MapUtils;
 import org.apache.cxf.jaxrs.model.URITemplate;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +119,7 @@ public class HttpRequestHandler extends AbstractHandler {
 
             if("options".equalsIgnoreCase(httpRequest.method())){
                 //if options request, send back CORS headers
-                runtimeResponse = new HttpRuntimeResponse("", 200, new HashMap<>(), new ArrayList<>());
+                runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", runtimeRequest.getHeaders().getOrDefault("Origin", "*"));
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", runtimeRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
@@ -247,10 +248,11 @@ public class HttpRequestHandler extends AbstractHandler {
         if(runtimeResponse instanceof HttpRuntimeResponse){
             HttpRuntimeResponse httpResponse = (HttpRuntimeResponse) runtimeResponse;
             //status
-            if (httpResponse.getStatusCode() <= 0) {
-                response.setStatus(200);
-            } else {
-                response.setStatus(httpResponse.getStatusCode());
+            int statusCode = httpResponse.getStatusCode() <= 0 ? 200 : httpResponse.getStatusCode();
+            if(httpResponse.getStatusText() != null && response instanceof Response){
+                ((Response)response).setStatusWithReason(statusCode, httpResponse.getStatusText());
+            }else{
+                response.setStatus(statusCode);
             }
 
             //cookies
