@@ -261,20 +261,19 @@ public abstract class Service {
                     _body = template;
                 }else {
                     liquidRenderer.prepareValues(templateLocals);
-                }
+                    Map<String, Object> locals = new HashMap<String, Object>();
+                    try {
+                        locals.put("res", templateLocals);
+                        locals.put("req", req);
+                        locals.put("data", templateLocals);
+                        locals.put("__nashornUtils", nashornUtils);
 
-                Map<String, Object> locals = new HashMap<String, Object>();
-                try {
-                    locals.put("res", templateLocals);
-                    locals.put("req", req);
-                    locals.put("data", templateLocals);
-                    locals.put("__nashornUtils", nashornUtils);
+                        _body = liquidRenderer.render(template, locals);
 
-                    _body = liquidRenderer.render(template, locals);
-
-                } catch (Exception e) {
-                    //if we get a liquid runtime exception, from our custom tags, then rethrow as a script exception so it gets logged.
-                    throw new ServiceScriptException(e.getMessage());
+                    } catch (Exception e) {
+                        //if we get a liquid runtime exception, from our custom tags, then rethrow as a script exception so it gets logged.
+                        throw new ServiceScriptException(e.getMessage());
+                    }
                 }
 
             } else if (message.getBody() == null) {
