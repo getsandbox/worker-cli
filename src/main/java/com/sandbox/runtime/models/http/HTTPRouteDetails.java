@@ -97,14 +97,16 @@ public class HTTPRouteDetails extends RouteDetails {
     }
 
     @JsonIgnore
-    public boolean isWildcardMethod(){
-        return method != null && (method.equals("*") || method.equalsIgnoreCase("all"));
+    public boolean isWildcardMethod(String compareMethod){
+        return compareMethod != null && (compareMethod.equals("*") || compareMethod.equalsIgnoreCase("all"));
     }
 
     public boolean matchesMethod(String method){
         if(method == null || this.method == null) return false;
 
-        if(isWildcardMethod()) {
+        //check both sides of the comparison for wildcard methods
+        if(isWildcardMethod(this.method) || isWildcardMethod(method)) {
+
             return true;
         }else{
             return this.method.equalsIgnoreCase(method);
