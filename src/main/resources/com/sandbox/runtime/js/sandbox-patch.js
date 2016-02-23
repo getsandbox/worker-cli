@@ -11,6 +11,8 @@
           }
         } else {
           wrappedRequest[property] = callbackRequest[property]
+          //clear validation errors for each request
+          wrappedRequest._validationErrors = []
         }
       })
       return callback(wrappedRequest, callbackResponse)
