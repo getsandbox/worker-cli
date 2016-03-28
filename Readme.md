@@ -10,7 +10,7 @@ This project consists of both the core runtime code, and a lightweight wrapper t
 
 The code can be cloned and compiled by itself (Gradle is used for dependency management) or you can just download the compiled and packaged binary which can be run from the command line on a supported OS.
 
-[Latest compiled binary](https://s3-us-west-2.amazonaws.com/getsandbox-assets/runtime-binary.tar)
+[Latest compiled binary](https://s3-us-west-2.amazonaws.com/sandbox-binaries/runtime-binary.tar)
 
 [ ![Codeship Status for getsandbox/sandbox](https://www.codeship.io/projects/74b27060-413f-0132-8b16-3ae7a01b01d4/status)](https://www.codeship.io/projects/44131)
 

@@ -15,4 +15,4 @@ pip install awscli > /dev/null
 $WORKING_DIR/buildLinuxPackage.sh $WORKING_DIR/.. /tmp
 
 # upload built binary to s3 and make it public
-aws s3 cp /tmp/sandbox.tar s3://getsandbox-assets/runtime-binary.tar --acl public-read
+aws s3 cp /tmp/sandbox.tar s3://sandbox-binaries/runtime-binary.tar --acl public-read
