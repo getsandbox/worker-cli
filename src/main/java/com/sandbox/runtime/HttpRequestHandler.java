@@ -11,6 +11,7 @@ import com.sandbox.runtime.models.Cache;
 import com.sandbox.common.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sandbox.common.models.RuntimeResponse;
+import com.sandbox.runtime.models.XMLDoc;
 import com.sandbox.runtime.models.http.HTTPRequest;
 import com.sandbox.runtime.models.http.HTTPRouteDetails;
 import com.sandbox.common.models.http.HttpRuntimeRequest;
@@ -33,6 +34,7 @@ import org.springframework.util.StringUtils;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.xpath.XPathConstants;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -211,6 +213,22 @@ public class HttpRequestHandler extends AbstractHandler {
 
     //gets the matching route (if any) out of the routing table
     private HTTPRouteDetails findMatchedRoute(HttpRuntimeRequest request, RoutingTable table) throws Exception {
+        //if we have a SOAP Action header, assume this is SOAP, amaze? And go get the operation name
+        if("xml".equals(request.getContentType())){
+            try {
+                if(request.getHeaders().get("SOAPAction") != null) request.getProperties().put("SOAPAction", request.getHeaders().get("SOAPAction"));
+
+                String soapBodyXPath = "local-name(//*[local-name()='Envelope']/*[local-name()='Body']/*[1])";
+                String operationName = new XMLDoc(request.getBody()).get(soapBodyXPath, XPathConstants.STRING, String.class);
+                // add to both maps,
+                request.getProperties().put("SOAPOperationName", operationName);
+                logger.debug("Found SOAP Operation Name: {}", operationName);
+
+            } catch (Exception e) {
+                logger.error("Error retrieving SOAP Operation Name", e);
+            }
+        }
+
         HTTPRouteDetails match = (HTTPRouteDetails) table.findMatch(request);
         if(match == null) return null;
 
