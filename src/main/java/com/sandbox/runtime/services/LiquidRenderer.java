@@ -3,10 +3,14 @@ package com.sandbox.runtime.services;
 import com.sandbox.runtime.js.utils.NashornUtils;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.internal.runtime.ScriptObject;
+import org.jliquid.liqp.LimitedStringBuilder;
 import org.jliquid.liqp.Template;
 import org.jliquid.liqp.nodes.LNode;
 import org.jliquid.liqp.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,6 +23,9 @@ import java.util.regex.Pattern;
  * Created by nickhoughton on 4/08/2014.
  */
 public class LiquidRenderer {
+
+    @Autowired
+    Environment environment;
 
     public LiquidRenderer() {
         Tag.registerTag(new Tag("include") {
@@ -43,6 +50,12 @@ public class LiquidRenderer {
 
             }
         });
+    }
+
+    @PostConstruct
+    public void init(){
+        int maximumRenderSize = environment.getProperty("app.drone.maximumrenderbytes", int.class, -1);
+        LimitedStringBuilder.limitInBytes = maximumRenderSize;
     }
 
     public String render(String templateData, Map<String, Object> parameters) {

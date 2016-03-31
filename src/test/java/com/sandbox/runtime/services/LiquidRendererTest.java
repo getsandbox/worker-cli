@@ -1,6 +1,7 @@
 package com.sandbox.runtime.services;
 
 import com.sandbox.runtime.js.utils.NashornUtils;
+import org.jliquid.liqp.LimitedStringBuilder;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -141,4 +142,19 @@ public class LiquidRendererTest {
         String result = new LiquidRenderer().render("{% include 'blah' %}", vars);
 
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testExceededForLoop() throws Exception {
+        LimitedStringBuilder.limitInBytes = 10000;
+        Map<String, Object> outer = new HashMap<String, Object>();
+        for (int x=0;x < 1000; x++){
+            outer.put(x+"", "sdl,fjksldjkdfsjkldsflkjsfdjlksfdjlksdfjlksdfjlksdfjlksldfjkjlkfsdsdflsdfjlksdfjlkdsfljksdfjlfkdssdflkjsdflksjdflksjdflkjsflwiejfopqijfqlskdjqlsidjqwldjqwd");
+        }
+
+        Map<String, Object> vars = new HashMap<String, Object>();
+        vars.put("hash", outer);
+
+        String result = new LiquidRenderer().render("{% for item in hash %}\n{{ item[1] }}\n{% endfor %}", vars);
+    }
+
 }
