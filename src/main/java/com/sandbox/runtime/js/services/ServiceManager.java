@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,6 +44,11 @@ public class ServiceManager {
 
     public ServiceManager(int refreshThreshold) {
         this.refreshThreshold = refreshThreshold;
+    }
+
+    @PostConstruct
+    public void init(){
+        engineServices.put(RuntimeVersion.getLatest(), context.getBean(JSEngineService.class, RuntimeVersion.getLatest()));
     }
 
     public Service getValidationService(String fullSandboxId, String sandboxId){
