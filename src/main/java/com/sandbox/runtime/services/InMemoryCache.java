@@ -1,5 +1,6 @@
 package com.sandbox.runtime.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.RoutingTable;
@@ -40,9 +41,10 @@ public class InMemoryCache implements Cache {
     @Autowired
     ServiceManager serviceManager;
 
-    RoutingTable routingTable;
+    @Autowired
+    ObjectMapper mapper;
 
-    String state = "{}";
+    RoutingTable routingTable;
 
     private HashMap<String, String> fileContents = new HashMap<>();
 
@@ -78,12 +80,33 @@ public class InMemoryCache implements Cache {
 
     @Override
     public String getSandboxState(String sandboxId) {
+        String state = "{}";
+        //load state if it exists and is correct
+        if(commandLine.getStatePath() != null){
+            Path stateFilePath = commandLine.getStatePath();
+            if(!Files.exists(stateFilePath)){
+                logger.warn("State path has been specified, but the '{}' file does not exist, creating..", stateFilePath);
+                setSandboxState(sandboxId, state);
+            }else {
+                try {
+                    logger.info("Loading state from '{}'", stateFilePath);
+                    state = FileUtils.readFileToString(stateFilePath.toFile());
+                } catch (IOException e) {
+                    logger.error("Error reading persisted state, ignoring..", e);
+                }
+            }
+        }
         return state;
     }
 
     @Override
     public void setSandboxState(String sandboxId, String state) {
-        this.state = state;
+        Path stateFilePath = commandLine.getStatePath();
+        try {
+            FileUtils.writeStringToFile(stateFilePath.toFile(), state);
+        } catch (IOException e) {
+            logger.error("Error writing state to file '{}'", stateFilePath.toFile().getAbsolutePath());
+        }
     }
 
 
@@ -104,7 +127,6 @@ public class InMemoryCache implements Cache {
     }
 
     private void listenForFileChange(Path base){
-
         try {
             final WatchService watcher = FileSystems.getDefault().newWatchService();
             final SimpleFileVisitor<Path> fileVisitor = new SimpleFileVisitor<Path>(){
@@ -112,13 +134,11 @@ public class InMemoryCache implements Cache {
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException
                 {
                     dir.register(watcher, new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY}, SensitivityWatchEventModifier.HIGH);
-
                     return FileVisitResult.CONTINUE;
                 }
             };
 
             Files.walkFileTree(base, fileVisitor);
-
             new Thread(()->{
                 try {
                     WatchKey key = watcher.take();
@@ -132,7 +152,6 @@ public class InMemoryCache implements Cache {
                                 logger.info("Clearing routing table on JS file change");
                             }
                         }
-
                         //cleanup
                         key.reset();
                         key = watcher.take();
@@ -140,12 +159,10 @@ public class InMemoryCache implements Cache {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
             }).start();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 }

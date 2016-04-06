@@ -33,6 +33,7 @@ run      Starts a sandbox runtime in the current working directory.
 Options:
 --port=<port number>
 --base=<base directory> (Overrides working directory)
+--state=<file to persist state to> (Reads/writes a file to persist state across runs)
 --verbose (Increases logging verbosity, full request and response bodies etc)
 ```
 

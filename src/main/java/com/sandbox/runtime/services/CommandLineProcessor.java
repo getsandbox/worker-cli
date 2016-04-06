@@ -26,7 +26,7 @@ public class CommandLineProcessor {
     Path basePath;
     int httpPort;
     Integer debugPort;
-    boolean persistState;
+    Path statePath;
     boolean verboseLogging;
 
     private static Logger logger = LoggerFactory.getLogger(CommandLineProcessor.class);
@@ -58,18 +58,28 @@ public class CommandLineProcessor {
     private void extractOptionalArguments(){
         //base path options, fallback to current working direct --base=<dir>
         String basePathStr = environment.getProperty("base",String.class);
-        if(basePathStr == null) {
-            basePathStr = System.getProperty("user.dir");
-        }
-        if (basePathStr.startsWith("~")) {
-            basePathStr = System.getProperty("user.home") + basePathStr.substring(1);
-        }
-
         try{
+            if(basePathStr == null) basePathStr = System.getProperty("user.dir");
+            if(basePathStr.startsWith("~")) basePathStr = System.getProperty("user.home") + basePathStr.substring(1);
             basePath = Paths.get(basePathStr);
+            //ensure the path actually exists
             basePath.toRealPath();
         }catch(Exception e){
             throw new RuntimeException("Invalid base path");
+        }
+
+        //state path, where we will read/persist state data to
+        String statePathStr = environment.getProperty("state",String.class);
+        if(statePathStr != null) {
+            try {
+                if (statePathStr.startsWith("~"))
+                    statePathStr = System.getProperty("user.home") + statePathStr.substring(1);
+                statePath = Paths.get(statePathStr);
+                //ensure the path actually exists
+                statePath.toRealPath();
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid state path");
+            }
         }
 
         httpPort = environment.getProperty("port",Integer.class, 8080);
@@ -85,6 +95,7 @@ public class CommandLineProcessor {
                 "Options:\n" +
                 "--port=<port number>\n" +
                 "--base=<base directory> (Overrides working directory)\n" +
+                "--state=<file to persist state to> (Reads/writes a file to persist state across runs)\n" +
                 "--verbose (Increases logging verbosity, full request and response bodies etc)\n" //+
 //                "--debug (Enable the Java debugger on port 5005, attach to debug JavaScript)\n"
         );
@@ -92,6 +103,10 @@ public class CommandLineProcessor {
 
     public Path getBasePath() {
         return basePath;
+    }
+
+    public Path getStatePath() {
+        return statePath;
     }
 
     public int getHttpPort() {
