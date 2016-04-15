@@ -2,7 +2,7 @@
 MYSELF=`which "$0" 2>/dev/null`
 [ $? -gt 0 -a -f "$0" ] && MYSELF="./$0"
 java=java
-java_args=
+java_args="-Dfile.encoding=UTF-8"
 if test -n "$JAVA_HOME"; then
     java="$JAVA_HOME/bin/java"
 fi
