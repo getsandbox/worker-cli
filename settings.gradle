@@ -1,2 +1,4 @@
 include ':model'
 project(':model').projectDir = new File(settingsDir, './libs/model')
+include ':jliquid'
+project(':jliquid').projectDir = new File(settingsDir, './libs/jliquid')

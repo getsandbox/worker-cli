@@ -14,15 +14,13 @@ repositories {
 buildscript {
     repositories { jcenter() }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
     }
 }
 
 dependencies {
     compile project(':model')
-
-    compile files('./libs/jliquid.jar')
-    compile 'org.antlr:antlr-runtime:3.4'
+    compile project(':jliquid')
 
     compile 'javax.servlet:javax.servlet-api:3.0.1'
     compile 'commons-io:commons-io:2.4'
