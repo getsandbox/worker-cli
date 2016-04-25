@@ -13,7 +13,7 @@ set -e
 
 echo "downloading Gradle"
 (cd /tmp/; wget https://downloads.gradle.org/distributions/gradle-2.12-bin.zip)
-(cd /tmp/; unzip -q gradle-2.12-all.zip)
+(cd /tmp/; unzip -q gradle-2.12-bin.zip)
 (cd /tmp/; sudo mv gradle-2.12 /usr/share/)
 export GRADLE_HOME="/tmp/gradle-2.12/bin"
 

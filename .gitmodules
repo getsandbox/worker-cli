@@ -3,4 +3,4 @@
 	url = https://github.com/getsandbox/sandbox-model.git
 [submodule "libs/jliquid"]
 	path = libs/jliquid
-	url = https://github.com/getsandbox/jliquid-liqp.git
+url=https://nhoughto@github.com/getsandbox/jliquid-liqp.git
