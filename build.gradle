@@ -33,8 +33,8 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.7'
     compile 'org.slf4j:jcl-over-slf4j:1.7.7'
     compile 'ch.qos.logback:logback-classic:1.1.2'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.2.2'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.2.2'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.6.3'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
 
     //to support parsing uri with params
     compile 'org.apache.cxf:cxf-rt-frontend-jaxrs:3.1.4'
