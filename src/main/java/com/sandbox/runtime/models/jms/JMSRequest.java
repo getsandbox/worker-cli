@@ -53,11 +53,8 @@ public class JMSRequest extends EngineRequest {
         return super.is(type, "contentType");
     }
 
-    public String get(String headerName){
-        if(getHeaders() == null) return null;
-        //get lowercase key as should be case insensitive
-        return getHeaders().get(headerName.toLowerCase()).toString();
-
+    public Object get(String headerName){
+        return super.get(headerName);
     }
 
     public Map<String, String> properties() {

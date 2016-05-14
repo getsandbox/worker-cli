@@ -53,10 +53,8 @@ public class HTTPRequest extends EngineRequest{
         this.url = url != null ? url : "";
     }
 
-    public String get(String headerName){
-        if(getHeaders() == null) return null;
-        //get lowercase key as should be case insensitive
-        return getHeaders().get(headerName.toLowerCase()).toString();
+    public Object get(String headerName){
+        return super.get(headerName);
     }
 
     //using lowercase, non get prefixed method names so JS can find them when we do 'req.query.blah'.

@@ -9,6 +9,7 @@ import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.js.models.JsonNode;
 import com.sandbox.runtime.utils.URISupport;
 import jdk.nashorn.internal.runtime.ScriptObject;
+import jdk.nashorn.internal.runtime.Undefined;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.script.ScriptEngine;
@@ -76,7 +77,9 @@ public abstract class EngineRequest {
     public Object get(String headerName){
         if(getHeaders() == null) return null;
         //get lowercase key as should be case insensitive
-        return getHeaders().get(headerName.toLowerCase());
+        Object result = getHeaders().get(headerName.toLowerCase());
+        if(result instanceof Undefined) return result;
+        return result.toString();
     }
 
     public abstract boolean is(String type);
