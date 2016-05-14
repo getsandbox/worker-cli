@@ -33,6 +33,7 @@ public class ServiceManager {
     private int refreshThreshold = 1;
     private Map<String, AtomicInteger> counters = new HashMap<>();
     private Map<String, Service> services = new ConcurrentHashMap<>();
+    private Map<String, String> fullSandboxReference = new ConcurrentHashMap<>();
     private Map<String, Map<String, String>> configs = new ConcurrentHashMap<>();
     private Map<RuntimeVersion, JSEngineService> engineServices = new ConcurrentHashMap<>();
     private ExecutorService executorService = Executors.newCachedThreadPool();
@@ -80,6 +81,7 @@ public class ServiceManager {
         SandboxScriptEngine engine = getEngineServiceForSandbox(sandboxId).createOrGetEngine();
         Service service = (Service)context.getBean("droneService", engine, fullSandboxId, sandboxId);
         addConfigToService(service);
+        fullSandboxReference.put(sandboxId, fullSandboxId);
         services.put(sandboxId, service);
         return service;
     }
@@ -89,12 +91,19 @@ public class ServiceManager {
         configs.remove(sandboxId);
         //generate a new one with new changes
         createService(fullSandboxId, sandboxId);
+        //find and refresh any sandboxes that are clones. if ids are equal, it is a change to a forked sb
+        if(fullSandboxId.equals(sandboxId)){
+            fullSandboxReference.entrySet().stream()
+                    .filter( e -> { return e.getValue().equals(fullSandboxId); })
+                    .forEach(e -> { createService(fullSandboxId, e.getKey()); });
+        }
     }
 
     public void removeService(String sandboxId){
         services.remove(sandboxId);
         configs.remove(sandboxId);
         counters.remove(sandboxId);
+        fullSandboxReference.remove(sandboxId);
     }
 
     private JSEngineService getEngineServiceForSandbox(String sandboxId){
