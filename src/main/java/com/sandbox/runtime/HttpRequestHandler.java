@@ -97,10 +97,10 @@ public class HttpRequestHandler extends AbstractHandler {
             RuntimeService runtimeService = (RuntimeService) serviceManager.getService(sandboxId, sandboxId);
 
             //create and lookup routing table
-            RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId);
+            RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId, sandboxId);
             if(routingTable == null) {
                 routingTable = runtimeService.handleRoutingTableRequest();
-                cache.setRoutingTableForSandboxId(sandboxId, routingTable);
+                cache.setRoutingTableForSandboxId(sandboxId, sandboxId, routingTable);
             }
             HTTPRouteDetails routeMatch = findMatchedRoute(runtimeRequest, routingTable);
             //if no route match for given request, then log message and send error response.

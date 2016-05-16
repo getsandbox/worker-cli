@@ -111,12 +111,12 @@ public class InMemoryCache implements Cache {
 
 
     @Override
-    public void setRoutingTableForSandboxId(String sandboxId, RoutingTable routingTable) {
+    public void setRoutingTableForSandboxId(String sandboxId, String fullSandboxId, RoutingTable routingTable) {
         this.routingTable = routingTable;
     }
 
     @Override
-    public RoutingTable getRoutingTableForSandboxId(String sandboxId) {
+    public RoutingTable getRoutingTableForSandboxId(String sandboxId, String fullSandboxId) {
         return routingTable;
     }
 
@@ -146,7 +146,7 @@ public class InMemoryCache implements Cache {
                         //if js file has changed, clear routing table
                         for (WatchEvent event : key.pollEvents()) {
                             if(event.context().toString().endsWith(".js")){
-                                setRoutingTableForSandboxId("1",null);
+                                setRoutingTableForSandboxId("1","1", null);
                                 fileContents.clear();
                                 serviceManager.refreshService("1", "1");
                                 logger.info("Clearing routing table on JS file change");

@@ -14,9 +14,9 @@ public interface Cache {
 
     void setSandboxState(String sandboxId, String state);
 
-    public void setRoutingTableForSandboxId(String sandboxId, RoutingTable routingTable);
+    public void setRoutingTableForSandboxId(String sandboxId, String fullSandboxId, RoutingTable routingTable);
 
-    public RoutingTable getRoutingTableForSandboxId(String sandboxId);
+    public RoutingTable getRoutingTableForSandboxId(String sandboxId, String fullSandboxId);
 
     public Map<String, String> getConfigForSandboxId(String sandboxId);
 }
