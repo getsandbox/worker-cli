@@ -36,6 +36,7 @@ Options:
 --port=<port number>
 --base=<base directory> (Overrides working directory)
 --state=<file to persist state to> (Reads/writes a file to persist state across runs)
+--runtimeVersion=VERSION_1|VERSION_2
 --verbose (Increases logging verbosity, full request and response bodies etc)
 ```
 
