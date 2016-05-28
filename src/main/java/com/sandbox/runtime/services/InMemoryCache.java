@@ -123,7 +123,9 @@ public class InMemoryCache implements Cache {
     @Override
     public Map<String, String> getConfigForSandboxId(String sandboxId) {
         //TODO: Allow config to be set somehow, prolly JVM args?
-        return new HashMap<>();
+        HashMap config = new HashMap();
+        config.put("sandbox_runtime_version", commandLine.getRuntimeVersion().toString());
+        return config;
     }
 
     private void listenForFileChange(Path base){

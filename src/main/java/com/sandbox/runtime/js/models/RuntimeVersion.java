@@ -10,4 +10,8 @@ public enum RuntimeVersion {
     public static RuntimeVersion getLatest(){
         return VERSION_2;
     }
+
+    public static String toCLIString() {
+        return VERSION_1 + "|" + VERSION_2;
+    }
 }

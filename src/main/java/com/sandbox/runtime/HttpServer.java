@@ -41,7 +41,7 @@ public class HttpServer {
         try {
             server.start();
 
-            logger.info("Sandbox ready (v{}) --  Running on port: {} with path: '{}'", environment.getProperty("SANDBOX_VERSION",String.class, "?"), port, basePath.toAbsolutePath().toRealPath().toString());
+            logger.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {} with path: '{}'", environment.getProperty("SANDBOX_VERSION",String.class, "?"), commandLine.getRuntimeVersion(), port, basePath.toAbsolutePath().toRealPath().toString());
 
             server.join();
 

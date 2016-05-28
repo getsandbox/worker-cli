@@ -1,6 +1,7 @@
 package com.sandbox.runtime.services;
 
 import com.sandbox.runtime.HttpServer;
+import com.sandbox.runtime.js.models.RuntimeVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ public class CommandLineProcessor {
     int httpPort;
     Integer debugPort;
     Path statePath;
+    RuntimeVersion runtimeVersion;
     boolean verboseLogging;
 
     private static Logger logger = LoggerFactory.getLogger(CommandLineProcessor.class);
@@ -82,6 +84,14 @@ public class CommandLineProcessor {
             }
         }
 
+        //set runtime version, needs to be a valid enum
+        String runtimeVersionStr = environment.getProperty("runtimeVersion",String.class, RuntimeVersion.getLatest().toString());
+        try{
+            runtimeVersion = RuntimeVersion.valueOf(runtimeVersionStr);
+        }catch (Exception e){
+            throw new RuntimeException("Invalid runtime version");
+        }
+
         httpPort = environment.getProperty("port",Integer.class, 8080);
         debugPort = 5005;//environment.getProperty("debug",Integer.class, 5005);
         verboseLogging = environment.getProperty("verbose",String.class) == null ? false : true;
@@ -96,8 +106,10 @@ public class CommandLineProcessor {
                 "--port=<port number>\n" +
                 "--base=<base directory> (Overrides working directory)\n" +
                 "--state=<file to persist state to> (Reads/writes a file to persist state across runs)\n" +
-                "--verbose (Increases logging verbosity, full request and response bodies etc)\n" //+
+                "--runtimeVersion=" + RuntimeVersion.toCLIString() + "\n" +
+                "--verbose (Increases logging verbosity, full request and response bodies etc)\n" +
 //                "--debug (Enable the Java debugger on port 5005, attach to debug JavaScript)\n"
+                "\nMore info about differences in runtime versions: https://getsandbox.com/docs/js-libraries"
         );
     }
 
@@ -111,6 +123,10 @@ public class CommandLineProcessor {
 
     public int getHttpPort() {
         return httpPort;
+    }
+
+    public RuntimeVersion getRuntimeVersion() {
+        return runtimeVersion;
     }
 
     public Integer getDebugPort() {
