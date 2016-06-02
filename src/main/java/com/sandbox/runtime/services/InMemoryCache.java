@@ -150,7 +150,7 @@ public class InMemoryCache implements Cache {
                             if(event.context().toString().endsWith(".js")){
                                 setRoutingTableForSandboxId("1","1", null);
                                 fileContents.clear();
-                                serviceManager.refreshService("1", "1");
+                                serviceManager.refreshService("1");
                                 logger.info("Clearing routing table on JS file change");
                             }
                         }

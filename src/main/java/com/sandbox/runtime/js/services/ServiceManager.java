@@ -86,7 +86,13 @@ public class ServiceManager {
         return service;
     }
 
-    public void refreshService(String fullSandboxId, String sandboxId){
+    public void refreshService(String sandboxId){
+        String fullSandboxId = fullSandboxReference.get(sandboxId);
+        if(fullSandboxId == null){
+            logger.warn("Call refreshService() before calling create()/get() for sandboxId: {}", sandboxId);
+            return;
+        }
+
         //asked for a refresh, so get new config, otherwise it uses local cache.
         configs.remove(sandboxId);
         //generate a new one with new changes
