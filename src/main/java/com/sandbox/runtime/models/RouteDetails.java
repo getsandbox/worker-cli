@@ -1,6 +1,7 @@
 package com.sandbox.runtime.models;
 
 import com.sandbox.common.models.RuntimeRequest;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -15,10 +16,13 @@ public abstract class RouteDetails implements Serializable{
 
     String transport;
     Map<String, String> properties;
+    @ApiModelProperty(hidden = true)
     ScriptSource defineSource;
 
     //the type of define function call, can be define() or soap()
+    @ApiModelProperty(hidden = true)
     String defineType;
+    @ApiModelProperty(hidden = true)
     ScriptSource functionSource;
 
     public RouteDetails() {
