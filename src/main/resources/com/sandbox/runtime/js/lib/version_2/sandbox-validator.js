@@ -229,9 +229,10 @@
                 var schemaStr = nashornUtils.readFile(schemaFile)
                 if(typeof schemaStr != "string") throw new Error("Failed to load json schema")
                 if(schemaStr.length == 0) throw new Error("JSON Schema is empty, please add valid JSON Schema - " + schemaFile)
+                var schemaObj = JSON.parse(schemaStr)
 
                 //if we have everything then validate
-                jsonSchemaValidator.validate(req.body, schemaStr, { singleError: false }, function(error) {
+                jsonSchemaValidator.validate(req.body, schemaObj, { singleError: false }, function(error) {
                     if(!error) return;
 
                     if (req._validationErrors === undefined) {
@@ -240,7 +241,8 @@
 
                     for (var x=0; x < error.length; x++){
                         var validateError = {
-                            param: error[x].property,
+                            //err: error[x],
+                            param: error[x].property || error[x].propertyValue,
                             msg: error[x].message
                         }
                         req._validationErrors.push(validateError)
