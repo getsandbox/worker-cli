@@ -64,7 +64,7 @@ public class ServiceManager {
         counters.putIfAbsent(sandboxId, counter);
         counter.incrementAndGet();
         //if we have to refresh
-        if(counter.get() % refreshThreshold == 0) {
+        if(refreshThreshold > 0 && counter.get() % refreshThreshold == 0) {
             executorService.execute(() -> {
                 createService(fullSandboxId, sandboxId);
             });

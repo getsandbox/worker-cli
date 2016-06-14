@@ -143,7 +143,14 @@ public class Context {
     }
 
     @Bean
-    public ServiceManager serviceManager(){ return new ServiceManager(50); }
+    public ServiceManager serviceManager(){
+        CommandLineProcessor command = applicationContext.getBean(CommandLineProcessor.class);
+        if(command.refreshDisabled()){
+            return new ServiceManager(-1);
+        }else{
+            return new ServiceManager(250);
+        }
+    }
 
     @Bean
     public CommandLineProcessor getCommandLineProcessor() { return new CommandLineProcessor(); }

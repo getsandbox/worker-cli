@@ -30,6 +30,9 @@ public class CommandLineProcessor {
     Path statePath;
     RuntimeVersion runtimeVersion;
     boolean verboseLogging;
+    boolean disableLogging;
+    boolean enableConcurrency;
+    boolean disableRefresh;
 
     private static Logger logger = LoggerFactory.getLogger(CommandLineProcessor.class);
 
@@ -95,6 +98,9 @@ public class CommandLineProcessor {
         httpPort = environment.getProperty("port",Integer.class, 8080);
         debugPort = 5005;//environment.getProperty("debug",Integer.class, 5005);
         verboseLogging = environment.getProperty("verbose",String.class) == null ? false : true;
+        disableLogging = environment.getProperty("quiet",String.class) == null ? false : true;
+        enableConcurrency = environment.getProperty("enableConcurrency",String.class) == null ? false : true;
+        disableRefresh = environment.getProperty("disableRefresh",String.class) == null ? false : true;
     }
 
     private void showValidArguments(){
@@ -108,6 +114,7 @@ public class CommandLineProcessor {
                 "--state=<file to persist state to> (Reads/writes a file to persist state across runs)\n" +
                 "--runtimeVersion=" + RuntimeVersion.toCLIString() + "\n" +
                 "--verbose (Increases logging verbosity, full request and response bodies etc)\n" +
+                "--quiet (Disables console logging, overrides verbose if specified)\n" +
 //                "--debug (Enable the Java debugger on port 5005, attach to debug JavaScript)\n"
                 "\nMore info about differences in runtime versions: https://getsandbox.com/docs/js-libraries"
         );
@@ -139,5 +146,17 @@ public class CommandLineProcessor {
 
     public boolean isVerboseLogging() {
         return verboseLogging;
+    }
+
+    public boolean concurrencyEnabled() {
+        return enableConcurrency;
+    }
+
+    public boolean refreshDisabled() {
+        return disableRefresh;
+    }
+
+    public boolean isDisableLogging() {
+        return disableLogging;
     }
 }

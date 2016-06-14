@@ -80,7 +80,7 @@ public class HttpRequestHandler extends AbstractHandler {
 
     //handle is synchronized so that the JS processing is done on one thread.
     @Override
-    public synchronized void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         baseRequest.setHandled(true);
 
         //defaulted
@@ -94,7 +94,7 @@ public class HttpRequestHandler extends AbstractHandler {
             HttpRuntimeRequest runtimeRequest = servletConverter.httpServletToInstanceHttpRequest(request);
 
             //get a runtime service instance
-            RuntimeService runtimeService = (RuntimeService) serviceManager.getService(sandboxId, sandboxId);
+            RuntimeService runtimeService = (RuntimeService) serviceManager.getService(sandboxId, Thread.currentThread().getName());
 
             //create and lookup routing table
             RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId, sandboxId);
@@ -113,7 +113,7 @@ public class HttpRequestHandler extends AbstractHandler {
             }
 
             //log request with route
-            logRequest(runtimeRequest, routeMatch, requestId);
+            if(!commandLine.isDisableLogging()) logRequest(runtimeRequest, routeMatch, requestId);
 
             //run request
             HTTPRequest httpRequest = serviceConverter.fromInstanceHttpRequest(runtimeService.getSandboxScriptEngine().getEngine(), runtimeRequest);
@@ -128,13 +128,21 @@ public class HttpRequestHandler extends AbstractHandler {
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
             }else{
                 //otherwise process normally
-                runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
+                if(commandLine.concurrencyEnabled()){
+                    runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
+                }else{
+                    //if concurrency disabled then synchronise JS execution
+                    synchronized (this) {
+                        runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
+                    }
+                }
             }
             runtimeResponse.setDurationMillis(System.currentTimeMillis() - startedRequest);
 
-            logConsole(runtimeService);
-
-            logResponse(runtimeResponse, requestId);
+            if(!commandLine.isDisableLogging()){
+                logConsole(runtimeService);
+                logResponse(runtimeResponse, requestId);
+            }
 
             //set response data back onto servlet response
             mapResponse(runtimeResponse, response);
