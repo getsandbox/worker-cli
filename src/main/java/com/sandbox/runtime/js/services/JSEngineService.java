@@ -129,9 +129,9 @@ public class JSEngineService {
         try {
             String runtimeVersionPath = runtimeVersion.name().toLowerCase();
             loadAndSealScript("lodash.js","lib/" + runtimeVersionPath + "/lodash-2.4.1.min", "_", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("amanda.js", "lib/" + runtimeVersionPath + "/amanda-0.4.8.min", "amanda", engineScope, sandboxEngine.getEngine());
             loadAndSealScript("faker.js","lib/" + runtimeVersionPath + "/faker-2.1.2.min", "faker", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("moment.js", "lib/" + runtimeVersionPath + "/moment-2.8.2.min", "moment", globalScope, sandboxEngine.getEngine());
-            loadAndSealScript("amanda.js", "lib/" + runtimeVersionPath + "/amanda-0.4.8.min", "amanda", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("validator.js", "lib/" + runtimeVersionPath + "/validator.min", "validator", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("sandbox-validator.js", "lib/" + runtimeVersionPath + "/sandbox-validator", "sandboxValidator", globalScope, sandboxEngine.getEngine());
 
@@ -149,9 +149,9 @@ public class JSEngineService {
         try {
             String runtimeVersionPath = runtimeVersion.name().toLowerCase();
             loadAndSealScript("lodash.js","lib/" + runtimeVersionPath + "/lodash-4.2.1.min", "_", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("amanda.js", "lib/" + runtimeVersionPath + "/amanda-0.4.8.min", "amanda", engineScope, sandboxEngine.getEngine());
             loadAndSealScript("faker.js","lib/" + runtimeVersionPath + "/faker-3.0.1.min", "faker", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("moment.js", "lib/" + runtimeVersionPath + "/moment-2.11.2.min", "moment", globalScope, sandboxEngine.getEngine());
-            loadAndSealScript("amanda.js", "lib/" + runtimeVersionPath + "/amanda-0.4.8.min", "amanda", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("validator.js", "lib/" + runtimeVersionPath + "/validator-4.7.2.min", "validator", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("sandbox-validator.js", "lib/" + runtimeVersionPath + "/sandbox-validator", "sandboxValidator", globalScope, sandboxEngine.getEngine());
 
