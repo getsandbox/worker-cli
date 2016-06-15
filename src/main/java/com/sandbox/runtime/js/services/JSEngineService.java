@@ -123,6 +123,7 @@ public class JSEngineService {
     }
 
     private SandboxScriptEngine injectLibrariesV1(SandboxScriptEngine sandboxEngine){
+        final Bindings globalScope = sandboxEngine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
         final Bindings engineScope = sandboxEngine.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
 
         try {
@@ -131,7 +132,7 @@ public class JSEngineService {
             loadAndSealScript("amanda.js", "lib/" + runtimeVersionPath + "/amanda-0.4.8.min", "amanda", engineScope, sandboxEngine.getEngine());
             loadAndSealScript("faker.js","lib/" + runtimeVersionPath + "/faker-2.1.2.min", "faker", engineScope, sandboxEngine.getEngine());
             loadAndSealScript("moment.js", "lib/" + runtimeVersionPath + "/moment-2.8.2.min", "moment", engineScope, sandboxEngine.getEngine());
-            loadAndSealScript("validator.js", "lib/" + runtimeVersionPath + "/validator.min", "validator", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("validator.js", "lib/" + runtimeVersionPath + "/validator.min", "validator", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("sandbox-validator.js", "lib/" + runtimeVersionPath + "/sandbox-validator", "sandboxValidator", engineScope, sandboxEngine.getEngine());
 
         } catch (ScriptException e) {
@@ -142,6 +143,7 @@ public class JSEngineService {
     }
 
     private SandboxScriptEngine injectLibrariesV2(SandboxScriptEngine sandboxEngine){
+        final Bindings globalScope = sandboxEngine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
         final Bindings engineScope = sandboxEngine.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
 
         try {
@@ -150,7 +152,7 @@ public class JSEngineService {
             loadAndSealScript("amanda.js", "lib/" + runtimeVersionPath + "/amanda-0.4.8.min", "amanda", engineScope, sandboxEngine.getEngine());
             loadAndSealScript("faker.js","lib/" + runtimeVersionPath + "/faker-3.0.1.min", "faker", engineScope, sandboxEngine.getEngine());
             loadAndSealScript("moment.js", "lib/" + runtimeVersionPath + "/moment-2.11.2.min", "moment", engineScope, sandboxEngine.getEngine());
-            loadAndSealScript("validator.js", "lib/" + runtimeVersionPath + "/validator-4.7.2.min", "validator", engineScope, sandboxEngine.getEngine());
+            loadAndSealScript("validator.js", "lib/" + runtimeVersionPath + "/validator-4.7.2.min", "validator", globalScope, sandboxEngine.getEngine());
             loadAndSealScript("sandbox-validator.js", "lib/" + runtimeVersionPath + "/sandbox-validator", "sandboxValidator", engineScope, sandboxEngine.getEngine());
 
         } catch (ScriptException e) {
