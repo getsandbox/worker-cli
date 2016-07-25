@@ -84,8 +84,8 @@ public class JSEngineService {
 
         Bindings globalScope = sandboxEngine.getEngine().getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
         if (globalScope == null) {
-            engine.getContext().setBindings(new SimpleBindings(), ScriptContext.GLOBAL_SCOPE);
-            globalScope = engine.getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
+            sandboxEngine.getEngine().getContext().setBindings(new SimpleBindings(), ScriptContext.GLOBAL_SCOPE);
+            globalScope = sandboxEngine.getEngine().getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
         }
 
         final Bindings engineScope = new SimpleBindings();

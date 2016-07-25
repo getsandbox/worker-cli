@@ -1,7 +1,11 @@
 package com.sandbox.runtime;
 
 import com.sandbox.runtime.services.CommandLineProcessor;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +39,22 @@ public class HttpServer {
         int port = commandLine.getHttpPort();
         Path basePath = commandLine.getBasePath();
 
-        server = new Server(port);
+        String jettyAcceptorStr = System.getProperty("JETTY_ACCEPTOR");
+        int jettyAcceptor = Integer.parseInt(jettyAcceptorStr == null ? "-1" : jettyAcceptorStr);
+        String jettySelectorStr = System.getProperty("JETTY_SELECTOR");
+        int jettySelector = Integer.parseInt(jettySelectorStr == null ? "-1" : jettySelectorStr);
+
+        ThreadPool jettyThreadPool;
+        if(System.getProperty("JETTY_MIN_THREADS") != null && System.getProperty("JETTY_MIN_THREADS") != null){
+            jettyThreadPool = new QueuedThreadPool(Integer.parseInt(System.getProperty("JETTY_MIN_THREADS")), Integer.parseInt(System.getProperty("JETTY_MAX_THREADS")));
+        }else{
+            jettyThreadPool = new QueuedThreadPool();
+        }
+
+        server = new Server(jettyThreadPool);
+        ServerConnector connector=new ServerConnector(server, jettyAcceptor, jettySelector);
+        connector.setPort(port);
+        server.setConnectors(new Connector[]{connector});
         server.setHandler(handler);
 
         try {

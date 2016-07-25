@@ -88,7 +88,7 @@ public class HttpRequestHandler extends AbstractHandler {
         String sandboxName = "name";
         try {
             long startedRequest = System.currentTimeMillis();
-            String requestId = UUID.randomUUID().toString();
+            String requestId = commandLine.isDisableIDs() ? "1" : UUID.randomUUID().toString();
 
             //convert incoming request to InstanceHttpRequest
             HttpRuntimeRequest runtimeRequest = servletConverter.httpServletToInstanceHttpRequest(request);

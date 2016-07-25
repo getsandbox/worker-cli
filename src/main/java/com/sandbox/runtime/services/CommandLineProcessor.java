@@ -31,6 +31,7 @@ public class CommandLineProcessor {
     RuntimeVersion runtimeVersion;
     boolean verboseLogging;
     boolean disableLogging;
+    boolean disableIDs;
     boolean enableConcurrency;
     boolean disableRefresh;
 
@@ -99,6 +100,7 @@ public class CommandLineProcessor {
         debugPort = 5005;//environment.getProperty("debug",Integer.class, 5005);
         verboseLogging = environment.getProperty("verbose",String.class) == null ? false : true;
         disableLogging = environment.getProperty("quiet",String.class) == null ? false : true;
+        disableIDs = environment.getProperty("disableIDs",String.class) == null ? false : true;
         enableConcurrency = environment.getProperty("enableConcurrency",String.class) == null ? false : true;
         disableRefresh = environment.getProperty("disableRefresh",String.class) == null ? false : true;
     }
@@ -146,6 +148,10 @@ public class CommandLineProcessor {
 
     public boolean isVerboseLogging() {
         return verboseLogging;
+    }
+
+    public boolean isDisableIDs() {
+        return disableIDs;
     }
 
     public boolean concurrencyEnabled() {

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.models.Console;
+import com.sandbox.runtime.js.models.RuntimeVersion;
 import com.sandbox.runtime.js.serializers.ScriptObjectMirrorSerializer;
 import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
 import com.sandbox.runtime.js.serializers.UndefinedSerializer;
@@ -140,6 +141,12 @@ public class Context {
     public JSEngineService jsEngineService(){
         CommandLineProcessor commandLineProcessor = applicationContext.getBean(CommandLineProcessor.class);
         return new JSEngineService(commandLineProcessor.getRuntimeVersion());
+    }
+
+    @Bean
+    @Scope("prototype")
+    public JSEngineService jsEngineService(RuntimeVersion runtimeVersion){
+        return new JSEngineService(runtimeVersion);
     }
 
     @Bean
