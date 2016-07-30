@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,9 +26,13 @@ public class XMLNodeListInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method proxyMethod, Object[] args)
             throws Throwable {
         String methodName = proxyMethod.getName();
+        String fullMethodName = proxyMethod.getDeclaringClass().getName() + "." + proxyMethod.getName();
 
         //if we have no target, return null, can't throw an exp as JS will flip out.
         if(target == null) return null;
+
+        if("java.util.List.size".equals(fullMethodName))  methodName = "getLength";
+        if("java.util.List.get".equals(fullMethodName))  methodName = "item";
 
         Method targetMethod = null;
         if (!cachedMethodMap.containsKey(proxyMethod)) {
@@ -45,7 +50,7 @@ public class XMLNodeListInvocationHandler implements InvocationHandler {
     }
 
     public static NodeList wrap(NodeList node){
-        return (NodeList) Proxy.newProxyInstance(NodeList.class.getClassLoader(), new Class[]{ NodeList.class }, new XMLNodeListInvocationHandler(node));
+        return (NodeList) Proxy.newProxyInstance(NodeList.class.getClassLoader(), new Class[]{ NodeList.class, List.class }, new XMLNodeListInvocationHandler(node));
     }
 
 
