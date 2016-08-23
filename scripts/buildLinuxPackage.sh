@@ -25,5 +25,5 @@ export GRADLE_HOME="/tmp/gradle-2.12/bin"
 # package it up
 echo "Creating runnable package: $package_path"
 printf "#!/bin/bash\nSANDBOX_VERSION='$sandbox_version-$sandbox_sha'\n" > $output_path/version
-cat $output_path/version $run_script $app_path/build/libs/*-1.0-all.jar > $package_path && chmod +x $package_path
+cat $output_path/version $run_script $app_path/build/libs/*-all.jar > $package_path && chmod +x $package_path
 (cd $output_path; tar -cf sandbox.tar sandbox)
