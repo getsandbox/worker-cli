@@ -4,7 +4,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = 1.8
 group = 'com.sandbox'
-version = '1.0'
+version = System.getProperty('sandbox_version') == null ? "1.0" : System.getProperty('sandbox_version')
 
 repositories {
     mavenLocal()
@@ -15,8 +15,11 @@ buildscript {
     repositories { jcenter() }
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
     }
 }
+
+apply plugin: 'com.jfrog.bintray'
 
 dependencies {
     compile project(':model')
@@ -59,3 +62,38 @@ jar {
     }
 
 }
+
+artifacts {
+    archives jar
+    archives shadowJar
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    configurations = ['archives']
+    publish = true
+
+    pkg {
+        repo = 'sandbox-runtime'
+        name = 'com.sandbox:runtime'
+        desc = "Sandbox Runtime"
+        userOrg = 'getsandbox'
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/getsandbox/sandbox.git'
+
+        version {
+            name = System.getProperty('sandbox_version')
+            desc = 'Sandbox Runtime'
+            released = new Date()
+
+            gpg {
+                sign = true
+            }
+
+        }
+    }
+
+}
+
+bintrayUpload.dependsOn(shadowJar)
