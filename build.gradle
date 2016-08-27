@@ -75,8 +75,8 @@ bintray {
     publish = true
 
     pkg {
-        repo = 'sandbox-runtime'
-        name = 'com.sandbox:runtime'
+        repo = 'public'
+        name = 'runtime'
         desc = "Sandbox Runtime"
         userOrg = 'getsandbox'
         licenses = ['MIT']
