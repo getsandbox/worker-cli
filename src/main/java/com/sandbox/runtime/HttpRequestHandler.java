@@ -3,20 +3,20 @@ package com.sandbox.runtime;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sandbox.common.models.Error;
+import com.sandbox.common.models.RuntimeResponse;
+import com.sandbox.common.models.http.HttpRuntimeRequest;
+import com.sandbox.common.models.http.HttpRuntimeResponse;
+import com.sandbox.runtime.config.Config;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.converters.HTTPRequestConverter;
 import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.Cache;
-import com.sandbox.common.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
-import com.sandbox.common.models.RuntimeResponse;
 import com.sandbox.runtime.models.XMLDoc;
 import com.sandbox.runtime.models.http.HTTPRequest;
 import com.sandbox.runtime.models.http.HTTPRouteDetails;
-import com.sandbox.common.models.http.HttpRuntimeRequest;
-import com.sandbox.common.models.http.HttpRuntimeResponse;
-import com.sandbox.runtime.services.CommandLineProcessor;
 import com.sandbox.runtime.utils.FormatUtils;
 import com.sandbox.runtime.utils.MapUtils;
 import org.apache.cxf.jaxrs.model.URITemplate;
@@ -65,7 +65,7 @@ public class HttpRequestHandler extends AbstractHandler {
     Cache cache;
 
     @Autowired
-    CommandLineProcessor commandLine;
+    Config config;
 
     @Autowired
     ServiceManager serviceManager;
@@ -88,7 +88,7 @@ public class HttpRequestHandler extends AbstractHandler {
         String sandboxName = "name";
         try {
             long startedRequest = System.currentTimeMillis();
-            String requestId = commandLine.isDisableIDs() ? "1" : UUID.randomUUID().toString();
+            String requestId = config.isDisableIDs() ? "1" : UUID.randomUUID().toString();
 
             //convert incoming request to InstanceHttpRequest
             HttpRuntimeRequest runtimeRequest = servletConverter.httpServletToInstanceHttpRequest(request);
@@ -113,7 +113,7 @@ public class HttpRequestHandler extends AbstractHandler {
             }
 
             //log request with route
-            if(!commandLine.isDisableLogging()) logRequest(runtimeRequest, routeMatch, requestId);
+            if(!config.isDisableLogging()) logRequest(runtimeRequest, routeMatch, requestId);
 
             //run request
             HTTPRequest httpRequest = serviceConverter.fromInstanceHttpRequest(runtimeService.getSandboxScriptEngine().getEngine(), runtimeRequest);
@@ -128,7 +128,7 @@ public class HttpRequestHandler extends AbstractHandler {
                 runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
             }else{
                 //otherwise process normally
-                if(commandLine.concurrencyEnabled()){
+                if(config.isEnableConcurrency()){
                     runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
                 }else{
                     //if concurrency disabled then synchronise JS execution
@@ -139,7 +139,7 @@ public class HttpRequestHandler extends AbstractHandler {
             }
             runtimeResponse.setDurationMillis(System.currentTimeMillis() - startedRequest);
 
-            if(!commandLine.isDisableLogging()){
+            if(!config.isDisableLogging()){
                 logConsole(runtimeService);
                 logResponse(runtimeResponse, requestId);
             }
@@ -201,7 +201,7 @@ public class HttpRequestHandler extends AbstractHandler {
 
     private String renderBody(String body, Map<String, String> headers){
 
-        if(commandLine.isVerboseLogging()){
+        if(config.isVerboseLogging()){
             if(formatUtils.isXml(headers)) return formatUtils.formatXml(body);
             return body;
         }else{

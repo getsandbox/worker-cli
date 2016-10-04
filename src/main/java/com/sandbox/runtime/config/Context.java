@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.sandbox.runtime.HttpServer;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.models.Console;
 import com.sandbox.runtime.js.models.RuntimeVersion;
@@ -19,7 +20,6 @@ import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.js.utils.NashornValidationUtils;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.SandboxScriptEngine;
-import com.sandbox.runtime.services.CommandLineProcessor;
 import com.sandbox.runtime.services.InMemoryCache;
 import com.sandbox.runtime.services.LiquidRenderer;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
@@ -27,14 +27,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.SimpleCommandLinePropertySource;
 
 import javax.script.ScriptEngine;
 import javax.xml.parsers.DocumentBuilder;
@@ -42,11 +38,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathFactory;
 
-@Configuration
-@ComponentScan(basePackages = {"com.sandbox.runtime"},
-	excludeFilters = { @ComponentScan.Filter( Configuration.class ) }
-)
-public class Context {
+
+public abstract class Context {
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -56,30 +49,16 @@ public class Context {
 
     private static Logger logger = LoggerFactory.getLogger(Context.class);
 
-    public static void main(String[] args) {
-        try {
-            AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-            context.register(Context.class);
+    static Config config = null;
 
-            context.getEnvironment().getPropertySources().addLast(new SimpleCommandLinePropertySource(args));
-
-            context.refresh();
-            context.start();
-
-            //process command line args and kick off
-            CommandLineProcessor command = context.getBean(CommandLineProcessor.class);
-            command.process();
-
-        }catch(Throwable e){
-            logger.error("Error starting runtime");
-            unwrapException(e).printStackTrace();
-            System.exit(1);
-        }
-    }
-
-    private static Throwable unwrapException(Throwable e){
+    static Throwable unwrapException(Throwable e){
         if(e.getCause() != null) return unwrapException(e.getCause());
         return e;
+    }
+
+    protected void start(){
+        HttpServer httpServer = applicationContext.getBean(HttpServer.class);
+        httpServer.start();
     }
 
     @Bean
@@ -138,9 +117,14 @@ public class Context {
     }
 
     @Bean
+    public Config config(){
+        return config;
+    }
+
+    @Bean
     public JSEngineService jsEngineService(){
-        CommandLineProcessor commandLineProcessor = applicationContext.getBean(CommandLineProcessor.class);
-        return new JSEngineService(commandLineProcessor.getRuntimeVersion());
+        Config config = applicationContext.getBean(Config.class);
+        return new JSEngineService(config.getRuntimeVersion());
     }
 
     @Bean
@@ -151,16 +135,13 @@ public class Context {
 
     @Bean
     public ServiceManager serviceManager(){
-        CommandLineProcessor command = applicationContext.getBean(CommandLineProcessor.class);
-        if(command.refreshDisabled()){
+        Config config = applicationContext.getBean(Config.class);
+        if(config.isDisableRefresh()){
             return new ServiceManager(-1);
         }else{
             return new ServiceManager(250);
         }
     }
-
-    @Bean
-    public CommandLineProcessor getCommandLineProcessor() { return new CommandLineProcessor(); }
 
     @Bean
     @Lazy

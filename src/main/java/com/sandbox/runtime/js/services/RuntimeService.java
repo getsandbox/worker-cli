@@ -1,11 +1,11 @@
 package com.sandbox.runtime.js.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.sandbox.runtime.config.Config;
 import com.sandbox.runtime.js.converters.NashornConverter;
 import com.sandbox.runtime.js.models.JsonNode;
 import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.models.SandboxScriptEngine;
-import com.sandbox.runtime.services.CommandLineProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class RuntimeService extends Service {
 
     @Autowired
-    CommandLineProcessor commandLineProcessor;
+    Config config;
 
     //state is persisted across requests, but not stored.
     static Object convertedState = null;
@@ -31,7 +31,7 @@ public class RuntimeService extends Service {
 
     @PostConstruct
     public void init(){
-        if(commandLineProcessor.getStatePath() != null){
+        if(config.getStatePath() != null){
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 try {
                     cache.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));

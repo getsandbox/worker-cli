@@ -1,6 +1,6 @@
 package com.sandbox.runtime;
 
-import com.sandbox.runtime.services.CommandLineProcessor;
+import com.sandbox.runtime.config.Config;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -31,13 +31,13 @@ public class HttpServer {
     Environment environment;
 
     @Autowired
-    CommandLineProcessor commandLine;
+    Config config;
 
     private static Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
     public void start() {
-        int port = commandLine.getHttpPort();
-        Path basePath = commandLine.getBasePath();
+        int port = config.getHttpPort();
+        Path basePath = config.getBasePath();
 
         String jettyAcceptorStr = System.getProperty("JETTY_ACCEPTOR");
         int jettyAcceptor = Integer.parseInt(jettyAcceptorStr == null ? "-1" : jettyAcceptorStr);
@@ -60,7 +60,7 @@ public class HttpServer {
         try {
             server.start();
 
-            logger.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {} with path: '{}'", environment.getProperty("SANDBOX_VERSION",String.class, "?"), commandLine.getRuntimeVersion(), port, basePath.toAbsolutePath().toRealPath().toString());
+            logger.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {} with path: '{}'", environment.getProperty("SANDBOX_VERSION",String.class, "?"), config.getRuntimeVersion(), port, basePath.toAbsolutePath().toRealPath().toString());
 
             server.join();
 

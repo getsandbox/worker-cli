@@ -1,6 +1,7 @@
 package com.sandbox.runtime.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sandbox.runtime.config.Config;
 import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.RoutingTable;
@@ -36,7 +37,7 @@ public class InMemoryCache implements Cache {
     Environment environment;
 
     @Autowired
-    CommandLineProcessor commandLine;
+    Config config;
 
     @Autowired
     ServiceManager serviceManager;
@@ -52,7 +53,7 @@ public class InMemoryCache implements Cache {
 
     @PostConstruct
     void init(){
-        listenForFileChange(commandLine.getBasePath());
+        listenForFileChange(config.getBasePath());
     }
 
     @Override
@@ -60,9 +61,9 @@ public class InMemoryCache implements Cache {
         if(fileContents.containsKey(filename)){
            return fileContents.get(filename);
         }
-        if(Files.exists(commandLine.getBasePath().resolve(filename))){
+        if(Files.exists(config.getBasePath().resolve(filename))){
             try {
-                String result = FileUtils.readFileToString(commandLine.getBasePath().resolve(filename).toFile());
+                String result = FileUtils.readFileToString(config.getBasePath().resolve(filename).toFile());
                 fileContents.put(filename, result);
                 return result;
 
@@ -75,15 +76,15 @@ public class InMemoryCache implements Cache {
 
     @Override
     public boolean hasRepositoryFile(String fullSandboxId, String filename) {
-        return (Files.exists(commandLine.getBasePath().resolve(filename)));
+        return (Files.exists(config.getBasePath().resolve(filename)));
     }
 
     @Override
     public String getSandboxState(String sandboxId) {
         String state = "{}";
         //load state if it exists and is correct
-        if(commandLine.getStatePath() != null){
-            Path stateFilePath = commandLine.getStatePath();
+        if(config.getStatePath() != null){
+            Path stateFilePath = config.getStatePath();
             if(!Files.exists(stateFilePath)){
                 logger.warn("State path has been specified, but the '{}' file does not exist, creating..", stateFilePath);
                 setSandboxState(sandboxId, state);
@@ -101,7 +102,7 @@ public class InMemoryCache implements Cache {
 
     @Override
     public void setSandboxState(String sandboxId, String state) {
-        Path stateFilePath = commandLine.getStatePath();
+        Path stateFilePath = config.getStatePath();
         try {
             FileUtils.writeStringToFile(stateFilePath.toFile(), state);
         } catch (IOException e) {
@@ -124,7 +125,7 @@ public class InMemoryCache implements Cache {
     public Map<String, String> getConfigForSandboxId(String sandboxId) {
         //TODO: Allow config to be set somehow, prolly JVM args?
         HashMap config = new HashMap();
-        config.put("sandbox_runtime_version", commandLine.getRuntimeVersion().toString());
+        config.put("sandbox_runtime_version", this.config.getRuntimeVersion().toString());
         return config;
     }
 

@@ -58,7 +58,7 @@ jar {
     exclude 'META-INF/*.RSA'
 
     manifest {
-        attributes 'Main-Class': 'com.sandbox.runtime.config.Context'
+        attributes 'Main-Class': 'com.sandbox.runtime.config.CLIBootstrap'
     }
 
 }
