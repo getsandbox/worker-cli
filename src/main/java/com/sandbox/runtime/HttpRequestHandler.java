@@ -96,6 +96,8 @@ public class HttpRequestHandler extends AbstractHandler {
             //get a runtime service instance
             RuntimeService runtimeService = (RuntimeService) serviceManager.getService(sandboxId, Thread.currentThread().getName());
 
+            HttpRuntimeResponse runtimeResponse = null;
+
             //create and lookup routing table
             RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId, sandboxId);
             if(routingTable == null) {
@@ -103,8 +105,20 @@ public class HttpRequestHandler extends AbstractHandler {
                 cache.setRoutingTableForSandboxId(sandboxId, sandboxId, routingTable);
             }
             HTTPRouteDetails routeMatch = findMatchedRoute(runtimeRequest, routingTable);
-            //if no route match for given request, then log message and send error response.
-            if(routeMatch == null){
+
+            if(routeMatch == null &&
+                    runtimeRequest instanceof HttpRuntimeRequest &&
+                    runtimeRequest.getMethod().equalsIgnoreCase("OPTIONS") &&
+                    routingTable.findMatch("all", runtimeRequest.getUrl(), runtimeRequest.getProperties()) != null){
+
+                runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", runtimeRequest.getHeaders().getOrDefault("Origin", "*"));
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", runtimeRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
+                runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
+
+            }else if(routeMatch == null){
+                //if no route match for given request, then log message and send error response.
                 logger.warn("** Error processing request for {} {} - Invalid route", runtimeRequest.getMethod(), runtimeRequest.getPath() == null ? request.getRequestURI() : runtimeRequest.getPath());
                 response.setStatus(500);
                 response.setHeader("Content-Type","application/json");
@@ -117,7 +131,6 @@ public class HttpRequestHandler extends AbstractHandler {
 
             //run request
             HTTPRequest httpRequest = serviceConverter.fromInstanceHttpRequest(runtimeService.getSandboxScriptEngine().getEngine(), runtimeRequest);
-            HttpRuntimeResponse runtimeResponse = null;
 
             if("options".equalsIgnoreCase(httpRequest.method())){
                 //if options request, send back CORS headers
