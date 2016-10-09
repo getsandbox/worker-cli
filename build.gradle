@@ -28,16 +28,16 @@ dependencies {
     compile 'javax.servlet:javax.servlet-api:3.0.1'
     compile 'commons-io:commons-io:2.4'
 
-    compile ('org.springframework:spring-core:4.1.8.RELEASE'){
+    compile ('org.springframework:spring-core:4.2.5.RELEASE'){
         exclude group: 'commons-logging', module:'commons-logging'
     }
-    compile 'org.springframework:spring-context-support:4.1.8.RELEASE'
-    compile 'org.springframework:spring-expression:4.1.8.RELEASE'
+    compile 'org.springframework:spring-context-support:4.2.5.RELEASE'
+    compile 'org.springframework:spring-expression:4.2.5.RELEASE'
     compile 'org.slf4j:slf4j-api:1.7.7'
     compile 'org.slf4j:jcl-over-slf4j:1.7.7'
     compile 'ch.qos.logback:logback-classic:1.1.2'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.6.3'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.7.2'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.7.2'
     compile 'io.swagger:swagger-annotations:1.5.8'
 
     //to support parsing uri with params
@@ -48,7 +48,7 @@ dependencies {
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.mockito:mockito-all:1.8.4'
-    testCompile 'org.springframework:spring-test:4.1.8.RELEASE'
+    testCompile 'org.springframework:spring-test:4.2.5.RELEASE'
 
 }
 
