@@ -112,10 +112,6 @@ public class HttpRequestHandler extends AbstractHandler {
                     routingTable.findMatch("all", runtimeRequest.getUrl(), runtimeRequest.getProperties()) != null){
 
                 runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", runtimeRequest.getHeaders().getOrDefault("Origin", "*"));
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", runtimeRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
 
             }else if(routeMatch == null){
                 //if no route match for given request, then log message and send error response.
@@ -135,10 +131,6 @@ public class HttpRequestHandler extends AbstractHandler {
             if("options".equalsIgnoreCase(httpRequest.method())){
                 //if options request, send back CORS headers
                 runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", runtimeRequest.getHeaders().getOrDefault("Origin", "*"));
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", runtimeRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
-                runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
             }else{
                 //otherwise process normally
                 if(config.isEnableConcurrency()){
@@ -150,6 +142,12 @@ public class HttpRequestHandler extends AbstractHandler {
                     }
                 }
             }
+            //setup CORS headers
+            runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
+            runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", runtimeRequest.getHeaders().getOrDefault("Origin", "*"));
+            runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", runtimeRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
+            runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
+            //set processing time
             runtimeResponse.setDurationMillis(System.currentTimeMillis() - startedRequest);
 
             if(!config.isDisableLogging()){
