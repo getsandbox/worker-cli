@@ -245,6 +245,8 @@ module = (typeof module == 'undefined') ? {} :  module;
 
     if (Require.cache[file]) {
       return Require.cache[file];
+    } else if(file.endsWith(".json")){
+      return JSON.parse(readFile(file));
     } else {
       return loadModule(file, parent);
     }
@@ -252,7 +254,7 @@ module = (typeof module == 'undefined') ? {} :  module;
 
   Require.resolve = function(id, parent) {
     var rootPath = findRoot(parent);
-    var result = resolveAsFile(id, rootPath, '.js')
+    var result = resolveAsFile(id, rootPath)
     if (result) {
       return result;
     }
@@ -283,7 +285,7 @@ module = (typeof module == 'undefined') ? {} :  module;
     return module.exports;
   }
 
-  function resolveAsFile(id, root, ext) {
+  function resolveAsFile(id, root) {
 
     var filePath
       , pathParts
@@ -305,7 +307,7 @@ module = (typeof module == 'undefined') ? {} :  module;
     })
 
     canonicalFilePath = pathParts.join('/')
-    canonicalFilePath = normalizeName(canonicalFilePath, '.js')
+    canonicalFilePath = normalizeName(canonicalFilePath)
 
     if(nashornUtils.hasFile(canonicalFilePath)) {
         return canonicalFilePath;
@@ -314,12 +316,12 @@ module = (typeof module == 'undefined') ? {} :  module;
     }
   }
 
-  function normalizeName(fileName, ext) {
-    var extension = ext || '.js';
-    if (fileName.endsWith(extension)) {
+  function normalizeName(fileName) {
+    if (fileName.endsWith('.js') || fileName.endsWith('.json')) {
       return fileName;
+    }else{
+      return fileName + '.js';
     }
-    return fileName + extension;
   }
 
   function readFile(filename) {
