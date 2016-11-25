@@ -11,14 +11,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.util.Map;
 
-/**
- * Created by nickhoughton on 27/10/2014.
- */
 @Component
 public class FormatUtils {
 
     public boolean isXml(Map<String, String> headers){
-        if(headers != null && headers.get("Content-Type") != null && headers.get("Content-Type").contains("xml")){
+        if(headers != null && headers.get("Content-Type") != null && (headers.get("Content-Type").contains("application/soap") || headers.get("Content-Type").contains("application/xml") || headers.get("Content-Type").contains("text/xml"))){
             return true;
         }else{
             return false;
@@ -44,7 +41,8 @@ public class FormatUtils {
 
             return writer.writeToString(document);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            //if formatting fails just return the unformatted version
+            return xml;
         }
     }
 }
