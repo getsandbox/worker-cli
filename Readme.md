@@ -18,11 +18,21 @@ The code can be cloned and compiled by itself (Gradle is used for dependency man
 
 ### Dependencies
 
-* _Java 8 Update 72_ - important! you actually might not have this.
+* _Java 8 Update 72_ or later - important! you actually might not have this.
+* tar - is packaged in tar to maintain permissions, so `tar -xf sandbox-binary.tar`
 * Mac or Linux
 
 ### Operating System
-The runtime is Java based, so it will run on any OS that Java 8 supports.
+The runtime is Java based, so it will run on any OS that Java 8 supports. The precompiled binary ships as a bash script + binary, so it is self executable only on \*nix systems.
+
+### Installation
+There is no installation, but to get setup:
+- Download the latest binary from above, and untar it.
+- Install Java 8, and any other dependencies listed.
+- Your shouldn't have to change the permissions (thats the point of thar tar), but if you can `chmod a+x sandbox`
+- Run with the below command and options `./sandbox run`
+- The server will be running in all interfaces on port 8080 by default.
+
 
 ### Commands
 
