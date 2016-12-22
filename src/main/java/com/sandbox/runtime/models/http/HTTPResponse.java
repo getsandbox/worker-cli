@@ -21,6 +21,11 @@ public class HTTPResponse extends EngineResponse {
     private Integer statusCode = null;
     private String statusText = null;
 
+    public void send(int status) {
+        this.statusCode = status;
+        this.send("");
+    }
+
     // Content-Type defaulted to 'application/json'
     public void send(Object body) {
         if (body instanceof ScriptObject || body instanceof Map || body instanceof Collection) {

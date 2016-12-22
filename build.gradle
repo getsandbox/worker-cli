@@ -46,7 +46,7 @@ dependencies {
     //inbound http requests
     compile 'org.eclipse.jetty:jetty-server:9.2.11.v20150529'
 
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.8.4'
     testCompile 'org.springframework:spring-test:4.2.5.RELEASE'
 
