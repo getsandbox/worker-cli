@@ -1,6 +1,6 @@
 package com.sandbox.runtime.config;
 
-import com.sandbox.runtime.js.models.RuntimeVersion;
+import com.sandbox.runtime.models.RuntimeVersion;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

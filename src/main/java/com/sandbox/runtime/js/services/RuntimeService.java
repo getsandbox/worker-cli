@@ -2,10 +2,10 @@ package com.sandbox.runtime.js.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sandbox.runtime.config.Config;
-import com.sandbox.runtime.js.converters.NashornConverter;
-import com.sandbox.runtime.js.models.JsonNode;
+import com.sandbox.runtime.converters.NashornConverter;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
+import com.sandbox.runtime.utils.JSONUtils;
 import com.sandbox.runtime.js.utils.NashornUtils;
-import com.sandbox.runtime.models.SandboxScriptEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -57,8 +57,7 @@ public class RuntimeService extends Service {
 
         if(convertedState == null){
             String currentState = cache.getSandboxState(sandboxId);
-            JsonNode state = new JsonNode(currentState);
-            convertedState = NashornConverter.instance().convert(sandboxScriptEngine.getEngine(), state.getJsonObject());
+            convertedState = NashornConverter.instance().convert(sandboxScriptEngine.getEngine(), JSONUtils.parse(mapper, currentState));
         }
 
         sandboxScriptEngine.getContext().setAttribute(

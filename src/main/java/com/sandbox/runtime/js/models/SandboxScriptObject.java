@@ -1,6 +1,6 @@
 package com.sandbox.runtime.js.models;
 
-import com.sandbox.common.models.ServiceScriptException;
+import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.RouteDetails;
 import com.sandbox.runtime.models.ScriptSource;

@@ -1,25 +1,24 @@
 package com.sandbox.runtime.js.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sandbox.common.models.Error;
-import com.sandbox.common.models.RuntimeResponse;
-import com.sandbox.common.models.ServiceScriptException;
-import com.sandbox.runtime.js.converters.NashornConverter;
-import com.sandbox.runtime.js.models.Console;
-import com.sandbox.runtime.js.models.ISandboxDefineCallback;
-import com.sandbox.runtime.js.models.JSError;
-import com.sandbox.runtime.js.models.JsonNode;
-import com.sandbox.runtime.js.models.SandboxScriptObject;
-import com.sandbox.runtime.js.utils.ErrorUtils;
-import com.sandbox.runtime.js.utils.FileUtils;
-import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.EngineResponseMessage;
+import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
-import com.sandbox.runtime.models.SandboxScriptEngine;
-import com.sandbox.runtime.models.SuppressedServiceScriptException;
+import com.sandbox.runtime.models.RuntimeResponse;
+import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.runtime.converters.NashornConverter;
+import com.sandbox.runtime.js.models.Console;
+import com.sandbox.runtime.js.models.ISandboxDefineCallback;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
+import com.sandbox.runtime.js.models.SandboxScriptObject;
+import com.sandbox.runtime.js.models.SuppressedServiceScriptException;
+import com.sandbox.runtime.js.utils.ErrorUtils;
+import com.sandbox.runtime.js.utils.FileUtils;
+import com.sandbox.runtime.utils.JSONUtils;
+import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.services.LiquidRenderer;
 import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.internal.runtime.ScriptObject;
@@ -174,7 +173,7 @@ public abstract class Service {
     }
 
     protected void loadEmptyState() throws Exception{
-        setInScope("state", NashornConverter.instance().convert(sandboxScriptEngine.getEngine(), new JsonNode("{}").getJsonObject()), sandboxScriptEngine);
+        setInScope("state", NashornConverter.instance().convert(sandboxScriptEngine.getEngine(), JSONUtils.parse(mapper, "{}")), sandboxScriptEngine);
     }
 
     protected abstract void setState() throws Exception;
@@ -280,8 +279,7 @@ public abstract class Service {
                 throw new ServiceScriptException("No body has been set in route, you must call one of .json(), .send(), .render() etc");
 
             } else {
-                if (message.getBody() instanceof ScriptObject || message.getBody() instanceof Map || message.getBody() instanceof Collection || message.getBody() instanceof
-                        JSError) {
+                if (message.getBody() instanceof ScriptObject || message.getBody() instanceof Map || message.getBody() instanceof Collection) {
                     // convert JS object to JSON string
                     _body = mapper.writeValueAsString(message.getBody());
 

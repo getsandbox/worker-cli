@@ -1,9 +1,9 @@
 package com.sandbox.runtime.js.services;
 
-import com.sandbox.runtime.js.converters.NashornConverter;
-import com.sandbox.runtime.js.models.RuntimeVersion;
+import com.sandbox.runtime.converters.NashornConverter;
+import com.sandbox.runtime.models.RuntimeVersion;
 import com.sandbox.runtime.models.Cache;
-import com.sandbox.runtime.models.SandboxScriptEngine;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

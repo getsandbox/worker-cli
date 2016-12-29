@@ -1,10 +1,10 @@
 package com.sandbox.runtime.js.services;
 
 import com.sandbox.runtime.js.models.Console;
-import com.sandbox.runtime.js.models.RuntimeVersion;
+import com.sandbox.runtime.models.RuntimeVersion;
 import com.sandbox.runtime.js.utils.FileUtils;
 import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
-import com.sandbox.runtime.models.SandboxScriptEngine;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

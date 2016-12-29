@@ -1,7 +1,7 @@
 package com.sandbox.runtime.js.utils;
 
-import com.sandbox.common.models.ServiceScriptException;
-import com.sandbox.common.models.Error;
+import com.sandbox.runtime.models.ServiceScriptException;
+import com.sandbox.runtime.models.Error;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 

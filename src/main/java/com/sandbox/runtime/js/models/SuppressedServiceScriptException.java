@@ -1,6 +1,6 @@
-package com.sandbox.runtime.models;
+package com.sandbox.runtime.js.models;
 
-import com.sandbox.common.models.ServiceScriptException;
+import com.sandbox.runtime.models.ServiceScriptException;
 
 /**
  * Created by drew on 7/08/2014.

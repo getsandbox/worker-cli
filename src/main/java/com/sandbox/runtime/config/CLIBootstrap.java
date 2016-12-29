@@ -1,6 +1,6 @@
 package com.sandbox.runtime.config;
 
-import com.sandbox.runtime.js.models.RuntimeVersion;
+import com.sandbox.runtime.models.RuntimeVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;

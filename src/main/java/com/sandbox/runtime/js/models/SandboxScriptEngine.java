@@ -1,6 +1,5 @@
-package com.sandbox.runtime.models;
+package com.sandbox.runtime.js.models;
 
-import com.sandbox.runtime.js.models.Console;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

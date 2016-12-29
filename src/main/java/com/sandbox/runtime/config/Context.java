@@ -5,10 +5,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.sandbox.runtime.utils.MapUtils;
 import com.sandbox.runtime.HttpServer;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.models.Console;
-import com.sandbox.runtime.js.models.RuntimeVersion;
+import com.sandbox.runtime.models.RuntimeVersion;
 import com.sandbox.runtime.js.serializers.ScriptObjectMirrorSerializer;
 import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
 import com.sandbox.runtime.js.serializers.UndefinedSerializer;
@@ -19,9 +20,10 @@ import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
 import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.js.utils.NashornValidationUtils;
 import com.sandbox.runtime.models.Cache;
-import com.sandbox.runtime.models.SandboxScriptEngine;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import com.sandbox.runtime.services.InMemoryCache;
 import com.sandbox.runtime.services.LiquidRenderer;
+import com.sandbox.runtime.utils.FormatUtils;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +35,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 
 import javax.script.ScriptEngine;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathFactory;
 
 
 public abstract class Context {
@@ -117,6 +115,16 @@ public abstract class Context {
     }
 
     @Bean
+    public MapUtils mapUtils(){
+        return new MapUtils();
+    }
+
+    @Bean
+    public FormatUtils formatUtils(){
+        return new FormatUtils();
+    }
+
+    @Bean
     public Config config(){
         return config;
     }
@@ -157,42 +165,6 @@ public abstract class Context {
     @Bean
     public NashornScriptEngineFactory nashornScriptEngineFactory(){
         return new NashornScriptEngineFactory();
-    }
-
-    //keep docuemnt factories around in thread local context
-    private static DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-    private static ThreadLocal<DocumentBuilder> documentBuilderThreadLocal = new ThreadLocal<>();
-
-    @Bean
-    public static DocumentBuilder xmlDocumentBuilder() {
-        documentBuilderFactory.setValidating(false);
-        DocumentBuilder db = null;
-        try {
-            db = documentBuilderThreadLocal.get();
-            if(db == null){
-                db = documentBuilderFactory.newDocumentBuilder();
-                documentBuilderThreadLocal.set(db);
-            }else{
-                db.reset();
-            }
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-            db = null;
-        }
-        return db;
-    }
-
-    //keep xpathfactories around in thread local context
-    private static ThreadLocal<XPathFactory> xPathBuilderThreadLocal = new ThreadLocal<>();
-
-    @Bean
-    public static XPathFactory xPathFactory() {
-        XPathFactory xPathFactory = xPathBuilderThreadLocal.get();
-        if(xPathFactory == null){
-            xPathFactory = XPathFactory.newInstance();
-            xPathBuilderThreadLocal.set(xPathFactory);
-        }
-        return xPathFactory;
     }
 
     @Bean

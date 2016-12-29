@@ -1,7 +1,9 @@
 package com.sandbox.runtime.js.converters;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.runtime.models.http.HTTPRequest;
-import com.sandbox.common.models.http.HttpRuntimeRequest;
+import com.sandbox.runtime.models.http.HttpRuntimeRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.script.ScriptEngine;
@@ -12,9 +14,11 @@ import javax.script.ScriptEngine;
 @Component
 public class HTTPRequestConverter {
 
-    public HTTPRequest fromInstanceHttpRequest(ScriptEngine scriptEngine, HttpRuntimeRequest request) throws Exception {
+    @Autowired
+    private ObjectMapper mapper;
 
-        return new HTTPRequest(scriptEngine,
+    public HTTPRequest fromInstanceHttpRequest(ScriptEngine scriptEngine, HttpRuntimeRequest request) throws Exception {
+        return new HTTPRequest(scriptEngine, mapper,
                 request.getPath(),
                 request.getMethod(),
                 request.getHeaders(),
