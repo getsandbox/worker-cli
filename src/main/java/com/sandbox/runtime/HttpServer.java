@@ -39,6 +39,14 @@ public class HttpServer {
         int port = config.getHttpPort();
         Path basePath = config.getBasePath();
 
+        startServer(port, basePath);
+    }
+
+    public void start(int port, Path basePath) {
+        startServer(port, basePath);
+    }
+
+    private void startServer(int port, Path basePath) {
         String jettyAcceptorStr = System.getProperty("JETTY_ACCEPTOR");
         int jettyAcceptor = Integer.parseInt(jettyAcceptorStr == null ? "-1" : jettyAcceptorStr);
         String jettySelectorStr = System.getProperty("JETTY_SELECTOR");
@@ -68,7 +76,6 @@ public class HttpServer {
             e.printStackTrace();
             throw new RuntimeException("Error starting jetty server");
         }
-
     }
 
     public void stop() {
