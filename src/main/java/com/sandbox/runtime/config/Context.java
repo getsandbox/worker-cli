@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.utils.MapUtils;
 import com.sandbox.runtime.HttpServer;
 import com.sandbox.runtime.converters.HttpServletConverter;
@@ -47,7 +48,7 @@ public abstract class Context {
 
     private static Logger logger = LoggerFactory.getLogger(Context.class);
 
-    static Config config = null;
+    static RuntimeConfig config = null;
 
     static Throwable unwrapException(Throwable e){
         if(e.getCause() != null) return unwrapException(e.getCause());
@@ -125,13 +126,13 @@ public abstract class Context {
     }
 
     @Bean
-    public Config config(){
+    public RuntimeConfig config(){
         return config;
     }
 
     @Bean
     public JSEngineService jsEngineService(){
-        Config config = applicationContext.getBean(Config.class);
+        RuntimeConfig config = applicationContext.getBean(RuntimeConfig.class);
         return new JSEngineService(config.getRuntimeVersion());
     }
 
@@ -143,7 +144,7 @@ public abstract class Context {
 
     @Bean
     public ServiceManager serviceManager(){
-        Config config = applicationContext.getBean(Config.class);
+        RuntimeConfig config = applicationContext.getBean(RuntimeConfig.class);
         if(config.isDisableRefresh()){
             return new ServiceManager(-1);
         }else{

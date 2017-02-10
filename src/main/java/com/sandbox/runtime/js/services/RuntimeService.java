@@ -1,7 +1,7 @@
 package com.sandbox.runtime.js.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sandbox.runtime.config.Config;
+import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.converters.NashornConverter;
 import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import com.sandbox.runtime.utils.JSONUtils;
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class RuntimeService extends Service {
 
     @Autowired
-    Config config;
+    RuntimeConfig config;
 
     //state is persisted across requests, but not stored.
     static Object convertedState = null;

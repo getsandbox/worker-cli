@@ -1,5 +1,6 @@
 package com.sandbox.runtime.config;
 
+import com.sandbox.runtime.models.config.RuntimeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -16,7 +17,7 @@ public class JavaBootstrap extends Context {
 
     private Thread startThread;
 
-    public static void start(Config config) {
+    public static void start(RuntimeConfig config) {
         //validate config
         config.validate();
         //keep config for context bootstrap
@@ -26,7 +27,7 @@ public class JavaBootstrap extends Context {
         javaBootstrap.startInstance(config);
     }
 
-    public void startInstance(Config config){
+    public void startInstance(RuntimeConfig config){
         //stop first, just incase we are already running
         stopInstance();
         //start new thread to bootstrap context

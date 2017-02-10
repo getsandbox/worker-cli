@@ -1,6 +1,6 @@
 package com.sandbox.runtime;
 
-import com.sandbox.runtime.config.Config;
+import com.sandbox.runtime.models.config.RuntimeConfig;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -31,7 +31,7 @@ public class HttpServer {
     Environment environment;
 
     @Autowired
-    Config config;
+    RuntimeConfig config;
 
     private static Logger logger = LoggerFactory.getLogger(HttpServer.class);
 

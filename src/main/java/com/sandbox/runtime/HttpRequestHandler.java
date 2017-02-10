@@ -3,22 +3,23 @@ package com.sandbox.runtime;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sandbox.runtime.models.Error;
-import com.sandbox.runtime.models.RuntimeResponse;
-import com.sandbox.runtime.models.http.HttpRuntimeRequest;
-import com.sandbox.runtime.models.http.HttpRuntimeResponse;
-import com.sandbox.runtime.utils.MapUtils;
-import com.sandbox.runtime.config.Config;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.converters.HTTPRequestConverter;
 import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.Cache;
+import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
+import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.XMLDoc;
+import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.models.http.HTTPRequest;
-import com.sandbox.runtime.models.http.HTTPRouteDetails;
+import com.sandbox.runtime.models.http.HTTPRoute;
+import com.sandbox.runtime.models.http.HttpRuntimeRequest;
+import com.sandbox.runtime.models.http.HttpRuntimeResponse;
+import com.sandbox.runtime.services.RouteConfigUtils;
 import com.sandbox.runtime.utils.FormatUtils;
+import com.sandbox.runtime.utils.MapUtils;
 import org.apache.cxf.jaxrs.model.URITemplate;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -29,8 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,9 +41,14 @@ import javax.xml.xpath.XPathConstants;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by nickhoughton on 18/10/2014.
@@ -65,7 +73,7 @@ public class HttpRequestHandler extends AbstractHandler {
     Cache cache;
 
     @Autowired
-    Config config;
+    RuntimeConfig config;
 
     @Autowired
     ServiceManager serviceManager;
@@ -76,7 +84,22 @@ public class HttpRequestHandler extends AbstractHandler {
     @Autowired
     private HTTPRequestConverter serviceConverter;
 
+    private Map<Long, AsyncContext> delayedRequests = new ConcurrentHashMap<>();
+
     private static Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
+
+    public HttpRequestHandler() {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            long currentTime = System.currentTimeMillis();
+            for (Long time : delayedRequests.keySet()){
+                if(currentTime > time){
+                    AsyncContext asyncContext = delayedRequests.remove(time);
+                    asyncContext.complete();
+                }
+            }
+
+        }, 0, 10, TimeUnit.MILLISECONDS);
+    }
 
     //handle is synchronized so that the JS processing is done on one thread.
     @Override
@@ -87,7 +110,9 @@ public class HttpRequestHandler extends AbstractHandler {
         String sandboxId = "1";
         String sandboxName = "name";
         try {
-            long startedRequest = System.currentTimeMillis();
+            StopWatch requestTimer = new StopWatch();
+            requestTimer.start();
+
             String requestId = config.isDisableIDs() ? "1" : UUID.randomUUID().toString();
 
             //convert incoming request to InstanceHttpRequest
@@ -101,10 +126,15 @@ public class HttpRequestHandler extends AbstractHandler {
             //create and lookup routing table
             RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId, sandboxId);
             if(routingTable == null) {
+                //create the routing table
                 routingTable = runtimeService.handleRoutingTableRequest();
+                //enrich with given runtime config (if any)
+                addRouteConfigToRoutingTable(routingTable, config);
+                //cache the routing table for use until it changes..
                 cache.setRoutingTableForSandboxId(sandboxId, sandboxId, routingTable);
             }
-            HTTPRouteDetails routeMatch = findMatchedRoute(runtimeRequest, routingTable);
+
+            HTTPRoute routeMatch = findMatchedRoute(runtimeRequest, routingTable);
 
             if(routeMatch == null &&
                     runtimeRequest instanceof HttpRuntimeRequest &&
@@ -142,21 +172,22 @@ public class HttpRequestHandler extends AbstractHandler {
                     }
                 }
             }
-            //setup CORS headers
-            runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
-            runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", runtimeRequest.getHeaders().getOrDefault("Origin", "*"));
-            runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", runtimeRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
-            runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
-            //set processing time
-            runtimeResponse.setDurationMillis(System.currentTimeMillis() - startedRequest);
+
+            long calculatedDelayForRoute = RouteConfigUtils.calculate(routeMatch.getRouteConfig(), requestTimer, new AtomicInteger(1));
+
+            if(calculatedDelayForRoute > 0){
+                AsyncContext asyncContext = request.startAsync();
+                mapResponse((HttpServletResponse) asyncContext.getResponse(), runtimeResponse, runtimeRequest, requestTimer);
+                delayedRequests.put(new Long(System.currentTimeMillis()+calculatedDelayForRoute), asyncContext);
+
+            }else{
+                mapResponse(response, runtimeResponse, runtimeRequest, requestTimer);
+            }
 
             if(!config.isDisableLogging()){
                 logConsole(runtimeService);
                 logResponse(runtimeResponse, requestId);
             }
-
-            //set response data back onto servlet response
-            mapResponse(runtimeResponse, response);
 
         } catch (Exception e) {
             logger.error("Error processing request", e);
@@ -168,7 +199,7 @@ public class HttpRequestHandler extends AbstractHandler {
         }
     }
 
-    private void logRequest(HttpRuntimeRequest request, HTTPRouteDetails matchedRouteDetails, String requestId){
+    private void logRequest(HttpRuntimeRequest request, HTTPRoute matchedRouteDetails, String requestId){
         String matchedRouteDescription = "No matching route";
         if(matchedRouteDetails != null) matchedRouteDescription = "Matched route '" + matchedRouteDetails.getPath() + "'";
 
@@ -231,7 +262,7 @@ public class HttpRequestHandler extends AbstractHandler {
     }
 
     //gets the matching route (if any) out of the routing table
-    private HTTPRouteDetails findMatchedRoute(HttpRuntimeRequest request, RoutingTable table) throws Exception {
+    private HTTPRoute findMatchedRoute(HttpRuntimeRequest request, RoutingTable table) throws Exception {
         //if we have a SOAP Action header, assume this is SOAP, amaze? And go get the operation name
         if("xml".equals(request.getContentType())){
             try {
@@ -248,7 +279,7 @@ public class HttpRequestHandler extends AbstractHandler {
             }
         }
 
-        HTTPRouteDetails match = (HTTPRouteDetails) table.findMatch(request);
+        HTTPRoute match = (HTTPRoute) table.findMatch(request);
         if(match == null) return null;
 
         Map<String, String> flattenedPathParams = mapUtils.flattenMultiValue(match.getPathParams(), URITemplate.FINAL_MATCH_GROUP);
@@ -256,6 +287,18 @@ public class HttpRequestHandler extends AbstractHandler {
         request.setParams(flattenedPathParams);
 
         return match;
+    }
+
+    private void addRouteConfigToRoutingTable(RoutingTable routingTable, RuntimeConfig runtimeConfig){
+        routingTable.getRouteDetails().stream().filter(route -> route instanceof HTTPRoute).forEach(route -> {
+            HTTPRoute httpRoute = (HTTPRoute) route;
+            route.setRouteConfig(
+                    runtimeConfig.getRoutes().stream()
+                            .filter(rc -> httpRoute.isUncompiledMatch(rc.getMethod(), rc.getPath(), Collections.emptyMap()))
+                            .findFirst()
+                            .orElse(null)
+            );
+        });
     }
 
     //wraps the exception message to mimic the standard sandbox proxy response
@@ -273,7 +316,15 @@ public class HttpRequestHandler extends AbstractHandler {
     }
 
     //map a non-exception response, could be success or error
-    private void mapResponse(RuntimeResponse runtimeResponse, HttpServletResponse response) throws Exception {
+    private void mapResponse(HttpServletResponse response, RuntimeResponse runtimeResponse, HttpRuntimeRequest runtimeRequest, StopWatch requestTimer) throws Exception {
+
+        //setup CORS headers
+        runtimeResponse.getHeaders().put("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
+        runtimeResponse.getHeaders().put("Access-Control-Allow-Origin", runtimeRequest.getHeaders().getOrDefault("Origin", "*"));
+        runtimeResponse.getHeaders().put("Access-Control-Allow-Headers", runtimeRequest.getHeaders().getOrDefault("Access-Control-Request-Headers", "Content-Type"));
+        runtimeResponse.getHeaders().put("Access-Control-Allow-Credentials", "true");
+        //set processing time
+        runtimeResponse.setDurationMillis(requestTimer.getTotalTimeMillis());
 
         //headers
         if (runtimeResponse.getHeaders() != null) {

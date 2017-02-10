@@ -1,7 +1,7 @@
 package com.sandbox.runtime.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sandbox.runtime.config.Config;
+import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.RoutingTable;
@@ -37,7 +37,7 @@ public class InMemoryCache implements Cache {
     Environment environment;
 
     @Autowired
-    Config config;
+    RuntimeConfig config;
 
     @Autowired
     ServiceManager serviceManager;

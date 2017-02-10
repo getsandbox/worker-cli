@@ -1,0 +1,10 @@
+{
+  "routes": [
+    {
+      "method": "get",
+      "path": "/hello",
+      "latencyType": "LINEAR",
+      "latencyMs": 100
+    }
+  ]
+}

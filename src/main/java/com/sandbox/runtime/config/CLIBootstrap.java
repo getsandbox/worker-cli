@@ -1,6 +1,8 @@
 package com.sandbox.runtime.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.runtime.models.RuntimeVersion;
+import com.sandbox.runtime.models.config.RuntimeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -9,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.SimpleCommandLinePropertySource;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 @Configuration
@@ -41,43 +45,64 @@ public class CLIBootstrap extends Context {
         }
     }
 
-    public static Config getConfig(SimpleCommandLinePropertySource source) {
-        Config config = new Config();
+    public static RuntimeConfig getConfig(SimpleCommandLinePropertySource source) {
+        RuntimeConfig config;
 
-        //base path options, fallback to current working direct --base=<dir>
-        String basePathStr = getProperty(source, "base", String.class);
-        if(basePathStr != null){
-            config.setBasePath(Paths.get(basePathStr));
+        if(getProperty(source, "config", String.class) != null){
+            String configPathStr = getProperty(source, "config", String.class);
+            if(configPathStr.startsWith("~")) configPathStr = System.getProperty("user.home") + configPathStr.substring(1);
+            File configFile = null;
+            try {
+                configFile = Paths.get(configPathStr).toRealPath().toFile();
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Can't find config file at path: " + configPathStr);
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            try{
+                config = mapper.readValue(configFile, RuntimeConfig.class);
+            }catch(Exception e){
+                throw new IllegalArgumentException("Invalid config file specified at path: " + configPathStr, e);
+            }
+
+        }else{
+            config = new RuntimeConfig();
+
+            //base path options, fallback to current working direct --base=<dir>
+            String basePathStr = getProperty(source, "base", String.class);
+            if(basePathStr != null){
+                config.setBasePath(Paths.get(basePathStr));
+            }
+
+            //state path, where we will read/persist state data to
+            String statePathStr = getProperty(source, "state", String.class);
+            if(statePathStr != null){
+                config.setStatePath(Paths.get(statePathStr));
+            }
+
+            //set runtime version, needs to be a valid enum
+            String runtimeVersionStr = getProperty(source, "runtimeVersion", String.class, RuntimeVersion.getLatest().toString());
+            try{
+                config.setRuntimeVersion(RuntimeVersion.valueOf(runtimeVersionStr));
+            }catch (Exception e){
+                throw new IllegalArgumentException("Invalid runtime version");
+            }
+
+            config.setHttpPort(getProperty(source, "port", Integer.class, 8080));
+            config.setDebugPort(5005);//getProperty(source, "debug",Integer.class, 5005);
+            config.setVerboseLogging(getProperty(source, "verbose", String.class) == null ? false : true);
+            config.setDisableLogging(getProperty(source, "quiet", String.class) == null ? false : true);
+            config.setDisableIDs(getProperty(source, "disableIDs", String.class) == null ? false : true);
+            config.setEnableConcurrency(getProperty(source, "enableConcurrency", String.class) == null ? false : true);
+            config.setDisableRefresh(getProperty(source, "disableRefresh", String.class) == null ? false : true);
+
+            String command = getProperty(source, "nonOptionArgs");
+            if (command == null || command.isEmpty() || !"run".equals(command)) {
+                showValidArguments();
+                System.exit(1);
+            }
+
         }
-
-        //state path, where we will read/persist state data to
-        String statePathStr = getProperty(source, "state", String.class);
-        if(statePathStr != null){
-            config.setStatePath(Paths.get(statePathStr));
-        }
-
-        //set runtime version, needs to be a valid enum
-        String runtimeVersionStr = getProperty(source, "runtimeVersion", String.class, RuntimeVersion.getLatest().toString());
-        try{
-            config.setRuntimeVersion(RuntimeVersion.valueOf(runtimeVersionStr));
-        }catch (Exception e){
-            throw new IllegalArgumentException("Invalid runtime version");
-        }
-
-        config.setHttpPort(getProperty(source, "port", Integer.class, 8080));
-        config.setDebugPort(5005);//getProperty(source, "debug",Integer.class, 5005);
-        config.setVerboseLogging(getProperty(source, "verbose", String.class) == null ? false : true);
-        config.setDisableLogging(getProperty(source, "quiet", String.class) == null ? false : true);
-        config.setDisableIDs(getProperty(source, "disableIDs", String.class) == null ? false : true);
-        config.setEnableConcurrency(getProperty(source, "enableConcurrency", String.class) == null ? false : true);
-        config.setDisableRefresh(getProperty(source, "disableRefresh", String.class) == null ? false : true);
-
-        String command = getProperty(source, "nonOptionArgs");
-        if (command == null || command.isEmpty() || !"run".equals(command)) {
-            showValidArguments();
-            System.exit(1);
-        }
-
         return config;
     }
 
