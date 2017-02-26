@@ -7,9 +7,9 @@ import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.converters.HTTPRequestConverter;
 import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.js.services.ServiceManager;
-import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
+import com.sandbox.runtime.models.RoutingTableCache;
 import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.XMLDoc;
 import com.sandbox.runtime.models.config.RuntimeConfig;
@@ -70,7 +70,7 @@ public class HttpRequestHandler extends AbstractHandler {
     FormatUtils formatUtils;
 
     @Autowired
-    Cache cache;
+    RoutingTableCache routingTableCache;
 
     @Autowired
     RuntimeConfig config;
@@ -124,14 +124,14 @@ public class HttpRequestHandler extends AbstractHandler {
             HttpRuntimeResponse runtimeResponse = null;
 
             //create and lookup routing table
-            RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId, sandboxId);
+            RoutingTable routingTable = routingTableCache.getRoutingTableForSandboxId(sandboxId, sandboxId);
             if(routingTable == null) {
                 //create the routing table
                 routingTable = runtimeService.handleRoutingTableRequest();
                 //enrich with given runtime config (if any)
                 addRouteConfigToRoutingTable(routingTable, config);
-                //cache the routing table for use until it changes..
-                cache.setRoutingTableForSandboxId(sandboxId, sandboxId, routingTable);
+                //routingTableCache the routing table for use until it changes..
+                routingTableCache.setRoutingTableForSandboxId(sandboxId, sandboxId, routingTable);
             }
 
             HTTPRoute routeMatch = findMatchedRoute(runtimeRequest, routingTable);

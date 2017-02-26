@@ -1,10 +1,13 @@
 package com.sandbox.runtime.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.js.services.ServiceManager;
-import com.sandbox.runtime.models.Cache;
+import com.sandbox.runtime.models.MetadataService;
+import com.sandbox.runtime.models.RepositoryService;
 import com.sandbox.runtime.models.RoutingTable;
+import com.sandbox.runtime.models.RoutingTableCache;
+import com.sandbox.runtime.models.StateService;
+import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -31,7 +34,7 @@ import static java.nio.file.StandardWatchEventKinds.*;
 /**
  * Created by nickhoughton on 18/10/2014.
  */
-public class InMemoryCache implements Cache {
+public class InMemoryCache implements RepositoryService, MetadataService, RoutingTableCache, StateService {
 
     @Autowired
     Environment environment;

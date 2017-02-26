@@ -20,7 +20,6 @@ import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
 import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.js.utils.NashornValidationUtils;
-import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import com.sandbox.runtime.services.InMemoryCache;
 import com.sandbox.runtime.services.LiquidRenderer;
@@ -154,7 +153,7 @@ public abstract class Context {
 
     @Bean
     @Lazy
-    public Cache getCache(){
+    public InMemoryCache getCache(){
         return new InMemoryCache();
     }
 

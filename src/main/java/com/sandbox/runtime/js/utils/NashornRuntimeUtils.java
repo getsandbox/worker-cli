@@ -1,6 +1,6 @@
 package com.sandbox.runtime.js.utils;
 
-import com.sandbox.runtime.models.Cache;
+import com.sandbox.runtime.models.RepositoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class NashornRuntimeUtils extends NashornUtils {
 
     @Autowired
-    private Cache cache;
+    private RepositoryService repositoryService;
 
     private final String fullSandboxId;
 
@@ -22,11 +22,11 @@ public class NashornRuntimeUtils extends NashornUtils {
     }
 
     public String readFile(String filename) {
-        return cache.getRepositoryFile(getFullSandboxId(), filename);
+        return repositoryService.getRepositoryFile(getFullSandboxId(), filename);
     }
 
     public boolean hasFile(String filename) {
         logger.debug("hasFile ({}) - {}", getFullSandboxId(),filename);
-        return cache.hasRepositoryFile(getFullSandboxId(), filename);
+        return repositoryService.hasRepositoryFile(getFullSandboxId(), filename);
     }
 }

@@ -1,11 +1,11 @@
 package com.sandbox.runtime.js.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.EngineResponse;
 import com.sandbox.runtime.models.EngineResponseMessage;
 import com.sandbox.runtime.models.Error;
+import com.sandbox.runtime.models.RepositoryService;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.ServiceScriptException;
@@ -55,7 +55,7 @@ public abstract class Service {
     private boolean initialized = false;
 
     @Autowired
-    protected Cache cache;
+    protected RepositoryService repositoryService;
 
     @Autowired
     protected ObjectMapper mapper;
@@ -182,7 +182,7 @@ public abstract class Service {
 
     //load service checks the main file exists and injects/evals it in the context, doesnt trigger the callback tho
     protected void loadService() throws Exception {
-        // get it from cache, throw if not found
+        // get it from metadataService, throw if not found
         String mainjs = getNashornUtils().readFile("main.js");
         if (mainjs == null || mainjs.isEmpty()) {
             // throw an exception
@@ -190,7 +190,7 @@ public abstract class Service {
         }
 
         try {
-            //when we eval in the user code, clear the require cache first so the other JS files get recompiled, otherwise they won't get reload. change now we aren't clearing the context everytime potentially.
+            //when we eval in the user code, clear the require metadataService first so the other JS files get recompiled, otherwise they won't get reload. change now we aren't clearing the context everytime potentially.
             evalScript("main", mainjs, sandboxScriptEngine);
 
 
@@ -246,8 +246,8 @@ public abstract class Service {
 
                 Assert.hasText(message.getTemplateName(), "Invalid template name given");
 
-                // get template from cache
-                String template = cache.getRepositoryFile(fullSandboxId, "templates/" + message.getTemplateName() + ".liquid");
+                // get template from metadataService
+                String template = repositoryService.getRepositoryFile(fullSandboxId, "templates/" + message.getTemplateName() + ".liquid");
 
                 if (template == null) {
                     throw new ServiceScriptException("Template not found: " + message.getTemplateName());
