@@ -1,14 +1,10 @@
 package com.sandbox.runtime.js.services;
 
 import com.sandbox.runtime.converters.NashornConverter;
-import com.sandbox.runtime.models.RuntimeVersion;
-import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.js.models.SandboxScriptEngine;
+import com.sandbox.runtime.models.Cache;
+import com.sandbox.runtime.models.RuntimeVersion;
 import jdk.nashorn.internal.runtime.ScriptObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -17,6 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Created by nickhoughton on 3/01/2016.
@@ -30,13 +30,13 @@ public class ServiceManager {
     Cache cache;
 
     //the number of executions between 'refreshes' of the engine context, refresh is expensive and unnecessary for every call.
-    private int refreshThreshold = 1;
+    private int refreshThreshold = 0;
     private Map<String, AtomicInteger> counters = new HashMap<>();
     private Map<String, Service> services = new ConcurrentHashMap<>();
     private Map<String, String> fullSandboxReference = new ConcurrentHashMap<>();
     private Map<String, Map<String, String>> configs = new ConcurrentHashMap<>();
     private Map<RuntimeVersion, JSEngineService> engineServices = new ConcurrentHashMap<>();
-    private ExecutorService executorService = Executors.newCachedThreadPool();
+    private ExecutorService executorService = null;
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 
@@ -45,6 +45,9 @@ public class ServiceManager {
 
     public ServiceManager(int refreshThreshold) {
         this.refreshThreshold = refreshThreshold;
+        if(refreshThreshold > 0){
+            executorService = Executors.newCachedThreadPool();
+        }
     }
 
     @PostConstruct
