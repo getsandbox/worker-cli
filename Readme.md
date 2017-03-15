@@ -6,7 +6,7 @@ Sandbox Runtime is the core processing component of the Sandbox product, it is r
 
 This project consists of both the core runtime code, and a lightweight wrapper to simplify command line use. The compiled version is around 10mb and can be run on mac and linux. 
 
-**Note**: Gradle 2.12+ is required to build this yourself, if not using the pre-built binary.
+**Note**: Gradle 2.14+ is required to build this yourself, if not using the pre-built binary.
 
 ## Installation
 
