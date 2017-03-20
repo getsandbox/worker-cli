@@ -30,13 +30,13 @@ public class ServiceManager {
     MetadataService metadataService;
 
     //the number of executions between 'refreshes' of the engine context, refresh is expensive and unnecessary for every call.
-    private int refreshThreshold = 1;
+    private int refreshThreshold = 0;
     private Map<String, AtomicInteger> counters = new HashMap<>();
     private Map<String, Service> services = new ConcurrentHashMap<>();
     private Map<String, String> fullSandboxReference = new ConcurrentHashMap<>();
     private Map<String, Map<String, String>> configs = new ConcurrentHashMap<>();
     private Map<RuntimeVersion, JSEngineService> engineServices = new ConcurrentHashMap<>();
-    private ExecutorService executorService = Executors.newCachedThreadPool();
+    private ExecutorService executorService = null;
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceManager.class);
 
@@ -45,6 +45,9 @@ public class ServiceManager {
 
     public ServiceManager(int refreshThreshold) {
         this.refreshThreshold = refreshThreshold;
+        if(refreshThreshold > 0){
+            executorService = Executors.newCachedThreadPool();
+        }
     }
 
     @PostConstruct

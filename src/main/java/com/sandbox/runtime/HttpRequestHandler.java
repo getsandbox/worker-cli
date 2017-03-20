@@ -141,6 +141,8 @@ public class HttpRequestHandler extends AbstractHandler {
                     runtimeRequest.getMethod().equalsIgnoreCase("OPTIONS") &&
                     routingTable.findMatch("all", runtimeRequest.getUrl(), runtimeRequest.getProperties()) != null){
 
+                //if no match, but request is an options call, create a options match and default response
+                routeMatch = new HTTPRoute(runtimeRequest.getMethod(), runtimeRequest.getUrl(), runtimeRequest.getProperties());
                 runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
 
             }else if(routeMatch == null){
