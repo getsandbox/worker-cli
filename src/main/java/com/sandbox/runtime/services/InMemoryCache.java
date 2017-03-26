@@ -6,11 +6,6 @@ import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sun.nio.file.SensitivityWatchEventModifier;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -25,6 +20,11 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -151,7 +151,7 @@ public class InMemoryCache implements Cache {
                             if(event.context().toString().endsWith(".js")){
                                 setRoutingTableForSandboxId("1","1", null);
                                 fileContents.clear();
-                                serviceManager.refreshService("1");
+                                serviceManager.refreshAllServices();
                                 logger.info("Clearing routing table on JS file change");
                             }
                         }

@@ -108,6 +108,12 @@ public class ServiceManager {
         }
     }
 
+    public void refreshAllServices(){
+        configs.clear();
+        fullSandboxReference.entrySet().stream()
+                .forEach(e -> { createService(e.getValue(), e.getKey()); });
+    }
+
     public void removeService(String sandboxId){
         services.remove(sandboxId);
         configs.remove(sandboxId);
