@@ -20,18 +20,6 @@ import com.sandbox.runtime.models.http.HttpRuntimeResponse;
 import com.sandbox.runtime.services.RouteConfigUtils;
 import com.sandbox.runtime.utils.FormatUtils;
 import com.sandbox.runtime.utils.MapUtils;
-import org.apache.cxf.jaxrs.model.URITemplate;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StopWatch;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -49,10 +37,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.cxf.jaxrs.model.URITemplate;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
+import org.springframework.util.StringUtils;
 
-/**
- * Created by nickhoughton on 18/10/2014.
- */
 @Component
 @Lazy
 public class HttpRequestHandler extends AbstractHandler {
@@ -175,8 +172,16 @@ public class HttpRequestHandler extends AbstractHandler {
                 }
             }
 
-            long calculatedDelayForRoute = RouteConfigUtils.calculate(routeMatch.getRouteConfig(), requestTimer, new AtomicInteger(1));
-
+            long calculatedDelayForRoute = 0;
+            //if we have a programmatically set delay, use that.
+            if(runtimeResponse.getResponseDelay() > 0){
+                calculatedDelayForRoute = runtimeResponse.getResponseDelay();
+            }
+            //otherwise check route config
+            if(calculatedDelayForRoute == 0){
+                calculatedDelayForRoute = RouteConfigUtils.calculate(routeMatch.getRouteConfig(), requestTimer, new AtomicInteger(1));
+            }
+            //if we have a delay of some kind, apply it.
             if(calculatedDelayForRoute > 0){
                 AsyncContext asyncContext = request.startAsync();
                 mapResponse((HttpServletResponse) asyncContext.getResponse(), runtimeResponse, runtimeRequest, requestTimer);
