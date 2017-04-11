@@ -1,5 +1,6 @@
 package com.sandbox.runtime.config;
 
+import com.sandbox.runtime.MetadataServer;
 import com.sandbox.runtime.models.config.RuntimeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,10 @@ public class JavaBootstrap extends Context {
             try {
                 AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(JavaBootstrap.class);
                 context.start();
+                //if configured, start activity server
+                if(config.getMetadataPort() != null){
+                    context.getBean(MetadataServer.class).start();
+                }
                 //start server
                 context.getBean(Context.class).start();
 

@@ -5,12 +5,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.sandbox.runtime.models.config.RuntimeConfig;
-import com.sandbox.runtime.utils.MapUtils;
+import com.sandbox.runtime.MetadataServer;
 import com.sandbox.runtime.HttpServer;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.models.Console;
-import com.sandbox.runtime.models.RuntimeVersion;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import com.sandbox.runtime.js.serializers.ScriptObjectMirrorSerializer;
 import com.sandbox.runtime.js.serializers.ScriptObjectSerializer;
 import com.sandbox.runtime.js.serializers.UndefinedSerializer;
@@ -21,11 +20,16 @@ import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
 import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.js.utils.NashornValidationUtils;
 import com.sandbox.runtime.models.Cache;
-import com.sandbox.runtime.js.models.SandboxScriptEngine;
+import com.sandbox.runtime.models.RuntimeVersion;
+import com.sandbox.runtime.models.config.RuntimeConfig;
+import com.sandbox.runtime.services.InMemoryActivityStore;
 import com.sandbox.runtime.services.InMemoryCache;
 import com.sandbox.runtime.services.LiquidRenderer;
 import com.sandbox.runtime.utils.FormatUtils;
+import com.sandbox.runtime.utils.MapUtils;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+
+import javax.script.ScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
-
-import javax.script.ScriptEngine;
 
 
 public abstract class Context {
@@ -156,6 +158,17 @@ public abstract class Context {
     @Lazy
     public Cache getCache(){
         return new InMemoryCache();
+    }
+
+    @Bean
+    public InMemoryActivityStore activityStore() {
+        RuntimeConfig config = applicationContext.getBean(RuntimeConfig.class);
+        return new InMemoryActivityStore(config.getActivityDepth());
+    }
+
+    @Bean
+    public MetadataServer metadataServer(){
+        return new MetadataServer();
     }
 
     @Bean

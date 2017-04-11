@@ -1,6 +1,8 @@
 package com.sandbox.runtime;
 
 import com.sandbox.runtime.models.config.RuntimeConfig;
+
+import java.nio.file.Path;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -12,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import java.nio.file.Path;
 
 /**
  * Created by nickhoughton on 18/10/2014.
@@ -60,7 +60,13 @@ public class HttpServer {
         try {
             server.start();
 
-            logger.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {} with path: '{}'", environment.getProperty("SANDBOX_VERSION",String.class, "?"), config.getRuntimeVersion(), port, basePath.toAbsolutePath().toRealPath().toString());
+            logger.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {}, metadata on port: {}, reading from path: '{}'",
+                environment.getProperty("SANDBOX_VERSION",String.class, "?"),
+                config.getRuntimeVersion(),
+                port,
+                config.getMetadataPort() == null ? "disabled" : config.getMetadataPort(),
+                basePath.toAbsolutePath().toRealPath().toString()
+            );
 
             server.join();
 

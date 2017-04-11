@@ -1,8 +1,13 @@
 package com.sandbox.runtime.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sandbox.runtime.MetadataServer;
 import com.sandbox.runtime.models.RuntimeVersion;
 import com.sandbox.runtime.models.config.RuntimeConfig;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -10,10 +15,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.SimpleCommandLinePropertySource;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
 
 @Configuration
 @ComponentScan(basePackages = {"com.sandbox.runtime"},
@@ -35,6 +36,10 @@ public class CLIBootstrap extends Context {
         try {
             AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(CLIBootstrap.class);
             context.start();
+            //if configured, start activity server
+            if(config.getMetadataPort() != null){
+                context.getBean(MetadataServer.class).start();
+            }
             //start server
             context.getBean(Context.class).start();
 
@@ -90,6 +95,7 @@ public class CLIBootstrap extends Context {
 
             config.setHttpPort(getProperty(source, "port", Integer.class, 8080));
             config.setDebugPort(5005);//getProperty(source, "debug",Integer.class, 5005);
+            config.setMetadataPort(getProperty(source, "metadataPort", Integer.class, null));
             config.setVerboseLogging(getProperty(source, "verbose", String.class) == null ? false : true);
             config.setDisableLogging(getProperty(source, "quiet", String.class) == null ? false : true);
             config.setDisableIDs(getProperty(source, "disableIDs", String.class) == null ? false : true);

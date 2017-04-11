@@ -7,16 +7,20 @@ import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.converters.HTTPRequestConverter;
 import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.js.services.ServiceManager;
+import com.sandbox.runtime.models.ActivityMessage;
+import com.sandbox.runtime.models.ActivityMessageTypeEnum;
 import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
 import com.sandbox.runtime.models.RuntimeResponse;
+import com.sandbox.runtime.models.RuntimeTransaction;
 import com.sandbox.runtime.models.XMLDoc;
 import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.models.http.HTTPRequest;
 import com.sandbox.runtime.models.http.HTTPRoute;
 import com.sandbox.runtime.models.http.HttpRuntimeRequest;
 import com.sandbox.runtime.models.http.HttpRuntimeResponse;
+import com.sandbox.runtime.services.InMemoryActivityStore;
 import com.sandbox.runtime.services.RouteConfigUtils;
 import com.sandbox.runtime.utils.FormatUtils;
 import com.sandbox.runtime.utils.MapUtils;
@@ -54,6 +58,8 @@ import org.springframework.util.StringUtils;
 @Lazy
 public class HttpRequestHandler extends AbstractHandler {
 
+    private static Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
+
     @Autowired
     ApplicationContext context;
 
@@ -81,9 +87,14 @@ public class HttpRequestHandler extends AbstractHandler {
     @Autowired
     private HTTPRequestConverter serviceConverter;
 
+    @Autowired
+    private InMemoryActivityStore activityStore;
+
     private Map<Long, AsyncContext> delayedRequests = new ConcurrentHashMap<>();
 
-    private static Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
+    //defaulted
+    private String sandboxId = "1";
+    private String sandboxName = "name";
 
     public HttpRequestHandler() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
@@ -103,9 +114,6 @@ public class HttpRequestHandler extends AbstractHandler {
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         baseRequest.setHandled(true);
 
-        //defaulted
-        String sandboxId = "1";
-        String sandboxName = "name";
         try {
             StopWatch requestTimer = new StopWatch();
             requestTimer.start();
@@ -228,6 +236,14 @@ public class HttpRequestHandler extends AbstractHandler {
             String trimmedLogItem = logItem.trim();
             if(trimmedLogItem.endsWith("\n")) trimmedLogItem = trimmedLogItem.substring(0, trimmedLogItem.length()-2);
             logger.info(trimmedLogItem);
+
+            activityStore.add(
+                new ActivityMessage(
+                    sandboxId,
+                    ActivityMessageTypeEnum.log,
+                    logItem
+                )
+            );
         }
 
     }
@@ -368,6 +384,14 @@ public class HttpRequestHandler extends AbstractHandler {
             //write out the body
             response.getWriter().append(runtimeResponse.getBody());
         }
+
+        activityStore.add(
+            new ActivityMessage(
+                sandboxId,
+                ActivityMessageTypeEnum.request,
+                mapper.writeValueAsString(new RuntimeTransaction(runtimeRequest, runtimeResponse))
+            )
+        );
 
     }
 }
