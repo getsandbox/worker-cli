@@ -1,6 +1,7 @@
 package com.sandbox.runtime.js.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.sandbox.runtime.models.StateService;
 import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.converters.NashornConverter;
 import com.sandbox.runtime.js.models.SandboxScriptEngine;
@@ -22,6 +23,9 @@ public class RuntimeService extends Service {
     @Autowired
     RuntimeConfig config;
 
+    @Autowired
+    StateService stateService;
+
     //state is persisted across requests, but not stored.
     static Object convertedState = null;
 
@@ -34,7 +38,7 @@ public class RuntimeService extends Service {
         if(config.getStatePath() != null){
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 try {
-                    cache.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));
+                    stateService.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));
                 } catch (JsonProcessingException e) {
                     logger.error("Error serialising state", e);
                 }
@@ -44,7 +48,7 @@ public class RuntimeService extends Service {
                 //save state before shutdown
                 logger.info("Persisting state before shutdown..");
                 try {
-                    cache.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));
+                    stateService.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));
                 } catch (JsonProcessingException e) {
                     logger.error("Error serialising state", e);
                 }
@@ -56,7 +60,7 @@ public class RuntimeService extends Service {
     protected void setState() throws Exception {
 
         if(convertedState == null){
-            String currentState = cache.getSandboxState(sandboxId);
+            String currentState = stateService.getSandboxState(sandboxId);
             convertedState = NashornConverter.instance().convert(sandboxScriptEngine.getEngine(), JSONUtils.parse(mapper, currentState));
         }
 

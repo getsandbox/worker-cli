@@ -1,14 +1,10 @@
 package com.sandbox.runtime.js.services;
 
 import com.sandbox.runtime.js.models.Console;
-import com.sandbox.runtime.models.RuntimeVersion;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import com.sandbox.runtime.js.utils.FileUtils;
 import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
-import com.sandbox.runtime.js.models.SandboxScriptEngine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import com.sandbox.runtime.models.RuntimeVersion;
 
 import javax.annotation.PostConstruct;
 import javax.script.Bindings;
@@ -20,6 +16,10 @@ import javax.script.SimpleScriptContext;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Created by nickhoughton on 3/12/2015.
@@ -30,27 +30,37 @@ public class JSEngineService {
     private ScriptEngine engine;
     private RuntimeVersion runtimeVersion;
     //set capacity to arbitrary number of queued objects, how about 10?
-    private ArrayBlockingQueue<SandboxScriptEngine> createdEngines = new ArrayBlockingQueue<>(10);
+    private ArrayBlockingQueue<SandboxScriptEngine> createdEngines = new ArrayBlockingQueue<>(5);
 
     @Autowired
     ApplicationContext context;
+
+    private boolean fillQueue = true;
 
     public JSEngineService(RuntimeVersion runtimeVersion) {
         this.runtimeVersion = runtimeVersion;
     }
 
+    public JSEngineService(RuntimeVersion runtimeVersion, boolean fillQueue) {
+        this.runtimeVersion = runtimeVersion;
+        this.fillQueue = fillQueue;
+    }
+
     @PostConstruct
     public void start(){
         this.engine = context.getBean(ScriptEngine.class);
-        //start an executor to keep topping up the created engines so validation requests and first requests are faster.
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                while(createdEngines.remainingCapacity() > 0){
-                    createdEngines.add(createEngine());
+
+        if(fillQueue) {
+            //start an executor to keep topping up the created engines so validation requests and first requests are faster.
+            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    while (createdEngines.remainingCapacity() > 0) {
+                        createdEngines.add(createEngine());
+                    }
                 }
-            }
-        }, 0, 1, TimeUnit.SECONDS);
+            }, 0, 1, TimeUnit.SECONDS);
+        }
     }
 
     public SandboxScriptEngine createOrGetEngine(){

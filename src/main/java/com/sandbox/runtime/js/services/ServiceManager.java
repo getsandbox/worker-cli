@@ -1,10 +1,14 @@
 package com.sandbox.runtime.js.services;
 
 import com.sandbox.runtime.converters.NashornConverter;
-import com.sandbox.runtime.js.models.SandboxScriptEngine;
-import com.sandbox.runtime.models.Cache;
+import com.sandbox.runtime.models.MetadataService;
 import com.sandbox.runtime.models.RuntimeVersion;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import jdk.nashorn.internal.runtime.ScriptObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -13,10 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 /**
  * Created by nickhoughton on 3/01/2016.
@@ -27,7 +27,7 @@ public class ServiceManager {
     ApplicationContext context;
 
     @Autowired
-    Cache cache;
+    MetadataService metadataService;
 
     //the number of executions between 'refreshes' of the engine context, refresh is expensive and unnecessary for every call.
     private int refreshThreshold = 0;
@@ -96,7 +96,7 @@ public class ServiceManager {
             return;
         }
 
-        //asked for a refresh, so get new config, otherwise it uses local cache.
+        //asked for a refresh, so get new config, otherwise it uses local metadataService.
         configs.remove(sandboxId);
         //generate a new one with new changes
         createService(fullSandboxId, sandboxId);
@@ -152,7 +152,7 @@ public class ServiceManager {
     private Map<String, String> getConfig(String sandboxId){
         Map<String, String> config = configs.get(sandboxId);
         if(config == null){
-            config = cache.getConfigForSandboxId(sandboxId);
+            config = metadataService.getConfigForSandboxId(sandboxId);
             configs.put(sandboxId, config);
         }
         return config;

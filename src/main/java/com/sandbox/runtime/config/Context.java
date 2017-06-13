@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.sandbox.runtime.MetadataServer;
 import com.sandbox.runtime.HttpServer;
+import com.sandbox.runtime.MetadataServer;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.models.Console;
 import com.sandbox.runtime.js.models.SandboxScriptEngine;
@@ -19,7 +19,6 @@ import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.js.utils.NashornRuntimeUtils;
 import com.sandbox.runtime.js.utils.NashornUtils;
 import com.sandbox.runtime.js.utils.NashornValidationUtils;
-import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.RuntimeVersion;
 import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.services.InMemoryActivityStore;
@@ -156,7 +155,7 @@ public abstract class Context {
 
     @Bean
     @Lazy
-    public Cache getCache(){
+    public InMemoryCache getCache(){
         return new InMemoryCache();
     }
 

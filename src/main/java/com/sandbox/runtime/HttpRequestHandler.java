@@ -9,9 +9,9 @@ import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.ActivityMessage;
 import com.sandbox.runtime.models.ActivityMessageTypeEnum;
-import com.sandbox.runtime.models.Cache;
 import com.sandbox.runtime.models.Error;
 import com.sandbox.runtime.models.RoutingTable;
+import com.sandbox.runtime.models.RoutingTableCache;
 import com.sandbox.runtime.models.RuntimeResponse;
 import com.sandbox.runtime.models.RuntimeTransaction;
 import com.sandbox.runtime.models.XMLDoc;
@@ -73,7 +73,7 @@ public class HttpRequestHandler extends AbstractHandler {
     FormatUtils formatUtils;
 
     @Autowired
-    Cache cache;
+    RoutingTableCache cache;
 
     @Autowired
     RuntimeConfig config;
