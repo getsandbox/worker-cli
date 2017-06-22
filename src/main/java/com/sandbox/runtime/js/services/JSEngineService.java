@@ -63,6 +63,10 @@ public class JSEngineService {
         }
     }
 
+    public boolean isReady(){
+        return createdEngines.remainingCapacity() == 0;
+    }
+
     public SandboxScriptEngine createOrGetEngine(){
         SandboxScriptEngine engine = createdEngines.poll();
         if(engine != null) return engine;

@@ -1,14 +1,10 @@
 package com.sandbox.runtime.js.services;
 
 import com.sandbox.runtime.converters.NashornConverter;
+import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import com.sandbox.runtime.models.MetadataService;
 import com.sandbox.runtime.models.RuntimeVersion;
-import com.sandbox.runtime.js.models.SandboxScriptEngine;
 import jdk.nashorn.internal.runtime.ScriptObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -17,6 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Created by nickhoughton on 3/01/2016.
@@ -53,6 +53,24 @@ public class ServiceManager {
     @PostConstruct
     public void init(){
         engineServices.put(RuntimeVersion.getLatest(), context.getBean(JSEngineService.class, RuntimeVersion.getLatest()));
+    }
+
+    public void warmup(){
+        boolean engineQueueWorking = true;
+        //wait for downstream engine services to become ready
+        while(engineQueueWorking){
+            engineQueueWorking = false;
+            for (JSEngineService engineService : engineServices.values()){
+                if(!engineService.isReady()){
+                    engineQueueWorking = true;
+                }
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                logger.warn("Warm-up interrupted", e);
+            }
+        }
     }
 
     public Service getValidationService(String fullSandboxId, String sandboxId){
