@@ -9,8 +9,6 @@ sandbox_version="1.0.$sandbox_git_version"
 
 set -e
 
-jdk_switcher use oraclejdk8
-
 # install aws tools
 pip install awscli > /dev/null
 
