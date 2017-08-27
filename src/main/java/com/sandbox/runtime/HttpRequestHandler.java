@@ -237,13 +237,15 @@ public class HttpRequestHandler extends AbstractHandler {
             if(trimmedLogItem.endsWith("\n")) trimmedLogItem = trimmedLogItem.substring(0, trimmedLogItem.length()-2);
             logger.info(trimmedLogItem);
 
-            activityStore.add(
-                new ActivityMessage(
-                    sandboxId,
-                    ActivityMessageTypeEnum.log,
-                    logItem
-                )
-            );
+            if(config.getMetadataPort() != null){
+                activityStore.add(
+                        new ActivityMessage(
+                                sandboxId,
+                                ActivityMessageTypeEnum.log,
+                                logItem
+                        )
+                );
+            }
         }
 
     }
