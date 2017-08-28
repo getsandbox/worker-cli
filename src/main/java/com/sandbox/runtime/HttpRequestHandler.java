@@ -165,14 +165,7 @@ public class HttpRequestHandler extends AbstractHandler {
                 runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
             }else{
                 //otherwise process normally
-                if(config.isEnableConcurrency()){
-                    runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
-                }else{
-                    //if concurrency disabled then synchronise JS execution
-                    synchronized (this) {
-                        runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
-                    }
-                }
+                runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
             }
 
             long calculatedDelayForRoute = 0;

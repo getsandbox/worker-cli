@@ -7,7 +7,6 @@ import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.util.thread.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,33 +38,39 @@ public class HttpServer {
         int port = config.getHttpPort();
         Path basePath = config.getBasePath();
 
+        //check for override values from jvm args
         String jettyAcceptorStr = System.getProperty("JETTY_ACCEPTOR");
-        int jettyAcceptor = Integer.parseInt(jettyAcceptorStr == null ? "-1" : jettyAcceptorStr);
+        int jettyAcceptorThreads = Integer.parseInt(jettyAcceptorStr == null ? "1" : jettyAcceptorStr);
         String jettySelectorStr = System.getProperty("JETTY_SELECTOR");
-        int jettySelector = Integer.parseInt(jettySelectorStr == null ? "-1" : jettySelectorStr);
+        int jettySelectorThreads = Integer.parseInt(jettySelectorStr == null ? "2" : jettySelectorStr);
+        String jettyRequestStr = System.getProperty("JETTY_REQUEST");
+        int jettyRequestThreads = Integer.parseInt(jettySelectorStr == null ? Runtime.getRuntime().availableProcessors() + "" : jettyRequestStr);
 
-        ThreadPool jettyThreadPool;
-        if(System.getProperty("JETTY_MIN_THREADS") != null && System.getProperty("JETTY_MIN_THREADS") != null){
-            jettyThreadPool = new QueuedThreadPool(Integer.parseInt(System.getProperty("JETTY_MIN_THREADS")), Integer.parseInt(System.getProperty("JETTY_MAX_THREADS")));
-        }else{
-            jettyThreadPool = new QueuedThreadPool();
+        //is not concurrency then force request threads to be 1
+        if(!config.isEnableConcurrency()){
+            jettyRequestThreads = 1;
         }
 
-        server = new Server(jettyThreadPool);
-        ServerConnector connector=new ServerConnector(server, jettyAcceptor, jettySelector);
+        //calculate pool max, accept + select + request.
+        int jettyPoolMax = jettyAcceptorThreads + jettySelectorThreads + jettyRequestThreads;
+
+        //create server using given threadpool
+        server = new Server(new QueuedThreadPool(jettyPoolMax, jettyPoolMax));
+        server.setHandler(handler);
+        ServerConnector connector = new ServerConnector(server, jettyAcceptorThreads, jettySelectorThreads);
         connector.setPort(port);
         server.setConnectors(new Connector[]{connector});
-        server.setHandler(handler);
 
         try {
             server.start();
 
-            logger.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {}, metadata on port: {}, reading from path: '{}'",
+            logger.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {}, metadata on port: {}, reading from path: '{}' with {} worker(s)",
                 environment.getProperty("SANDBOX_VERSION",String.class, "?"),
                 config.getRuntimeVersion(),
                 port,
                 config.getMetadataPort() == null ? "disabled" : config.getMetadataPort(),
-                basePath.toAbsolutePath().toRealPath().toString()
+                basePath.toAbsolutePath().toRealPath().toString(),
+                jettyRequestThreads
             );
 
             server.join();
