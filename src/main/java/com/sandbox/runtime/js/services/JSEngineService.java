@@ -90,6 +90,10 @@ public class JSEngineService {
         return sandboxEngine;
     }
 
+    public ScriptEngine getScriptEngine() {
+        return engine;
+    }
+
     private SandboxScriptEngine createNewContext(SandboxScriptEngine sandboxEngine) {
         NashornRuntimeUtils nashornRuntimeUtils = (NashornRuntimeUtils) context.getBean("nashornUtils", "temporary");
 

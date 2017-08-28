@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sandbox.runtime.converters.HttpServletConverter;
 import com.sandbox.runtime.js.converters.HTTPRequestConverter;
+import com.sandbox.runtime.js.models.Console;
+import com.sandbox.runtime.js.services.JSEngineService;
 import com.sandbox.runtime.js.services.RuntimeService;
 import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.ActivityMessage;
@@ -36,9 +38,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.cxf.jaxrs.model.URITemplate;
@@ -78,6 +81,9 @@ public class HttpRequestHandler extends AbstractHandler {
     ServiceManager serviceManager;
 
     @Autowired
+    private JSEngineService engineService;
+
+    @Autowired
     private HttpServletConverter servletConverter;
 
     @Autowired
@@ -88,20 +94,58 @@ public class HttpRequestHandler extends AbstractHandler {
 
     private Map<Long, AsyncContext> delayedRequests = new ConcurrentHashMap<>();
 
+    private Map<FutureTask, AsyncContext> runningRequests = new ConcurrentHashMap<>();
+
+    private ExecutorService engineExecutor = Executors.newSingleThreadExecutor();
+
     //defaulted
     private String sandboxId = "1";
 
     public HttpRequestHandler() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            long currentTime = System.currentTimeMillis();
-            for (Long time : delayedRequests.keySet()){
-                if(currentTime > time){
-                    AsyncContext asyncContext = delayedRequests.remove(time);
-                    asyncContext.complete();
+            try {
+                long currentTime = System.currentTimeMillis();
+                for (Long time : delayedRequests.keySet()){
+                    if(currentTime > time){
+                        AsyncContext asyncContext = delayedRequests.remove(time);
+                        asyncContext.complete();
+                    }
                 }
+            } catch (Exception e){
+                logger.error("Error completing async context", e);
             }
 
         }, 0, 10, TimeUnit.MILLISECONDS);
+
+        Executors.newSingleThreadExecutor().submit(() -> {
+            while(true){
+                try {
+                    for (FutureTask future : runningRequests.keySet()) {
+                        if (future.isDone() || future.isCancelled()) {
+                            //future is complete, so remove it
+                            AsyncContext asyncContext = runningRequests.remove(future);
+
+                            //if the future result is true, then it is being completed in another async manner and should be ignored
+                            try {
+                                if ((Boolean) future.get()) return;
+                            } catch (Exception e) {
+                                logger.error("Error completing future", e);
+                            }
+
+                            //otherwise complete it
+                            asyncContext.complete();
+                        }
+                    }
+
+                    Thread.sleep(5);
+
+                } catch (Exception e){
+                    logger.error("Error completing async context", e);
+                }
+            }
+
+        });
+
     }
 
     //handle is synchronized so that the JS processing is done on one thread.
@@ -113,84 +157,24 @@ public class HttpRequestHandler extends AbstractHandler {
             StopWatch requestTimer = new StopWatch();
             requestTimer.start();
 
-            String requestId = config.isDisableIDs() ? "1" : UUID.randomUUID().toString();
-
             //convert incoming request to InstanceHttpRequest
             HttpRuntimeRequest runtimeRequest = servletConverter.httpServletToInstanceHttpRequest(request);
 
-            //get a runtime service instance
-            RuntimeService runtimeService = (RuntimeService) serviceManager.getService(sandboxId, Thread.currentThread().getName());
-
-            HttpRuntimeResponse runtimeResponse = null;
-
             //create and lookup routing table
-            RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId, sandboxId);
-            if(routingTable == null) {
-                //create the routing table
-                routingTable = runtimeService.handleRoutingTableRequest();
-                //enrich with given runtime config (if any)
-                addRouteConfigToRoutingTable(routingTable, config);
-                //cache the routing table for use until it changes..
-                cache.setRoutingTableForSandboxId(sandboxId, sandboxId, routingTable);
-            }
-
+            RoutingTable routingTable = getOrCreateRoutingTable();
             HTTPRoute routeMatch = findMatchedRoute(runtimeRequest, routingTable);
 
-            if(routeMatch == null &&
-                    runtimeRequest instanceof HttpRuntimeRequest &&
-                    runtimeRequest.getMethod().equalsIgnoreCase("OPTIONS") &&
-                    routingTable.findMatch("all", runtimeRequest.getUrl(), runtimeRequest.getProperties()) != null){
-
-                //if no match, but request is an options call, create a options match and default response
-                routeMatch = new HTTPRoute(runtimeRequest.getMethod(), runtimeRequest.getUrl(), runtimeRequest.getProperties());
-                runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
-
-            }else if(routeMatch == null){
+            if(routeMatch == null) {
                 //if no route match for given request, then log message and send error response.
                 logger.warn("** Error processing request for {} {} - Invalid route", runtimeRequest.getMethod(), runtimeRequest.getPath() == null ? request.getRequestURI() : runtimeRequest.getPath());
                 response.setStatus(500);
-                response.setHeader("Content-Type","application/json");
+                response.setHeader("Content-Type", "application/json");
                 response.getWriter().write(convertExceptionMessageToResponse("Invalid route"));
                 return;
             }
 
-            //log request with route
-            if(!config.isDisableLogging()) logRequest(runtimeRequest, routeMatch, requestId);
-
-            //run request
-            HTTPRequest httpRequest = serviceConverter.fromInstanceHttpRequest(runtimeService.getSandboxScriptEngine().getEngine(), runtimeRequest);
-
-            if("options".equalsIgnoreCase(httpRequest.method())){
-                //if options request, send back CORS headers
-                runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
-            }else{
-                //otherwise process normally
-                runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
-            }
-
-            long calculatedDelayForRoute = 0;
-            //if we have a programmatically set delay, use that.
-            if(runtimeResponse.getResponseDelay() > 0){
-                calculatedDelayForRoute = runtimeResponse.getResponseDelay();
-            }
-            //otherwise check route config
-            if(calculatedDelayForRoute == 0){
-                calculatedDelayForRoute = RouteConfigUtils.calculate(routeMatch.getRouteConfig(), requestTimer, new AtomicInteger(1));
-            }
-            //if we have a delay of some kind, apply it.
-            if(calculatedDelayForRoute > 0){
-                AsyncContext asyncContext = request.startAsync();
-                mapResponse((HttpServletResponse) asyncContext.getResponse(), runtimeResponse, runtimeRequest, requestTimer);
-                delayedRequests.put(new Long(System.currentTimeMillis()+calculatedDelayForRoute), asyncContext);
-
-            }else{
-                mapResponse(response, runtimeResponse, runtimeRequest, requestTimer);
-            }
-
-            if(!config.isDisableLogging()){
-                logConsole(runtimeService);
-                logResponse(runtimeResponse, requestId);
-            }
+            //found valid request with route, so process it and write response.
+            processValidRequest(request, response, runtimeRequest, routeMatch, requestTimer);
 
         } catch (Exception e) {
             logger.error("Error processing request", e);
@@ -202,7 +186,88 @@ public class HttpRequestHandler extends AbstractHandler {
         }
     }
 
-    private void logRequest(HttpRuntimeRequest request, HTTPRoute matchedRouteDetails, String requestId){
+    private void processValidRequest(HttpServletRequest request, HttpServletResponse response, HttpRuntimeRequest runtimeRequest, HTTPRoute routeMatch, StopWatch requestTimer) {
+        //log request with route
+        logRequest(runtimeRequest, routeMatch);
+
+        final AsyncContext asyncContext = request.startAsync();
+        FutureTask task = new FutureTask(() -> {
+            boolean appliedDelay = false;
+
+            try {
+                HttpRuntimeResponse runtimeResponse = null;
+                Console runtimeConsole = null;
+
+                if("OPTIONS".equalsIgnoreCase(runtimeRequest.getMethod())){
+                    //if options request, send back CORS headers
+                    runtimeResponse = new HttpRuntimeResponse("", 200, null, new HashMap<>(), new ArrayList<>());
+                }else{
+                    //otherwise process normally
+                    HTTPRequest httpRequest = serviceConverter.fromInstanceHttpRequest(engineService.getScriptEngine(), runtimeRequest);
+
+                    RuntimeService runtimeService = getRuntimeService();
+                    runtimeResponse = (HttpRuntimeResponse) runtimeService.handleRequest(httpRequest).get(0);
+                    runtimeConsole = runtimeService.getConsole();
+                }
+
+                //now execution has finished, we can apply delays as configured
+                long calculatedDelayForRoute = calculateResponseDelay(runtimeResponse, routeMatch, requestTimer);
+
+                mapResponse(response, runtimeResponse, runtimeRequest, requestTimer);
+
+                //if we have a delay of some kind, apply it.
+                if(calculatedDelayForRoute > 0){
+                    appliedDelay = true;
+                    delayedRequests.put(new Long(System.currentTimeMillis()+calculatedDelayForRoute), asyncContext);
+                }
+
+                logConsole(runtimeConsole);
+                logResponse(runtimeResponse);
+
+            } catch (Exception e) {
+                logger.error("Error processing request", e);
+
+                //write out error as json
+                response.setStatus(500);
+                response.setHeader("Content-Type","application/json");
+                try {
+                    response.getWriter().write(convertExceptionToResponse(e));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+            //return if the task will be completed async
+            return appliedDelay;
+
+        });
+
+        runningRequests.put(task, asyncContext);
+        engineExecutor.submit(task);
+
+    }
+
+    private RuntimeService getRuntimeService() throws Exception {
+        return (RuntimeService) serviceManager.getService(sandboxId, Thread.currentThread().getName());
+    }
+
+    //synchronize on routing table creation so we only do it once, should only be done on first req / definition change anyway
+    private synchronized RoutingTable getOrCreateRoutingTable() throws Exception {
+        RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId, sandboxId);
+        if(routingTable == null) {
+            //create the routing table
+            routingTable = getRuntimeService().handleRoutingTableRequest();
+            //enrich with given runtime config (if any)
+            addRouteConfigToRoutingTable(routingTable, config);
+            //cache the routing table for use until it changes..
+            cache.setRoutingTableForSandboxId(sandboxId, sandboxId, routingTable);
+        }
+        return routingTable;
+    }
+
+    private void logRequest(HttpRuntimeRequest request, HTTPRoute matchedRouteDetails){
+        if(config.isDisableLogging()) return;
+
         String matchedRouteDescription = "No matching route";
         if(matchedRouteDetails != null) matchedRouteDescription = "Matched route '" + matchedRouteDetails.getPath() + "'";
 
@@ -219,26 +284,30 @@ public class HttpRequestHandler extends AbstractHandler {
 
     }
 
-    private void logConsole(RuntimeService service){
-        for (String logItem : service.getConsole()._getMessages()){
+    private void logConsole(Console console){
+        if(config.isDisableLogging() || console == null) return;
+
+        for (String logItem : console._getMessages()){
             String trimmedLogItem = logItem.trim();
             if(trimmedLogItem.endsWith("\n")) trimmedLogItem = trimmedLogItem.substring(0, trimmedLogItem.length()-2);
             logger.info(trimmedLogItem);
 
             if(config.getMetadataPort() != null){
                 activityStore.add(
-                        new ActivityMessage(
-                                sandboxId,
-                                ActivityMessageTypeEnum.log,
-                                logItem
-                        )
+                    new ActivityMessage(
+                        sandboxId,
+                        ActivityMessageTypeEnum.log,
+                        logItem
+                    )
                 );
             }
         }
 
     }
 
-    private void logResponse(RuntimeResponse response, String requestId){
+    private void logResponse(RuntimeResponse response){
+        if(config.isDisableLogging()) return;
+
         //then response
         String bodyDescription = "No body found";
         if(StringUtils.hasLength(response.getBody())) {
@@ -252,6 +321,22 @@ public class HttpRequestHandler extends AbstractHandler {
                             "<< {}",
                     ((HttpRuntimeResponse)response).getStatusCode(), response.getDurationMillis(), getSafe(response.getHeaders(), new HashMap<>()), bodyDescription);
         }
+    }
+
+    private long calculateResponseDelay(RuntimeResponse runtimeResponse, HTTPRoute routeMatch, StopWatch requestTimer){
+        //now execution has finished, we can apply delays as configured
+        long calculatedDelayForRoute = 0;
+        //if we have a programmatically set delay, use that.
+        if(runtimeResponse.getResponseDelay() > 0){
+            calculatedDelayForRoute = runtimeResponse.getResponseDelay();
+        }
+
+        //otherwise check route config
+        if(calculatedDelayForRoute == 0){
+            calculatedDelayForRoute = RouteConfigUtils.calculate(routeMatch.getRouteConfig(), requestTimer, new AtomicInteger(1));
+        }
+
+        return calculatedDelayForRoute;
     }
 
     private String renderBody(String body, Map<String, String> headers){
@@ -293,9 +378,21 @@ public class HttpRequestHandler extends AbstractHandler {
         }
 
         HTTPRoute match = (HTTPRoute) table.findMatch(request);
-        if(match == null) return null;
 
-        Map<String, String> flattenedPathParams = mapUtils.flattenMultiValue(match.getPathParams(), URITemplate.FINAL_MATCH_GROUP);
+        //if its an OPTIONS request and we have a matching non-OPTIONS route then generate a route match
+        if(match == null && request instanceof HttpRuntimeRequest && "OPTIONS".equalsIgnoreCase(request.getMethod())
+                && table.findMatch("all", request.getUrl(), request.getProperties()) != null) {
+
+            //if no match, but request is an options call, create a options match and default response
+            return new HTTPRoute(request.getMethod(), request.getUrl(), request.getProperties());
+        }
+
+        //otherwise its just not there, return null
+        if(match == null){
+            return null;
+        }
+
+        Map<String, String> flattenedPathParams = mapUtils.flattenMultiValue(match.extractPathParams(request.getUrl()), URITemplate.FINAL_MATCH_GROUP);
         request.setPath(match.getPath());
         request.setParams(flattenedPathParams);
 
@@ -306,10 +403,10 @@ public class HttpRequestHandler extends AbstractHandler {
         routingTable.getRouteDetails().stream().filter(route -> route instanceof HTTPRoute).forEach(route -> {
             HTTPRoute httpRoute = (HTTPRoute) route;
             route.setRouteConfig(
-                    runtimeConfig.getRoutes().stream()
-                            .filter(rc -> httpRoute.isUncompiledMatch(rc.getMethod(), rc.getPath(), Collections.emptyMap()))
-                            .findFirst()
-                            .orElse(null)
+                runtimeConfig.getRoutes().stream()
+                    .filter(rc -> httpRoute.isUncompiledMatch(rc.getMethod(), rc.getPath(), Collections.emptyMap()))
+                    .findFirst()
+                    .orElse(null)
             );
         });
     }
@@ -375,13 +472,15 @@ public class HttpRequestHandler extends AbstractHandler {
             response.getWriter().append(runtimeResponse.getBody());
         }
 
-        activityStore.add(
-            new ActivityMessage(
-                sandboxId,
-                ActivityMessageTypeEnum.request,
-                mapper.writeValueAsString(new RuntimeTransaction(runtimeRequest, runtimeResponse))
-            )
-        );
+        if(config.getMetadataPort() != null) {
+            activityStore.add(
+                new ActivityMessage(
+                    sandboxId,
+                    ActivityMessageTypeEnum.request,
+                    mapper.writeValueAsString(new RuntimeTransaction(runtimeRequest, runtimeResponse))
+                )
+            );
+        }
 
     }
 }

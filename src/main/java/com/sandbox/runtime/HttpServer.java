@@ -43,19 +43,13 @@ public class HttpServer {
         int jettyAcceptorThreads = Integer.parseInt(jettyAcceptorStr == null ? "1" : jettyAcceptorStr);
         String jettySelectorStr = System.getProperty("JETTY_SELECTOR");
         int jettySelectorThreads = Integer.parseInt(jettySelectorStr == null ? "2" : jettySelectorStr);
-        String jettyRequestStr = System.getProperty("JETTY_REQUEST");
-        int jettyRequestThreads = Integer.parseInt(jettySelectorStr == null ? Runtime.getRuntime().availableProcessors() + "" : jettyRequestStr);
-
-        //is not concurrency then force request threads to be 1
-        if(!config.isEnableConcurrency()){
-            jettyRequestThreads = 1;
-        }
-
-        //calculate pool max, accept + select + request.
-        int jettyPoolMax = jettyAcceptorThreads + jettySelectorThreads + jettyRequestThreads;
+        String jettyRequestMinStr = System.getProperty("JETTY_REQUEST_MIN");
+        int jettyRequestMinThreads = Integer.parseInt(jettyRequestMinStr == null ? "8" + "" : jettyRequestMinStr);
+        String jettyRequestMaxStr = System.getProperty("JETTY_REQUEST_MAX");
+        int jettyRequestMaxThreads = Integer.parseInt(jettyRequestMaxStr == null ? "200" + "" : jettyRequestMaxStr);
 
         //create server using given threadpool
-        server = new Server(new QueuedThreadPool(jettyPoolMax, jettyPoolMax));
+        server = new Server(new QueuedThreadPool(jettyRequestMaxThreads, jettyRequestMinThreads));
         server.setHandler(handler);
         ServerConnector connector = new ServerConnector(server, jettyAcceptorThreads, jettySelectorThreads);
         connector.setPort(port);
@@ -70,7 +64,7 @@ public class HttpServer {
                 port,
                 config.getMetadataPort() == null ? "disabled" : config.getMetadataPort(),
                 basePath.toAbsolutePath().toRealPath().toString(),
-                jettyRequestThreads
+                jettyRequestMinThreads + " -> " + jettyRequestMaxThreads
             );
 
             server.join();
