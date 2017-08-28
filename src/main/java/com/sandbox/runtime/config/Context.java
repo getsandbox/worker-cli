@@ -145,12 +145,7 @@ public abstract class Context {
 
     @Bean
     public ServiceManager serviceManager(){
-        RuntimeConfig config = applicationContext.getBean(RuntimeConfig.class);
-        if(config.isDisableRefresh()){
-            return new ServiceManager(-1);
-        }else{
-            return new ServiceManager(250);
-        }
+        return new ServiceManager(-1);
     }
 
     @Bean

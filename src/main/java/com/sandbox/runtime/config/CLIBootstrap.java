@@ -100,7 +100,6 @@ public class CLIBootstrap extends Context {
             config.setDisableLogging(getProperty(source, "quiet", String.class) == null ? false : true);
             config.setDisableIDs(getProperty(source, "disableIDs", String.class) == null ? false : true);
             config.setEnableConcurrency(getProperty(source, "enableConcurrency", String.class) == null ? false : true);
-            config.setDisableRefresh(getProperty(source, "disableRefresh", String.class) == null ? false : true);
 
             String command = getProperty(source, "nonOptionArgs");
             if (command == null || command.isEmpty() || !"run".equals(command)) {

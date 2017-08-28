@@ -1,18 +1,18 @@
 package com.sandbox.runtime.js.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sandbox.runtime.models.StateService;
-import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.converters.NashornConverter;
 import com.sandbox.runtime.js.models.SandboxScriptEngine;
-import com.sandbox.runtime.utils.JSONUtils;
 import com.sandbox.runtime.js.utils.NashornUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.sandbox.runtime.models.StateService;
+import com.sandbox.runtime.models.config.RuntimeConfig;
+import com.sandbox.runtime.utils.JSONUtils;
 
 import javax.annotation.PostConstruct;
 import javax.script.ScriptContext;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 /**
@@ -26,7 +26,7 @@ public class RuntimeService extends Service {
     @Autowired
     StateService stateService;
 
-    //state is persisted across requests, but not stored.
+    //state is persisted across requests
     static Object convertedState = null;
 
     public RuntimeService(SandboxScriptEngine sandboxScriptEngine, NashornUtils nashornUtils, String fullSandboxId, String sandboxId) {

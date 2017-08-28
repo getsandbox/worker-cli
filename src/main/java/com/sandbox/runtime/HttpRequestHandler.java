@@ -48,7 +48,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -59,9 +58,6 @@ import org.springframework.util.StringUtils;
 public class HttpRequestHandler extends AbstractHandler {
 
     private static Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
-
-    @Autowired
-    ApplicationContext context;
 
     @Autowired
     ObjectMapper mapper;
@@ -94,7 +90,6 @@ public class HttpRequestHandler extends AbstractHandler {
 
     //defaulted
     private String sandboxId = "1";
-    private String sandboxName = "name";
 
     public HttpRequestHandler() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
