@@ -3,20 +3,24 @@ package com.sandbox.runtime.js.models;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by drew on 30/07/2014.
- */
 public class Console {
 
-    private List<String> _messages = new ArrayList<String>();
-
-    public void write(String msg) {
-        _messages.add(msg);
+    public Console() {
     }
 
-    public void clear() { _messages.clear(); }
+    public Console(Console existingConsole) {
+        this.messages = new ArrayList<>(messages);
+    }
 
-    public List<String> _getMessages(){
-        return _messages;
+    private List<String> messages = new ArrayList<String>();
+
+    public void write(String msg) {
+        messages.add(msg);
+    }
+
+    public void clear() { messages.clear(); }
+
+    public List<String> getMessages(){
+        return messages;
     }
 }

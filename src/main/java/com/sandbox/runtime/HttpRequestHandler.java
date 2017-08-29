@@ -99,7 +99,7 @@ public class HttpRequestHandler extends AbstractHandler {
     private ExecutorService engineExecutor = Executors.newSingleThreadExecutor();
 
     //defaulted
-    private String sandboxId = "1";
+    public static final String SANDBOX_ID = "1";
 
     public HttpRequestHandler() {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
@@ -248,19 +248,19 @@ public class HttpRequestHandler extends AbstractHandler {
     }
 
     private RuntimeService getRuntimeService() throws Exception {
-        return (RuntimeService) serviceManager.getService(sandboxId, Thread.currentThread().getName());
+        return (RuntimeService) serviceManager.getService(SANDBOX_ID, Thread.currentThread().getName());
     }
 
     //synchronize on routing table creation so we only do it once, should only be done on first req / definition change anyway
     private synchronized RoutingTable getOrCreateRoutingTable() throws Exception {
-        RoutingTable routingTable = cache.getRoutingTableForSandboxId(sandboxId, sandboxId);
+        RoutingTable routingTable = cache.getRoutingTableForSandboxId(SANDBOX_ID, SANDBOX_ID);
         if(routingTable == null) {
             //create the routing table
             routingTable = getRuntimeService().handleRoutingTableRequest();
             //enrich with given runtime config (if any)
             addRouteConfigToRoutingTable(routingTable, config);
             //cache the routing table for use until it changes..
-            cache.setRoutingTableForSandboxId(sandboxId, sandboxId, routingTable);
+            cache.setRoutingTableForSandboxId(SANDBOX_ID, SANDBOX_ID, routingTable);
         }
         return routingTable;
     }
@@ -287,7 +287,7 @@ public class HttpRequestHandler extends AbstractHandler {
     private void logConsole(Console console){
         if(config.isDisableLogging() || console == null) return;
 
-        for (String logItem : console._getMessages()){
+        for (String logItem : console.getMessages()){
             String trimmedLogItem = logItem.trim();
             if(trimmedLogItem.endsWith("\n")) trimmedLogItem = trimmedLogItem.substring(0, trimmedLogItem.length()-2);
             logger.info(trimmedLogItem);
@@ -295,7 +295,7 @@ public class HttpRequestHandler extends AbstractHandler {
             if(config.getMetadataPort() != null){
                 activityStore.add(
                     new ActivityMessage(
-                        sandboxId,
+                        SANDBOX_ID,
                         ActivityMessageTypeEnum.log,
                         logItem
                     )
@@ -475,7 +475,7 @@ public class HttpRequestHandler extends AbstractHandler {
         if(config.getMetadataPort() != null) {
             activityStore.add(
                 new ActivityMessage(
-                    sandboxId,
+                    SANDBOX_ID,
                     ActivityMessageTypeEnum.request,
                     mapper.writeValueAsString(new RuntimeTransaction(runtimeRequest, runtimeResponse))
                 )
