@@ -191,8 +191,8 @@ public class HttpRequestHandler extends AbstractHandler {
         logRequest(runtimeRequest, routeMatch);
 
         final AsyncContext asyncContext = request.startAsync();
-        FutureTask task = new FutureTask(() -> {
-            boolean appliedDelay = false;
+        FutureTask<Boolean> task = new FutureTask<>(() -> {
+            boolean doneAsync = false;
 
             try {
                 HttpRuntimeResponse runtimeResponse = null;
@@ -217,7 +217,7 @@ public class HttpRequestHandler extends AbstractHandler {
 
                 //if we have a delay of some kind, apply it.
                 if(calculatedDelayForRoute > 0){
-                    appliedDelay = true;
+                    doneAsync = true;
                     delayedRequests.put(new Long(System.currentTimeMillis()+calculatedDelayForRoute), asyncContext);
                 }
 
@@ -238,7 +238,7 @@ public class HttpRequestHandler extends AbstractHandler {
             }
 
             //return if the task will be completed async
-            return appliedDelay;
+            return doneAsync;
 
         });
 

@@ -8,7 +8,6 @@ import com.sandbox.runtime.models.StateService;
 import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.utils.JSONUtils;
 
-import javax.annotation.PostConstruct;
 import javax.script.ScriptContext;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -33,35 +32,33 @@ public class RuntimeService extends Service {
         super(sandboxScriptEngine, nashornUtils, fullSandboxId, sandboxId);
     }
 
-    @PostConstruct
-    public void init(){
-        if(config.getStatePath() != null){
-            Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-                try {
-                    stateService.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));
-                } catch (JsonProcessingException e) {
-                    logger.error("Error serialising state", e);
-                }
-            }, 30, 30, TimeUnit.SECONDS);
-
-            Runtime.getRuntime().addShutdownHook(new Thread(()->{
-                //save state before shutdown
-                logger.info("Persisting state before shutdown..");
-                try {
-                    stateService.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));
-                } catch (JsonProcessingException e) {
-                    logger.error("Error serialising state", e);
-                }
-            }));
-        }
-    }
-
     @Override
     protected void setState() throws Exception {
 
         if(convertedState == null){
             String currentState = stateService.getSandboxState(sandboxId);
             convertedState = NashornConverter.instance().convert(sandboxScriptEngine.getEngine(), JSONUtils.parse(mapper, currentState));
+
+            //if statepath is set, setup tasks to write out the state, only do it once, don't want duplicate tasks being fired.
+            if(config.getStatePath() != null){
+                Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+                    try {
+                        stateService.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));
+                    } catch (JsonProcessingException e) {
+                        logger.error("Error serialising state", e);
+                    }
+                }, 30, 30, TimeUnit.SECONDS);
+
+                Runtime.getRuntime().addShutdownHook(new Thread(()->{
+                    //save state before shutdown
+                    logger.info("Persisting state before shutdown..");
+                    try {
+                        stateService.setSandboxState(sandboxId, mapper.writeValueAsString(convertedState));
+                    } catch (JsonProcessingException e) {
+                        logger.error("Error serialising state", e);
+                    }
+                }));
+            }
         }
 
         sandboxScriptEngine.getContext().setAttribute(
