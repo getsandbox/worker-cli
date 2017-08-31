@@ -1,14 +1,6 @@
 package com.sandbox.runtime.js.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sandbox.runtime.models.EngineRequest;
-import com.sandbox.runtime.models.EngineResponse;
-import com.sandbox.runtime.models.EngineResponseMessage;
-import com.sandbox.runtime.models.Error;
-import com.sandbox.runtime.models.RepositoryService;
-import com.sandbox.runtime.models.RoutingTable;
-import com.sandbox.runtime.models.RuntimeResponse;
-import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.converters.NashornConverter;
 import com.sandbox.runtime.js.models.Console;
 import com.sandbox.runtime.js.models.ISandboxDefineCallback;
@@ -17,17 +9,19 @@ import com.sandbox.runtime.js.models.SandboxScriptObject;
 import com.sandbox.runtime.js.models.SuppressedServiceScriptException;
 import com.sandbox.runtime.js.utils.ErrorUtils;
 import com.sandbox.runtime.js.utils.FileUtils;
-import com.sandbox.runtime.utils.JSONUtils;
 import com.sandbox.runtime.js.utils.NashornUtils;
+import com.sandbox.runtime.models.EngineRequest;
+import com.sandbox.runtime.models.EngineResponse;
+import com.sandbox.runtime.models.EngineResponseMessage;
+import com.sandbox.runtime.models.Error;
+import com.sandbox.runtime.models.RepositoryService;
+import com.sandbox.runtime.models.RoutingTable;
+import com.sandbox.runtime.models.RuntimeResponse;
+import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.services.LiquidRenderer;
+import com.sandbox.runtime.utils.JSONUtils;
 import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.internal.runtime.ScriptObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
-import org.springframework.util.Assert;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -38,6 +32,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
+import org.springframework.util.Assert;
 
 /**
  * Created by nickhoughton on 20/10/2014.
@@ -288,7 +288,7 @@ public abstract class Service {
                     _body = message.getBody().toString();
                 }
             }
-            RuntimeResponse runtimeResponse = res._getRuntimeResponse(req, message, _body);
+            RuntimeResponse runtimeResponse = res.getRuntimeResponse(req, message, _body);
             responses.add(runtimeResponse);
         }
 
