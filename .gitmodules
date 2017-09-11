@@ -1,6 +1,0 @@
-[submodule "libs/model"]
-	path = libs/model
-	url = https://github.com/getsandbox/sandbox-model.git
-[submodule "libs/jliquid"]
-	path = libs/jliquid
-url=https://github.com/getsandbox/jliquid-liqp.git

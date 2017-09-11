@@ -1,4 +1,5 @@
-include ':model'
-project(':model').projectDir = new File(settingsDir, './libs/model')
+//needed to override s3 custom host, can be removed after Gradle 4.2 and GCS support
+System.setProperty("org.gradle.s3.endpoint", "https://storage.googleapis.com")
+
 include ':jliquid'
 project(':jliquid').projectDir = new File(settingsDir, './libs/jliquid')

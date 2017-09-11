@@ -9,6 +9,9 @@ version = System.getProperty('sandbox_version') == null ? "1.0" : System.getProp
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        url "https://storage.googleapis.com/sandbox-maven/maven2"
+    }
 }
 
 buildscript {
@@ -22,9 +25,9 @@ buildscript {
 apply plugin: 'com.jfrog.bintray'
 
 dependencies {
-    compile project(':model')
-    compile project(':jliquid')
-    compile files('./libs/model/lib/custom-cxf-rt-frontend-jaxrs-3.1.7.jar')
+    compile 'com.sandbox:model:1.0'
+    compile 'com.sandbox:jliquid:1.0'
+    compile 'org.apache.cxf:custom-cxf-rt-frontend-jaxrs:3.1.7'
 
     compile 'javax.servlet:javax.servlet-api:3.1.0'
     compile 'commons-io:commons-io:2.4'
