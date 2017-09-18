@@ -46,7 +46,7 @@ public class ServiceManager {
     public ServiceManager(int refreshThreshold) {
         this.refreshThreshold = refreshThreshold;
         if(refreshThreshold > 0){
-            executorService = Executors.newCachedThreadPool();
+            executorService = Executors.newFixedThreadPool(1);
         }
     }
 
