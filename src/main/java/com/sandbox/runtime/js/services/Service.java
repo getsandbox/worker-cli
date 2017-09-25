@@ -112,7 +112,7 @@ public abstract class Service {
             runService();
             return postProcessContext();
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             Throwable cause = e;
             //unwrap exception, apply logic to the underlying cause if it is wrapped
             if(e instanceof RuntimeException && e.getCause() != null) cause = e.getCause();
@@ -127,6 +127,9 @@ public abstract class Service {
 
             } else if (cause instanceof RuntimeException) {
                 error.setDisplayMessage("There was a problem handling your request. Please try again in a minute");
+
+            } else if (cause instanceof StackOverflowError){
+                error.setDisplayMessage("Request has exceeded execution limits");
 
             } else {
                 error.setDisplayMessage("We encountered a system error. Please try again shortly");

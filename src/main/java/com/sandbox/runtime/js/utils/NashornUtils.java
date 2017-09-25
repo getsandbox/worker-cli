@@ -47,4 +47,12 @@ public abstract class NashornUtils {
     public abstract String readFile(String filename);
 
     public abstract boolean hasFile(String filename);
+
+    public boolean canContinue(){
+        //check interrupt state, and clear state so thread appears normal again.
+        if(Thread.interrupted()){
+            throw new RuntimeException("Processing exceeded!");
+        }
+        return true;
+    }
 }

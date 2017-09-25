@@ -112,6 +112,7 @@ public class JSEngineService {
         ctx.setBindings(engineScope, ScriptContext.ENGINE_SCOPE);
         ctx.setAttribute("_console", sandboxEngine.getConsole(), ScriptContext.ENGINE_SCOPE);
         ctx.setAttribute("nashornUtils", nashornRuntimeUtils, ScriptContext.ENGINE_SCOPE);
+        ctx.setAttribute("nashornUtils", nashornRuntimeUtils, ScriptContext.GLOBAL_SCOPE);
         sandboxEngine.setContext(ctx);
 
         return sandboxEngine;
