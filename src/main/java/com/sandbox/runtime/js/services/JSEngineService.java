@@ -55,8 +55,12 @@ public class JSEngineService {
             Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {
-                    while (createdEngines.remainingCapacity() > 0) {
-                        createdEngines.add(createEngine());
+                    try{
+                        while (createdEngines.remainingCapacity() > 0) {
+                            createdEngines.add(createEngine());
+                        }
+                    }catch (Exception e){
+                        logger.error("Error creating engines", e);
                     }
                 }
             }, 0, 1, TimeUnit.SECONDS);
@@ -112,7 +116,6 @@ public class JSEngineService {
         ctx.setBindings(engineScope, ScriptContext.ENGINE_SCOPE);
         ctx.setAttribute("_console", sandboxEngine.getConsole(), ScriptContext.ENGINE_SCOPE);
         ctx.setAttribute("nashornUtils", nashornRuntimeUtils, ScriptContext.ENGINE_SCOPE);
-        ctx.setAttribute("nashornUtils", nashornRuntimeUtils, ScriptContext.GLOBAL_SCOPE);
         sandboxEngine.setContext(ctx);
 
         return sandboxEngine;
