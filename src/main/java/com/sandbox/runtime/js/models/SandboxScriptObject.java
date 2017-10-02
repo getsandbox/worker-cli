@@ -5,7 +5,6 @@ import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.Route;
 import com.sandbox.runtime.models.ScriptSource;
 import com.sandbox.runtime.models.http.HTTPRoute;
-import com.sandbox.runtime.models.jms.JMSRoute;
 import jdk.nashorn.internal.objects.NativeError;
 import jdk.nashorn.internal.runtime.ScriptFunction;
 import jdk.nashorn.internal.runtime.ScriptObject;
@@ -35,8 +34,6 @@ public class SandboxScriptObject implements ISandboxScriptObject{
         Route routeDetails = null;
         if(transport.equals("http")){
             routeDetails = new HTTPRoute(method, path, propertiesMap);
-        }else if(transport.equals("jms")){
-            routeDetails = new JMSRoute(path, propertiesMap);
         }
 
         routeDetails.setTransport(transport);

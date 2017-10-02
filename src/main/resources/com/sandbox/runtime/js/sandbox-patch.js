@@ -77,18 +77,6 @@
         throw new Error("Invalid route definition for " + method.toUpperCase() + " " + path + ", must have 3 parameters (path, action, function)")
       }
 
-    },
-    //[<server{}>,]<queue>,<callback>
-    jms: function(){
-      if(arguments.length == 3 && typeof arguments[0] == 'object'){
-          __mock.define('jms', 'jms', arguments[1], 'LISTEN', arguments[0], arguments[2], wrapCallback(arguments[2]), new Error())
-
-      }else if(arguments.length == 2 && typeof arguments[0] == 'string' && typeof arguments[1] == 'function'){
-        __mock.define('jms', 'jms', arguments[0], 'LISTEN', {}, arguments[1], wrapCallback(arguments[1]), new Error())
-
-      }else{
-          throw new Error("Invalid JMS route definition, must have 2 or 3 parameters ([connection,] queue, function)")
-      }
     }
 
   }
