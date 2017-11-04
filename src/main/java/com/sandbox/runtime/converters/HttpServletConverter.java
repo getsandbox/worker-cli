@@ -2,25 +2,15 @@ package com.sandbox.runtime.converters;
 
 import com.sandbox.runtime.models.http.HttpRuntimeRequest;
 import com.sandbox.runtime.utils.MapUtils;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
-
-/**
- * Created by nickhoughton on 1/08/2014.
- */
+import org.apache.commons.io.IOUtils;
 
 public class HttpServletConverter extends RequestConverter{
 
-    @Autowired
-    MapUtils mapUtils;
-
-    private static Logger logger = LoggerFactory.getLogger(HttpServletConverter.class);
+    private MapUtils mapUtils = new MapUtils();
 
     public HttpRuntimeRequest httpServletToInstanceHttpRequest(HttpServletRequest rawRequest) throws Exception {
         if(rawRequest == null) throw new Exception("Invalid route");
@@ -74,7 +64,4 @@ public class HttpServletConverter extends RequestConverter{
         return request;
     }
 
-    public MapUtils getMapUtils() {
-        return mapUtils;
-    }
 }

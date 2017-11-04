@@ -1,13 +1,13 @@
 package com.sandbox.runtime.services;
 
 import com.sandbox.runtime.js.utils.NashornUtils;
-import org.jliquid.liqp.LimitedStringBuilder;
-import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jliquid.liqp.LimitedStringBuilder;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
@@ -65,11 +65,6 @@ public class LiquidRendererTest {
         vars.put("name", "ando");
         vars.put("__nashornUtils", new NashornUtils() {
             @Override
-            public String jsonStringify(Object o) {
-                return null;
-            }
-
-            @Override
             public String readFile(String filename) {
                 if(filename.equals("templates/blah.liquid")){
                     return "hi {{name}}";
@@ -95,11 +90,6 @@ public class LiquidRendererTest {
         vars.put("name", "ando");
         vars.put("__nashornUtils", new NashornUtils() {
             @Override
-            public String jsonStringify(Object o) {
-                return null;
-            }
-
-            @Override
             public String readFile(String filename) {
                 if(filename.equals("templates/blah.liquid")){
                     return "hi {{name}}";
@@ -124,11 +114,6 @@ public class LiquidRendererTest {
         Map<String, Object> vars = new HashMap<String, Object>();
         vars.put("name","ando");
         vars.put("__nashornUtils", new NashornUtils() {
-            @Override
-            public String jsonStringify(Object o) {
-                return null;
-            }
-
             @Override
             public String readFile(String filename) {
                 return null;

@@ -101,7 +101,7 @@ public class JSEngineService {
     private SandboxScriptEngine createNewContext(SandboxScriptEngine sandboxEngine) {
         NashornRuntimeUtils nashornRuntimeUtils = (NashornRuntimeUtils) context.getBean("nashornUtils", "temporary");
 
-        Console consoleInstance = context.getBean(Console.class);
+        Console consoleInstance = new Console();
         sandboxEngine.setConsole(consoleInstance);
 
         Bindings globalScope = sandboxEngine.getEngine().getContext().getBindings(ScriptContext.GLOBAL_SCOPE);
