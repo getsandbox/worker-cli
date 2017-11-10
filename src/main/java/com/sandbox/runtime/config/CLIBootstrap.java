@@ -96,6 +96,7 @@ public class CLIBootstrap extends Context {
             config.setHttpPort(getProperty(source, "port", Integer.class, 8080));
             config.setDebugPort(5005);//getProperty(source, "debug",Integer.class, 5005);
             config.setMetadataPort(getProperty(source, "metadataPort", Integer.class, null));
+            config.setActivityDepth(getProperty(source, "metadataLimit", Integer.class, 50));
             config.setVerboseLogging(getProperty(source, "verbose", String.class) == null ? false : true);
             config.setDisableLogging(getProperty(source, "quiet", String.class) == null ? false : true);
             config.setEnableConcurrency(getProperty(source, "enableConcurrency", String.class) == null ? false : true);
