@@ -32,9 +32,10 @@ public class MetadataServer {
     public void start() {
         int port = config.getMetadataPort();
 
-        server = new Server(new QueuedThreadPool());
-        ServerConnector connector=new ServerConnector(server);
+        server = new Server(new QueuedThreadPool(3, 3));
+        ServerConnector connector = new ServerConnector(server, 1, 1);
         connector.setPort(port);
+
         server.setConnectors(new Connector[]{connector});
         server.setHandler(new ContextHandler("/api/1/activity/") {
             @Override

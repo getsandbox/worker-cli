@@ -134,7 +134,7 @@ public abstract class Context {
     @Bean
     public JSEngineService jsEngineService(){
         RuntimeConfig config = applicationContext.getBean(RuntimeConfig.class);
-        return new JSEngineService(config.getRuntimeVersion());
+        return new JSEngineService(config.getRuntimeVersion(), false);
     }
 
     @Bean

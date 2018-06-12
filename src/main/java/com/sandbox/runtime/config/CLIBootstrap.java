@@ -99,7 +99,7 @@ public class CLIBootstrap extends Context {
             config.setActivityDepth(getProperty(source, "metadataLimit", Integer.class, 50));
             config.setVerboseLogging(getProperty(source, "verbose", String.class) == null ? false : true);
             config.setDisableLogging(getProperty(source, "quiet", String.class) == null ? false : true);
-            config.setEnableConcurrency(getProperty(source, "enableConcurrency", String.class) == null ? false : true);
+            config.setEnableFileWatch(getProperty(source, "watch", Boolean.class, true) == true);
 
             String command = getProperty(source, "nonOptionArgs");
             if (command == null || command.isEmpty() || !"run".equals(command)) {
@@ -124,6 +124,7 @@ public class CLIBootstrap extends Context {
         if(value == null) return defaultValue;
         if(returnType == String.class) return (T) value;
         if(returnType == Integer.class) return (T) Integer.valueOf(value);
+        if(returnType == Boolean.class) return (T) Boolean.valueOf(value);
         throw new IllegalArgumentException("Unsupported return type: " + returnType.getName());
     }
 

@@ -56,7 +56,9 @@ public class InMemoryCache implements RepositoryService, MetadataService, Routin
 
     @PostConstruct
     void init(){
-        listenForFileChange(config.getBasePath());
+        if(config.isEnableFileWatch()){
+            listenForFileChange(config.getBasePath());
+        }
     }
 
     @Override

@@ -42,14 +42,14 @@ public class HttpServer {
         String jettyAcceptorStr = System.getProperty("JETTY_ACCEPTOR");
         int jettyAcceptorThreads = Integer.parseInt(jettyAcceptorStr == null ? "1" : jettyAcceptorStr);
         String jettySelectorStr = System.getProperty("JETTY_SELECTOR");
-        int jettySelectorThreads = Integer.parseInt(jettySelectorStr == null ? "2" : jettySelectorStr);
+        int jettySelectorThreads = Integer.parseInt(jettySelectorStr == null ? "1" : jettySelectorStr);
         String jettyRequestMinStr = System.getProperty("JETTY_REQUEST_MIN");
-        int jettyRequestMinThreads = Integer.parseInt(jettyRequestMinStr == null ? "8" + "" : jettyRequestMinStr);
+        int jettyRequestMinThreads = Integer.parseInt(jettyRequestMinStr == null ? "1" + "" : jettyRequestMinStr);
         String jettyRequestMaxStr = System.getProperty("JETTY_REQUEST_MAX");
-        int jettyRequestMaxThreads = Integer.parseInt(jettyRequestMaxStr == null ? "200" + "" : jettyRequestMaxStr);
+        int jettyRequestMaxThreads = Integer.parseInt(jettyRequestMaxStr == null ? "4" + "" : jettyRequestMaxStr);
 
         //create server using given threadpool
-        server = new Server(new QueuedThreadPool(jettyRequestMaxThreads, jettyRequestMinThreads));
+        server = new Server(new QueuedThreadPool(jettyRequestMaxThreads + jettyAcceptorThreads + jettySelectorThreads, jettyRequestMinThreads + jettyAcceptorThreads + jettySelectorThreads));
         server.setHandler(handler);
         ServerConnector connector = new ServerConnector(server, jettyAcceptorThreads, jettySelectorThreads);
         connector.setPort(port);
@@ -59,12 +59,12 @@ public class HttpServer {
             server.start();
 
             logger.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {}, metadata on port: {}, reading from path: '{}' with {} worker(s)",
-                environment.getProperty("SANDBOX_VERSION",String.class, "?"),
-                config.getRuntimeVersion(),
-                port,
-                config.getMetadataPort() == null ? "disabled" : config.getMetadataPort(),
-                basePath.toAbsolutePath().toRealPath().toString(),
-                jettyRequestMinThreads + " -> " + jettyRequestMaxThreads
+                    environment.getProperty("SANDBOX_VERSION", String.class, "?"),
+                    config.getRuntimeVersion(),
+                    port,
+                    config.getMetadataPort() == null ? "disabled" : config.getMetadataPort(),
+                    basePath.toAbsolutePath().toRealPath().toString(),
+                    jettyRequestMinThreads + " -> " + jettyRequestMaxThreads
             );
 
             server.join();
