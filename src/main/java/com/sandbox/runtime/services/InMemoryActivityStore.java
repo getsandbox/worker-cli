@@ -10,20 +10,26 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 public class InMemoryActivityStore {
 
-    private int limit;
+    private boolean enabled = false;
 
     private Collection<ActivityMessage> messages;
 
     public InMemoryActivityStore(int limit) {
-        this.limit = limit;
-        this.messages = Collections.synchronizedCollection(new CircularFifoQueue<ActivityMessage>(limit));
+        if (limit > 0) {
+            this.enabled = true;
+            this.messages = Collections.synchronizedCollection(new CircularFifoQueue<ActivityMessage>(limit));
+        } else {
+            this.messages = Collections.emptyList();
+        }
     }
 
-    public void add(ActivityMessage message)  {
-        messages.add(message);
+    public void add(ActivityMessage message) {
+        if (enabled) {
+            messages.add(message);
+        }
     }
 
-    public List<ActivityMessage> getAll(){
+    public List<ActivityMessage> getAll() {
         return new ArrayList<>(messages);
     }
 
