@@ -3,11 +3,6 @@ package com.sandbox.runtime;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.runtime.models.config.RuntimeConfig;
 import com.sandbox.runtime.services.InMemoryActivityStore;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -15,6 +10,11 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class MetadataServer {
 
@@ -40,7 +40,11 @@ public class MetadataServer {
         server.setHandler(new ContextHandler("/api/1/activity/") {
             @Override
             public void doHandle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-                mapper.writeValue(response.getWriter(), activityStore.getAll());
+                String keyword = request.getParameter("keyword");
+                mapper.writeValue(
+                    response.getWriter(),
+                    keyword == null ? activityStore.getAll() : activityStore.getAll(keyword)
+                );
             }
         });
 
