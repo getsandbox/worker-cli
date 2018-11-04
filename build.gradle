@@ -25,7 +25,7 @@ buildscript {
 apply plugin: 'com.jfrog.bintray'
 
 dependencies {
-    compile 'com.sandbox:model:1.0.2'
+    compile 'com.sandbox:model:1.0.3'
     compile 'com.sandbox:jliquid:1.0'
     compile 'org.apache.cxf:custom-cxf-rt-frontend-jaxrs:3.1.7'
 

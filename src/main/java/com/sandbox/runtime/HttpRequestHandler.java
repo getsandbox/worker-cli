@@ -98,6 +98,8 @@ public class HttpRequestHandler extends AbstractHandler {
 
     private ExecutorService engineExecutor = Executors.newSingleThreadExecutor();
 
+    private AtomicInteger messageIdCounter = new AtomicInteger(0);
+
     //defaulted
     public static final String SANDBOX_ID = "1";
 
@@ -293,13 +295,13 @@ public class HttpRequestHandler extends AbstractHandler {
             logger.info(trimmedLogItem);
 
             if(config.getMetadataPort() != null){
-                activityStore.add(
-                    new ActivityMessage(
-                        SANDBOX_ID,
-                        ActivityMessageTypeEnum.log,
-                        logItem
-                    )
+                ActivityMessage activityMessage = new ActivityMessage(
+                    SANDBOX_ID,
+                    ActivityMessageTypeEnum.log,
+                    logItem
                 );
+                activityMessage.setMessageId(messageIdCounter.getAndIncrement() + "");
+                activityStore.add(activityMessage);
             }
         }
 
@@ -473,13 +475,13 @@ public class HttpRequestHandler extends AbstractHandler {
         }
 
         if(config.getMetadataPort() != null) {
-            activityStore.add(
-                new ActivityMessage(
-                    SANDBOX_ID,
-                    ActivityMessageTypeEnum.request,
-                    mapper.writeValueAsString(new RuntimeTransaction(runtimeRequest, runtimeResponse))
-                )
+            ActivityMessage activityMessage = new ActivityMessage(
+                SANDBOX_ID,
+                ActivityMessageTypeEnum.request,
+                mapper.writeValueAsString(new RuntimeTransaction(runtimeRequest, runtimeResponse))
             );
+            activityMessage.setMessageId(messageIdCounter.getAndIncrement() + "");
+            activityStore.add(activityMessage);
         }
 
     }
