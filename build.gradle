@@ -46,7 +46,7 @@ dependencies {
     compile 'io.swagger:swagger-annotations:1.5.8'
 
     //inbound http requests
-    compile 'org.eclipse.jetty:jetty-server:9.2.19.v20160908'
+    compile 'org.eclipse.jetty:jetty-server:9.4.14.v20181114'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.8.4'
