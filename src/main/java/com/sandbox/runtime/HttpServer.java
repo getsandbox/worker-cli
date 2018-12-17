@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,13 @@ public class HttpServer {
 
         //create server using given threadpool
         server = new Server(new QueuedThreadPool(jettyRequestMaxThreads + jettyAcceptorThreads + jettySelectorThreads, jettyRequestMinThreads + jettyAcceptorThreads + jettySelectorThreads));
-        server.setHandler(handler);
+
+        GzipHandler gzipHandler = new GzipHandler();
+        gzipHandler.setIncludedMethods("PUT", "POST", "GET");
+        gzipHandler.setInflateBufferSize(2048);
+        gzipHandler.setHandler(handler);
+        server.setHandler(gzipHandler);
+
         ServerConnector connector = new ServerConnector(server, jettyAcceptorThreads, jettySelectorThreads);
         connector.setPort(port);
         server.setConnectors(new Connector[]{connector});
