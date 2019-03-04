@@ -17,7 +17,7 @@ repositories {
 buildscript {
     repositories { jcenter() }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.0.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
     }
 }
