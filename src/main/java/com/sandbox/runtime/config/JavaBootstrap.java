@@ -18,17 +18,18 @@ public class JavaBootstrap extends Context {
 
     private Thread startThread;
 
-    public static void start(RuntimeConfig config) {
+    public static JavaBootstrap start(RuntimeConfig config) {
         //validate config
         config.validate();
         //keep config for context bootstrap
         JavaBootstrap.config = config;
 
         JavaBootstrap javaBootstrap = new JavaBootstrap();
-        javaBootstrap.startInstance(config);
+        javaBootstrap.startInstance();
+        return javaBootstrap;
     }
 
-    public void startInstance(RuntimeConfig config){
+    public void startInstance(){
         //stop first, just incase we are already running
         stopInstance();
         //start new thread to bootstrap context
