@@ -66,6 +66,12 @@ jar {
 
 }
 
+test {
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+
 artifacts {
     archives jar
     archives shadowJar

@@ -1,13 +1,11 @@
 package com.sandbox.runtime.config;
 
 import com.sandbox.runtime.models.config.RuntimeConfig;
+
 import org.junit.Test;
 import org.springframework.core.env.SimpleCommandLinePropertySource;
 import org.springframework.core.io.ClassPathResource;
 
-/**
- * Created by nickhoughton on 24/01/2017.
- */
 public class CLIBootstrapTest {
 
     @Test

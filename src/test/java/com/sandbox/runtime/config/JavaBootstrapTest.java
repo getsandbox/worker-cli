@@ -2,8 +2,11 @@ package com.sandbox.runtime.config;
 
 import com.sandbox.runtime.models.config.RouteConfig;
 import com.sandbox.runtime.models.config.RuntimeConfig;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class JavaBootstrapTest {
 
     @Test
