@@ -148,7 +148,7 @@ public abstract class Context {
         return new ServiceManager(-1);
     }
 
-    @Bean
+    @Bean(name = "metadataService")
     @Lazy
     public InMemoryCache getCache(){
         return new InMemoryCache();
