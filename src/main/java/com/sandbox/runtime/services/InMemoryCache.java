@@ -1,6 +1,7 @@
 package com.sandbox.runtime.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sandbox.runtime.js.services.ServiceManager;
 import com.sandbox.runtime.models.MetadataService;
 import com.sandbox.runtime.models.RepositoryService;
@@ -109,7 +110,7 @@ public class InMemoryCache implements RepositoryService, MetadataService, Routin
     public void setSandboxState(String sandboxId, String state) {
         Path stateFilePath = config.getStatePath();
         try {
-            FileUtils.writeStringToFile(stateFilePath.toFile(), state);
+            FileUtils.writeStringToFile(stateFilePath.toFile(), state, "UTF-8");
         } catch (IOException e) {
             logger.error("Error writing state to file '{}'", stateFilePath.toFile().getAbsolutePath());
         }
@@ -127,11 +128,31 @@ public class InMemoryCache implements RepositoryService, MetadataService, Routin
     }
 
     @Override
-    public Map<String, String> getConfigForSandboxId(String sandboxId) {
+    public Map<String, String> getConfig(String sandboxId) throws Exception {
         //TODO: Allow config to be set somehow, prolly JVM args?
         HashMap config = new HashMap();
         config.put("sandbox_runtime_version", this.config.getRuntimeVersion().toString());
         return config;
+    }
+
+    @Override
+    public ObjectNode getSandbox(String sandboxId) throws Exception {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public ObjectNode getSandboxForSandboxName(String sandboxName) throws Exception {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void setSandbox(String sandboxId, String sandboxName, Object sandbox) throws Exception {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void clear(String sandboxId, String sandboxName) {
+        //noop
     }
 
     private void listenForFileChange(Path base){

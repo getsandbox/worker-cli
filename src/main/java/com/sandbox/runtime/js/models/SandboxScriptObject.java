@@ -1,10 +1,10 @@
 package com.sandbox.runtime.js.models;
 
-import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.models.EngineRequest;
 import com.sandbox.runtime.models.Route;
-import com.sandbox.runtime.models.ScriptSource;
+import com.sandbox.runtime.models.ServiceScriptException;
 import com.sandbox.runtime.models.http.HTTPRoute;
+import com.sandbox.runtime.utils.NashornScriptUtils;
 import jdk.nashorn.internal.objects.NativeError;
 import jdk.nashorn.internal.runtime.ScriptFunction;
 import jdk.nashorn.internal.runtime.ScriptObject;
@@ -37,8 +37,8 @@ public class SandboxScriptObject implements ISandboxScriptObject{
         }
 
         routeDetails.setTransport(transport);
-        routeDetails.setFunctionSource(new ScriptSource(callback));
-        routeDetails.setDefineSource(new ScriptSource(error, "<sandbox-internal>"));
+        routeDetails.setFunctionSource(NashornScriptUtils.getScriptSource(callback));
+        routeDetails.setDefineSource(NashornScriptUtils.getScriptSource(error, "<sandbox-internal>"));
         routeDetails.setDefineType(defineType);
 
         //set property for extension classes
