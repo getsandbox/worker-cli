@@ -38,11 +38,14 @@ public class JSEngineService {
     private boolean fillQueue = true;
 
     public JSEngineService(RuntimeVersion runtimeVersion) {
+        if(!(runtimeVersion == RuntimeVersion.VERSION_1 || runtimeVersion == RuntimeVersion.VERSION_2)){
+            throw new RuntimeException("Unsupported runtime version!");
+        }
         this.runtimeVersion = runtimeVersion;
     }
 
     public JSEngineService(RuntimeVersion runtimeVersion, boolean fillQueue) {
-        this.runtimeVersion = runtimeVersion;
+        this(runtimeVersion);
         this.fillQueue = fillQueue;
     }
 
