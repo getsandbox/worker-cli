@@ -93,10 +93,16 @@ public class CLIBootstrap extends Context {
                 throw new IllegalArgumentException("Invalid runtime version");
             }
 
+            Integer metadataPort = getProperty(source, "metadataPort", Integer.class, null);
+            Integer activityDepth = getProperty(source, "metadataLimit", Integer.class, -1);
+            if (metadataPort != null && activityDepth < 1)
+                logger.warn("Warning: metadata server is activated [port: {}], but metadataLimit is not greater than 0 [{}]." +
+                        " No transactions will be saved into activity store unless the metadataLimit is greater than 0", metadataPort, activityDepth);
+
             config.setHttpPort(getProperty(source, "port", Integer.class, 8080));
             config.setDebugPort(5005);//getProperty(source, "debug",Integer.class, 5005);
-            config.setMetadataPort(getProperty(source, "metadataPort", Integer.class, null));
-            config.setActivityDepth(getProperty(source, "metadataLimit", Integer.class, -1));
+            config.setMetadataPort(metadataPort);
+            config.setActivityDepth(activityDepth);
             config.setVerboseLogging(getProperty(source, "verbose", String.class) == null ? false : true);
             config.setDisableLogging(getProperty(source, "quiet", String.class) == null ? false : true);
             config.setEnableFileWatch(getProperty(source, "watch", Boolean.class, true) == true);

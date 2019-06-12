@@ -32,7 +32,7 @@ public class MetadataServer {
     public void start() {
         int port = config.getMetadataPort();
 
-        server = new Server(new QueuedThreadPool(3, 3));
+        server = new Server(new QueuedThreadPool(9, 3));
         ServerConnector connector = new ServerConnector(server, 1, 1);
         connector.setPort(port);
 
