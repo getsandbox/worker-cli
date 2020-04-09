@@ -1,19 +1,18 @@
 #!/bin/bash
-WORKING_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-git pull --unshallow
-
-sandbox_git_version=`git rev-list --all HEAD | wc -l`
-sandbox_sha=`git rev-parse --short HEAD`
-sandbox_version="1.0.$sandbox_git_version"
-
 set -e
 
-# install aws tools
-pip install awscli > /dev/null
+WORKING_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+APP_PATH="$WORKING_DIR/.."
+SANDBOX_VERSION="$TRAVIS_BRANCH"
+OUTPUT_PATH="./build"
+PACKAGE_PATH=$OUTPUT_PATH/sandbox-runtime
+RUN_SCRIPT=$WORKING_DIR/linuxEmbeddedRun.sh
 
-# build runtime binary
-$WORKING_DIR/buildLinuxPackage.sh $WORKING_DIR/.. /tmp $sandbox_version $sandbox_sha
+# build jar
+./gradlew clean build shadowJar -Dsandbox_version="$SANDBOX_VERSION"
 
-# upload built binary to s3 and make it public
-aws s3 cp /tmp/sandbox.tar s3://sandbox-binaries/runtime-binary.tar --acl public-read
+# package it up
+echo "Creating runnable package: $PACKAGE_PATH"
+printf "#!/bin/bash\nSANDBOX_VERSION='$SANDBOX_VERSION'\n" > $OUTPUT_PATH/version
+cat $OUTPUT_PATH/version $RUN_SCRIPT $APP_PATH/build/libs/*-all.jar > $PACKAGE_PATH && chmod +x $PACKAGE_PATH
+(cd $OUTPUT_PATH; tar -cf sandbox-runtime.tar sandbox-runtime)

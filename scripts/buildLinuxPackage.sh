@@ -14,13 +14,8 @@ fi
 
 set -e
 
-echo "downloading Gradle"
-(cd /tmp/; wget https://downloads.gradle.org/distributions/gradle-2.12-bin.zip)
-(cd /tmp/; unzip -q gradle-2.12-bin.zip)
-export GRADLE_HOME="/tmp/gradle-2.12/bin"
-
 # build jar
-(cd $app_path/; $GRADLE_HOME/gradle clean build shadowJar bintrayUpload -Dsandbox_version="$sandbox_version")
+(cd $app_path/; ./gradlew clean build shadowJar bintrayUpload -Dsandbox_version="$sandbox_version")
 
 # package it up
 echo "Creating runnable package: $package_path"
