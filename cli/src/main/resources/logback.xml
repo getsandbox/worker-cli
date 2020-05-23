@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%m%n</Pattern>
+            <!--<Pattern>%d{yyyy-MM-dd HH:mm:ss:SSS} - %m%n</Pattern>-->
+        </encoder>
+    </appender>
+
+    <logger name="ch.qos.logback" level="OFF" />
+    <logger name="io.netty" level="WARN" />
+    <logger name="io.micronaut" level="WARN" />
+    <logger name="com.sandbox" level="INFO" />
+    <logger name="com.sandbox.worker.core" level="WARN" />
+    <!--<logger name="com.sandbox.runtime.v2.execution" level="DEBUG" />-->
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

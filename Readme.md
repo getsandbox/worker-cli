@@ -1,61 +1,51 @@
-# Sandbox Runtime
+# Sandbox Worker CLI (Runtime v2)
 
 [Sandbox](https://getsandbox.com) is a platform to quickly and easily create or generate web service mocks, with instant deploy, collaborative build, and debugging tools for API developers. [More info - https://getsandbox.com](https://getsandbox.com)
 
 Sandbox Runtime is the core processing component of the Sandbox product, it is responsible for executing HTTP requests against your definition files (main.js etc) and templates (template.liquid) to produce a response. 
+The intent of this component is to reduce the feedback loop of making change to seeing the output during local development, and also to support CI test execution. 
 
-This project consists of both the core runtime code, and a lightweight wrapper to simplify command line use. The compiled version is around 10mb and can be run on mac and linux. 
-
-**Note**: Gradle 2.14+ is required to build this yourself, if not using the pre-built binary.
-
-## Installation
-
-The code can be cloned and compiled by itself (Gradle is used for dependency management) or you can just download the compiled and packaged binary which can be run from the command line on a supported OS.
-
-[Latest compiled binary](https://github.com/getsandbox/sandbox/releases)
-
-### Dependencies
-
-* _Java 8 Update 72_ or later
-* tar - is packaged in tar to maintain permissions, so `tar -xf sandbox-binary.tar`
-* Mac or Linux
-
-### Operating System
-The runtime is Java based, so it will run on any OS that Java 8 supports. The precompiled binary ships as a bash script + binary, so it is self executable only on \*nix systems.
-
-### Installation
-There is no installation, but to get setup:
-- Download the latest binary from above, and untar it.
-- Install Java 8, and any other dependencies listed.
-- Your shouldn't have to change the permissions (thats the point of thar tar), but if you can `chmod a+x sandbox`
-- Run with the below command and options `./sandbox run`
-- The server will be running in all interfaces on port 8080 by default.
-
-
-### Commands
-
-The CLI currently supports one action `sandbox run` which will start the runtime with the base directory being the current directory.
-
-```
-Commands:
-run      Starts a sandbox runtime in the current working directory.
-
-Options:
---port=<port number>
---base=<base directory> (Overrides working directory)
---state=<file to persist state to> (Reads/writes a file to persist state across runs)
---runtimeVersion=VERSION_1|VERSION_2
---verbose (Increases logging verbosity, full request and response bodies etc)
-```
-
-**Note for Windows Users:** The above commands are for for *nix/mac operating systems that support shell scripts (the binary linked above is basically just a JAR file with a sh wrapper), so Windows users will have to run the standard Java start commands like:
-```java -jar sandbox --port=8080 run```
-
-
+There are three distribution types:
+- Statically linked linux binary (no JRE etc required built via GraalVM, linux only)
+- Docker container (needs docker, linux and mac) - https://hub.docker.com/r/getsandbox/worker-cli
+- Fat JAR (needs Java JRE, windows, linux and mac) 
 
 ## Getting Started
 
-For a basic example checkout the `examples` directory, more detail is available on the Sandbox [Getting Started](https://getsandbox.com/docs/getting-started) and the [API Definition](https://getsandbox.com/docs/sandbox-api) pages.
+[Getting Started](https://getsandbox.com/docs/getting-started) and the [API Definition](https://getsandbox.com/docs/sandbox-api) pages.
+
+
+## Usage
+
+```
+Usage: sandbox [--quiet] [--verbose] [--watch] [--base=<basePath>]
+               [--metadataLimit=<activityStorageLimit>]
+               [--metadataPort=<activityListenerPort>]
+               [--port=<requestListenerPort>] [--runtimeVersion=<version>]
+               [--state=<statePath>]
+      --base=<basePath>     The directory to try and load the Sandbox JS definition
+                              from
+      --metadataLimit, --activityLimit=<activityStorageLimit>
+                            The number of activity messages to keep in-memory before
+                              they get discarded
+      --metadataPort, --activityPort=<activityListenerPort>
+                            The port to optionally start the activity api on, can be
+                              used to introspect what requests are hitting the
+                              server, useful for CI assertions
+      --port=<requestListenerPort>
+                            The port to listen on for requests
+      --quiet               Reduce logging, request / response and console.log()
+                              won't be shown, only errors.
+      --runtimeVersion=<version>
+                            The runtime version to execute at, the version effects
+                              what libraries are injected and what ECMAScript
+                              version is available
+      --state=<statePath>   The file to load and store the Sandbox state object to,
+                              by default state will only exist ephemerally in-memory
+      --verbose             Increase logging, request / response bodies will be shown
+      --watch               Whether to watch the base path for changes and
+                              automatically reload or not
+```
 
 ## License
 

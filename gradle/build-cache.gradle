@@ -1,0 +1,22 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://storage.googleapis.com/sandbox-maven/maven2"
+        }
+    }
+    dependencies {
+        classpath 'org.github.nhoughto:gradle-gcs-build-cache:1.0.1'
+    }
+}
+
+buildCache {
+    registerBuildCacheService(net.idlestate.gradle.caching.GCSBuildCache.class, net.idlestate.gradle.caching.GCSBuildCacheServiceFactory.class)
+
+    remote(net.idlestate.gradle.caching.GCSBuildCache.class) {
+        bucket = 'sandbox-build-cache'
+        refreshAfterSeconds = 604800
+        enabled = true
+        push = System.getenv().containsKey("CI")
+    }
+}

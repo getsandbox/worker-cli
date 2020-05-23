@@ -1,5 +1,19 @@
-//needed to override s3 custom host, can be removed after Gradle 4.2 and GCS support
-System.setProperty("org.gradle.s3.endpoint", "https://storage.googleapis.com")
+if (System.getenv().containsKey("CI")) {
+    apply from:"./gradle/build-cache.gradle"
+}
 
-include ':jliquid'
-project(':jliquid').projectDir = new File(settingsDir, './libs/jliquid')
+include ':worker.models.api'
+project(':worker.models.api').projectDir = file("./models/api")
+include ':worker.core'
+project(':worker.core').projectDir = file("./core")
+include ':worker.core-server'
+project(':worker.core-server').projectDir = file("./core-server")
+include ':worker.cli'
+project(':worker.cli').projectDir = file("./cli")
+
+include ':libs.cxf-uri-template'
+project(':libs.cxf-uri-template').projectDir = file('./libs/cxf-uri-template')
+include ':libs.jliquid'
+project(':libs.jliquid').projectDir = file('./libs/jliquid')
+include ':libs.test-utils'
+project(':libs.test-utils').projectDir = file('./libs/test-utils')

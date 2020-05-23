@@ -1,0 +1,42 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.com.palantir.graal:gradle-graal:0.6.0"
+        classpath "com.google.gradle:osdetector-gradle-plugin:1.6.2"
+    }
+}
+apply plugin: com.palantir.gradle.graal.GradleGraalPlugin
+apply plugin: com.google.gradle.osdetector.OsDetectorPlugin
+
+graal {
+    mainClass application.mainClassName
+    outputName "sandbox-worker-cli-${osdetector.classifier}"
+    graalVersion "${graalvmVersion}-ce"
+    downloadBaseUrl "https://storage.googleapis.com/sandbox-maven/graalvm-ce"
+    option '-H:IncludeResources=.*Version.properties$'
+    option '-H:IncludeResources=values.properties'
+    option '-H:IncludeResources=com/sandbox/.*.js'
+    option '-H:IncludeResources=META-INF/mime.types'
+    option '-H:IncludeResources=logback.xml'
+    option '-H:IncludeResources=com/sun/org/apache/xml/internal/serializer/.*.properties'
+    option '-H:IncludeResourceBundles=com.sun.org.apache.xerces.internal.impl.msg.XMLMessages' // fix for Could not load any resource bundle by com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
+    option '--initialize-at-build-time=com.oracle.svm.thirdparty.ICU4JFeature,com.oracle.svm.thirdparty.ICU4JFeature$Helper,com.oracle.svm.thirdparty.ICU4JFeature$Helper$1'
+//    option '-H:+PrintMethodHistogram'
+//    option '-H:+PrintRuntimeCompileMethods'
+//    option '-H:Log=registerResource:'
+//    option '-H:+PrintClassInitialization'
+    option '--report-unsupported-elements-at-runtime'
+    option '--language:js'
+    option '--no-server'
+    option '--no-fallback'
+    option '--verbose'
+    option '-J-Dio.netty.noUnsafe=true'
+    option '-J-Dio.netty.allocator.maxOrder=1'
+}
+
+nativeImage.inputs.property("graalOptions", graal.getOptions().get().toSet().sort().join(",").digest("SHA-1"))
+nativeImage.outputs.cacheIf { true }

@@ -1,75 +1,48 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'com.github.johnrengelman.shadow'
+allprojects { project ->
+	buildscript {
+		repositories {
+			mavenLocal()
+			mavenCentral()
+			jcenter()
+			maven {
+				url "https://plugins.gradle.org/m2/"
+			}
+			maven {
+				url "https://storage.googleapis.com/sandbox-maven/maven2"
+			}
+		}
+	}
 
-sourceCompatibility = 1.8
-group = 'com.sandbox'
-version = System.getProperty('sandbox_version') == null ? "1.0" : System.getProperty('sandbox_version')
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        url "https://storage.googleapis.com/sandbox-maven/maven2"
-    }
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		jcenter()
+		maven {
+			url "https://storage.googleapis.com/sandbox-maven/maven2"
+		}
+	}
 }
 
-buildscript {
-    repositories { jcenter() }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:5.0.0'
-    }
-}
+subprojects { Project subProject ->
+	apply plugin: 'java'
+	apply plugin: 'java-library'
+	apply plugin: 'maven'
 
-dependencies {
-    compile "com.sandbox:model:${modelVersion}"
-    compile 'com.sandbox:jliquid:1.0'
-    compile 'org.apache.cxf:custom-cxf-rt-frontend-jaxrs:3.1.7'
+	group = 'com.sandbox'
+	version = ''
 
-    compile 'javax.servlet:javax.servlet-api:3.1.0'
-    compile 'commons-io:commons-io:2.4'
+	plugins.withType(JavaPlugin) {
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
+	}
 
-    compile ('org.springframework:spring-core:4.3.3.RELEASE'){
-        exclude group: 'commons-logging', module:'commons-logging'
-    }
-    compile 'org.springframework:spring-context-support:4.3.3.RELEASE'
-    compile 'org.springframework:spring-expression:4.3.3.RELEASE'
-    compile 'org.slf4j:slf4j-api:1.7.21'
-    compile 'org.slf4j:jcl-over-slf4j:1.7.21'
-    compile 'ch.qos.logback:logback-classic:1.1.8'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.8.3'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.3'
-    compile 'org.apache.commons:commons-collections4:4.1'
-    compile 'io.swagger:swagger-annotations:1.5.8'
-
-    //inbound http requests
-    compile 'org.eclipse.jetty:jetty-server:9.4.12.v20180830'
-
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-all:1.8.4'
-    testCompile 'org.springframework:spring-test:4.3.3.RELEASE'
-
-}
-
-jar {
-    exclude 'META-INF/*.SF'
-    exclude 'META-INF/*.DSA'
-    exclude 'META-INF/*.RSA'
-    exclude 'logback.xml'
-
-    manifest {
-        attributes 'Main-Class': 'com.sandbox.runtime.config.CLIBootstrap'
-    }
-
-}
-
-test {
-    testLogging {
-        exceptionFormat = 'full'
-    }
-}
-
-artifacts {
-    archives jar
-    archives shadowJar
+	//make outputs deterministic
+	tasks.withType(Jar) { jarTask ->
+		jarTask.preserveFileTimestamps = false
+		jarTask.reproducibleFileOrder = true
+	}
+	tasks.withType(Tar) { tarTask ->
+		tarTask.preserveFileTimestamps = false
+		tarTask.reproducibleFileOrder = true
+	}
 }

@@ -1,0 +1,12 @@
+apply from: "${projectDir}/../../gradle/api-model-java-deps.gradle"
+
+dependencies {
+    api project(":libs.cxf-uri-template")
+    implementation "org.slf4j:slf4j-api:${slfVersion}"
+
+    //testing
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.4.0"
+    testCompile "org.junit.jupiter:junit-jupiter-engine:5.4.0"
+    testCompile "org.mockito:mockito-core:1.8.4"
+    testCompile "org.hamcrest:hamcrest-all:1.3"
+}

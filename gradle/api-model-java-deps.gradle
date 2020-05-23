@@ -1,0 +1,5 @@
+dependencies {
+    api "javax.validation:validation-api:${javaxValidationVersion}"
+    api 'io.swagger:swagger-annotations:1.5.8'
+    api "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+}

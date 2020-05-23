@@ -1,0 +1,67 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer
+import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext
+import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
+import shadow.org.apache.tools.zip.ZipOutputStream
+import shadow.org.apache.tools.zip.ZipEntry
+import org.gradle.api.file.FileTreeElement
+
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:5.1.0"
+    }
+}
+apply plugin: com.github.jengelman.gradle.plugins.shadow.ShadowPlugin
+
+shadowJar {
+    mergeServiceFiles()
+    transform(GraalTransformer.class)
+}
+
+jar {
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+
+    manifest {
+        attributes 'Main-Class': application.mainClassName
+    }
+}
+
+class GraalTransformer implements Transformer {
+
+    private final PatternSet patternSet = new PatternSet().include("META-INF/truffle/language")
+    private int matchCount = 0
+    private StringBuilder result = new StringBuilder()
+    private String targetPath = null
+
+    boolean canTransformResource(FileTreeElement element) {
+        return patternSet.asSpec.isSatisfiedBy(element)
+    }
+
+    void transform(TransformerContext context) {
+        matchCount += 1
+        targetPath = context.path
+        def lines = context.is.readLines()
+        lines.eachWithIndex { String line, int i ->
+            def replacement = lines[i].replace("language1", "language" + matchCount)
+            lines[i] = replacement
+            result.append(replacement + "\n")
+        }
+    }
+
+    boolean hasTransformedResource() { matchCount > 0 }
+
+    void modifyOutputStream(ZipOutputStream os, boolean preserveFileTimestamps) {
+        ZipEntry entry = new ZipEntry(targetPath)
+        entry.time = TransformerContext.getEntryTimestamp(preserveFileTimestamps, entry.time)
+        os.putNextEntry(entry)
+        os.write(result.toString().getBytes("UTF-8"))
+        os.closeEntry()
+//        print("Wrote: \n${result.toString()}\n")
+    }
+}
