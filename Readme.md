@@ -17,7 +17,9 @@ There are three distribution types:
 ## Binaries
 
 Docker: https://hub.docker.com/r/getsandbox/worker-cli
+
 Linux native image: https://storage.cloud.google.com/sandbox-releases/worker-cli/worker-cli-linux-x86_64-latest
+
 Fat JAR: https://storage.cloud.google.com/sandbox-releases/worker-cli/worker-cli-latest.jar
 
 
