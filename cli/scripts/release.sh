@@ -13,5 +13,5 @@ docker push getsandbox/worker-cli:latest
 echo "Pushed docker image to getsandbox/worker-cli:$BUILD_VERSION"
 
 gsutil cp -a public-read ./cli/build/libs/worker.cli-all.jar gs://sandbox-releases/worker-cli/worker-cli-$BUILD_VERSION.jar
-gsutil cp -a public-read gs://sandbox-releases/worker-cli/worker-cli-$BUILD_VERSION-all.jar gs://sandbox-releases/worker-cli/worker-cli-latest.jar
-echo "Uploaded worker.cli-all.jar to: https://storage.cloud.google.com/sandbox-releases/worker-cli/worker-cli-$BUILD_VERSION.jar"
+gsutil cp -a public-read gs://sandbox-releases/worker-cli/worker-cli-$BUILD_VERSION.jar gs://sandbox-releases/worker-cli/worker-cli-latest.jar
+echo "Uploaded worker-cli Fat JAR to: https://storage.cloud.google.com/sandbox-releases/worker-cli/worker-cli-$BUILD_VERSION.jar"

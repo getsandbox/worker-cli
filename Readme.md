@@ -55,6 +55,10 @@ Usage: sandbox [--quiet] [--verbose] [--watch] [--base=<basePath>]
                               automatically reload or not
 ```
 
+## Questions?
+
+support@getsandbox.com
+
 ## License
 
 MIT
