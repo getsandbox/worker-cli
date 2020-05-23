@@ -1,0 +1,41 @@
+image: gcr.io/sandbox-public-images/build-container:1.0.7
+variables:
+  GIT_DEPTH: "5"
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle/"
+  BUILD_VERSION: "2.0.$CI_PIPELINE_IID"
+
+stages:
+  - build
+  - release
+
+build:
+  stage: build
+  cache:
+    key: "build"
+    paths:
+      - .gradle/
+  tags:
+    - 26gb
+  script:
+    - ./cli/scripts/build-linux-native-image.sh
+  artifacts:
+    paths:
+      - cli/build/*
+    when: on_success
+
+release:
+  stage: release
+  services:
+  - docker:dind
+  variables:
+    DOCKER_HOST: "tcp://docker:2375/"
+  cache:
+    key: "release"
+    paths:
+      - .gradle/
+  script:
+    - ./cli/scripts/release.sh
+  dependencies:
+    - build
+  only:
+    - master
