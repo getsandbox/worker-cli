@@ -14,6 +14,12 @@ There are three distribution types:
 
 [Getting Started](https://getsandbox.com/docs/getting-started) and the [API Definition](https://getsandbox.com/docs/sandbox-api) pages.
 
+## Binaries
+
+Docker: https://hub.docker.com/r/getsandbox/worker-cli
+Linux native image: https://storage.cloud.google.com/sandbox-releases/worker-cli/worker-cli-linux-x86_64-latest
+Fat JAR: https://storage.cloud.google.com/sandbox-releases/worker-cli/worker-cli-latest.jar
+
 
 ## Usage
 
