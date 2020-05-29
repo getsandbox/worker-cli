@@ -5,8 +5,6 @@ import com.sandbox.worker.cli.config.Config;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import picocli.CommandLine;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +41,6 @@ public class CLIMain {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOG.info("Shutting down..");
         }));
-        SignalHandler sh = sig -> System.exit(128 + sig.getNumber());
-        Signal.handle(new Signal("INT"), sh);
-        Signal.handle(new Signal("TERM"), sh);
 
         //start app
         try {

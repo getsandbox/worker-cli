@@ -165,7 +165,7 @@ public class RouteSupport {
         if (pathsExactMatch(route.getPath(), requestUrl)) return true;
 
         //no match so far, so continue..
-        ExactMatchURITemplate template = getTemplate(route.getPath());
+        ExactMatchURITemplate template = route.getPathTemplate();
 
         //if we have a match, then set it as the best match, because we could match more than one, we want the BEST match.. which i think should be the one with the shortest 'finalMatchGroup'..
         if (template.match(requestUrl)) {
@@ -196,7 +196,7 @@ public class RouteSupport {
         }
 
         Map<String, String> flattenedPathParams = MapUtils.flattenMultiValue(
-                extractPathParams(getTemplate(match.getPath()), request.getUrl()), ExactMatchURITemplate.FINAL_MATCH_GROUP
+                extractPathParams(match.getPathTemplate(), request.getUrl()), ExactMatchURITemplate.FINAL_MATCH_GROUP
         );
         request.setPath(match.getPath());
         request.setParams(flattenedPathParams);

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import org.graalvm.polyglot.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,10 +84,9 @@ public class ProcessRequestExecutor extends AbstractJSExecutor<HttpRuntimeReques
 
         } else if (httpResponse.wasRendered()) {
 
-            // get template from metadataService
-            String template = scriptContext.getScriptFunctions().readFile("templates/" + httpResponse.getTemplateName() + ".liquid");
+            Supplier<String> templateDataSupplier = () -> scriptContext.getScriptFunctions().readFile("templates/" + httpResponse.getTemplateName() + ".liquid");
 
-            if (template == null) {
+            if (!scriptContext.getScriptFunctions().hasFile("templates/" + httpResponse.getTemplateName() + ".liquid")) {
                 throw new ServiceScriptException("Template not found: " + httpResponse.getTemplateName());
             }
 
@@ -94,7 +94,7 @@ public class ProcessRequestExecutor extends AbstractJSExecutor<HttpRuntimeReques
 
             //allow unrendered templates to be passed, special param to support edge cases
             if (templateLocals != null && templateLocals.get("_passUnrenderedTemplate") != null) {
-                body = template;
+                body = templateDataSupplier.get();
             } else {
 
                 Map<String, Object> locals = new HashMap<>();
@@ -104,7 +104,11 @@ public class ProcessRequestExecutor extends AbstractJSExecutor<HttpRuntimeReques
                     locals.put("data", templateLocals);
                     locals.put("__service", scriptContext.getScriptFunctions());
 
-                    body = liquidRenderer.render(template, locals);
+                    //pass supplier and template key (based on id of replace-able script functions, will invalidate cache upon file change
+                    body = liquidRenderer.render("r-" + System.identityHashCode(scriptContext.getScriptFunctions()) + httpResponse.getTemplateName(),
+                            templateDataSupplier,
+                            locals
+                    );
 
                 } catch (LiquidRendererException le) {
                     throw new ServiceScriptException(le.getMessage(), le);

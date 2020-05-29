@@ -1,32 +1,32 @@
 package com.sandbox.worker.cli;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.worker.cli.config.Config;
+import com.sandbox.worker.core.server.RequestHandler;
+import com.sandbox.worker.core.server.RequestServer;
 import io.micronaut.context.env.Environment;
-import io.micronaut.context.event.ApplicationEventListener;
-import io.micronaut.core.annotation.Introspected;
-import io.micronaut.runtime.server.event.ServerStartupEvent;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Introspected
-@Singleton
-public class ReadyMessage implements ApplicationEventListener<ServerStartupEvent> {
+public class CLIRequestServer extends RequestServer {
+    private static final Logger LOG = LoggerFactory.getLogger(CLIRequestServer.class);
 
-    private static final Logger LOG = LoggerFactory.getLogger(ReadyMessage.class);
-
-    @Inject
     private Config config;
 
     @Inject
     private Environment environment;
 
+    public CLIRequestServer(Config config, RequestHandler requestFilter, ObjectMapper mapper) {
+        super(config.getRequestListenerPort(), requestFilter, mapper);
+        this.config = config;
+    }
+
     @Override
-    public void onApplicationEvent(ServerStartupEvent event) {
+    public void onStart() {
         try {
             LOG.info("Sandbox ready (build: v{} runtime: {}) --  Running on port: {}, metadata on port: {}, reading from path: '{}', took: {}ms",
                     environment.getProperty("SANDBOX_VERSION", String.class, "?"),

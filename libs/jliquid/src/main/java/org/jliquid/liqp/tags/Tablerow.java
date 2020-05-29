@@ -51,7 +51,7 @@ class Tablerow extends Tag {
         int cols = attributes.get(COLS);
         int limit = attributes.get(LIMIT);
 
-        Map<String, Object> tablerowloopContext = new HashMap<String, Object>();
+        Map<String, Object> tablerowloopContext = getContextMap();
 
         tablerowloopContext.put(LENGTH, collection.length);
 

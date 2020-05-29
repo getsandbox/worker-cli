@@ -13,7 +13,6 @@ import com.sandbox.worker.core.js.models.WorkerHttpResponse;
 import com.sandbox.worker.core.js.models.WorkerRunnableException;
 import com.sandbox.worker.core.js.models.WorkerScriptContext;
 import com.sandbox.worker.core.server.exceptions.ServiceOverrideException;
-import com.sandbox.worker.core.server.micronaut.ExceptionResponseSupport;
 import com.sandbox.worker.core.server.services.HttpMessageConverter;
 import com.sandbox.worker.core.utils.EnhancedXMLNode;
 import com.sandbox.worker.core.utils.EnhancedXMLNodeList;
@@ -35,21 +34,16 @@ import com.sandbox.worker.models.interfaces.RepositoryArchiveService;
 import com.sandbox.worker.models.interfaces.RoutingTable;
 import com.sandbox.worker.models.interfaces.SandboxEventEmitterService;
 import io.micronaut.core.annotation.TypeHint;
-import io.micronaut.core.async.publisher.Publishers;
-import io.micronaut.http.HttpRequest;
-import io.micronaut.http.HttpStatus;
-import io.micronaut.http.MutableHttpResponse;
-import io.micronaut.http.filter.HttpServerFilter;
-import io.micronaut.http.filter.ServerFilterChain;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.regex.Pattern;
-import org.reactivestreams.Publisher;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -140,12 +134,11 @@ import org.slf4j.MDC;
         },
         accessType = TypeHint.AccessType.ALL_PUBLIC
 )
-public abstract class RequestFilter implements HttpServerFilter {
+public abstract class RequestHandler {
 
     public static final String MDC_SANDBOX_SANDBOX_ID = "sandboxSandboxId";
     public static final String MDC_SANDBOX_REQUEST_ID = "sandboxRequestId";
-    private static final Logger LOG = LoggerFactory.getLogger(RequestFilter.class);
-    private static final Pattern IPV4 = Pattern.compile("^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
+    private static final Logger LOG = LoggerFactory.getLogger(RequestHandler.class);
 
     private final GenerateRoutingTableExecutor generateRoutingTableExecutor;
     private final ProcessRequestExecutor processRequestExecutor;
@@ -161,9 +154,9 @@ public abstract class RequestFilter implements HttpServerFilter {
     private final ObjectMapper mapper = new ObjectMapper();
 
 
-    public RequestFilter(SandboxEventEmitterService eventEmitterService, ProcessRequestExecutor processRequestExecutor, BufferingStateService stateService,
-                         MetadataService metadataService, RepositoryArchiveService repositoryArchiveService, HttpMessageConverter httpMessageConverter,
-                         ExecutorService ioExecutor) {
+    public RequestHandler(SandboxEventEmitterService eventEmitterService, ProcessRequestExecutor processRequestExecutor, BufferingStateService stateService,
+                          MetadataService metadataService, RepositoryArchiveService repositoryArchiveService, HttpMessageConverter httpMessageConverter,
+                          ExecutorService ioExecutor) {
         this.eventEmitterService = eventEmitterService;
         this.generateRoutingTableExecutor = new GenerateRoutingTableExecutor(RouteDetailsProjection.REQUEST);
         this.processRequestExecutor = processRequestExecutor;
@@ -174,29 +167,17 @@ public abstract class RequestFilter implements HttpServerFilter {
         this.ioExecutor = ioExecutor;
     }
 
-    @Override
-    public Publisher<MutableHttpResponse<?>> doFilter(HttpRequest<?> request, ServerFilterChain chain) {
-        CompletableFuture<MutableHttpResponse<?>> future = new CompletableFuture<>();
-        String hostname = request.getHeaders().get("Host").split(":")[0];
-        if (!IPV4.matcher(hostname).matches()) {
-            ioExecutor.submit(() -> {
-                try {
-                    handleRequest(System.currentTimeMillis(), request, future);
-                } catch (Throwable t) {
-                    LOG.error("Error in doFilter catch-all", t);
-                    String sandboxName = getHttpMessageConverter().extractSandboxName(request);
-                    future.complete(writeExceptionToResponse(sandboxName, new Exception("Internal error")));
-                }
-            });
-            return Publishers.fromCompletableFuture(future);
-        } else {
-            return chain.proceed(request);
-        }
-    }
-
-    @Override
-    public int getOrder() {
-        return 0;
+    public void submitRequest(String callerRemoteAddress, FullHttpRequest request, Consumer<FullHttpResponse> future) {
+        ioExecutor.submit(() -> {
+            try {
+                handleRequest(System.currentTimeMillis(), request, callerRemoteAddress, future);
+            } catch (Throwable t) {
+                LOG.error("Error in submitRequest catch-all", t);
+                future.accept(
+                        writeExceptionToResponse(getHttpMessageConverter().extractSandboxName(request.headers()), new Exception("Internal error"))
+                );
+            }
+        });
     }
 
     //remove?
@@ -211,15 +192,15 @@ public abstract class RequestFilter implements HttpServerFilter {
         return scriptContext;
     }
 
-    protected void handleRequestFailure(RuntimeRequest failedRuntimeRequest, Throwable throwable, CompletableFuture<MutableHttpResponse<?>> future) {
+    protected void handleRequestFailure(RuntimeRequest failedRuntimeRequest, Throwable throwable, Consumer<FullHttpResponse> future) {
         handleRequestFailure(failedRuntimeRequest, throwable, future, null);
     }
 
-    protected void handleRequestFailure(RuntimeRequest failedRuntimeRequest, Throwable throwable, CompletableFuture<MutableHttpResponse<?>> future, String consoleOutput) {
+    protected void handleRequestFailure(RuntimeRequest failedRuntimeRequest, Throwable throwable, Consumer<FullHttpResponse> future, String consoleOutput) {
         handleRequestFailure(failedRuntimeRequest, throwable, future, consoleOutput, null);
     }
 
-    protected void handleRequestFailure(RuntimeRequest failedRuntimeRequest, Throwable throwable, CompletableFuture<MutableHttpResponse<?>> future, String consoleOutput, String displayMessage) {
+    protected void handleRequestFailure(RuntimeRequest failedRuntimeRequest, Throwable throwable, Consumer<FullHttpResponse> future, String consoleOutput, String displayMessage) {
         MDC.put(MDC_SANDBOX_SANDBOX_ID, failedRuntimeRequest.getSandboxId());
 
         Exception finalException;
@@ -255,39 +236,47 @@ public abstract class RequestFilter implements HttpServerFilter {
             LOG.error("Error in failedFunction", e);
         }
 
-        future.complete(writeExceptionToResponse(failedRuntimeRequest.getSandboxName(), finalException));
+        future.accept(writeExceptionToResponse(failedRuntimeRequest.getSandboxName(), finalException));
     }
 
     protected void recordInternalException(String sandboxName, Exception e) {
         //noop
     }
 
-    protected void handleRequest(long startTime, HttpRequest request, CompletableFuture<MutableHttpResponse<?>> future) throws Exception {
-        //map from servlet request to runtime request and validate - This should be common across proxy and runtime
-        HttpRuntimeRequest runtimeRequest = null;
+    public void handleRequest(long startTime, FullHttpRequest request, String remoteAddress, Consumer<FullHttpResponse> future) throws Exception {
+        HttpRuntimeRequest runtimeRequest = httpMessageConverter.convertRequest(request, remoteAddress);
+
+        Consumer<HttpRuntimeResponse> successFuture = r -> {
+            try {
+                future.accept(httpMessageConverter.convertResponse(runtimeRequest, r));
+            } catch (Exception e) {
+                LOG.error("Error converting response", e);
+                handleRequestFailure(runtimeRequest, e, future);
+            }
+        };
+        handleRequest(startTime, runtimeRequest, successFuture, future);
+    }
+
+    protected void handleRequest(long startTime, HttpRuntimeRequest runtimeRequest, Consumer<HttpRuntimeResponse> successFuture, Consumer<FullHttpResponse> failureFuture) throws Exception {
         try {
-            runtimeRequest = httpMessageConverter.convertRequest(request);
-            HttpRuntimeRequest finalRuntimeRequest = runtimeRequest;
             final String requestId = MDC.get(MDC_SANDBOX_REQUEST_ID);
 
-            //allow subclasses to enhance behaviour
-            handleHttpRuntimeRequest(request, finalRuntimeRequest);
 
             //Get context, will already exist if this isn't first run
-            SandboxIdentifier sandboxIdentifier = new SandboxIdentifier(finalRuntimeRequest.getSandboxId(), finalRuntimeRequest.getFullSandboxId());
+            SandboxIdentifier sandboxIdentifier = new SandboxIdentifier(runtimeRequest.getSandboxId(), runtimeRequest.getFullSandboxId());
             WorkerScriptContext scriptContext = getLoadedScriptContext(sandboxIdentifier);
             //routing table should exist against executor service if it has been created for this context before
             RoutingTable routingTable = scriptContext.getRoutingTable();
 
             //Find route for inbound request, fail if not found
-            if ("xml".equals(finalRuntimeRequest.getContentType())) {
+            if ("xml".equals(runtimeRequest.getContentType())) {
                 try {
-                    if (finalRuntimeRequest.getHeaders().get("SOAPAction") != null) {
-                        finalRuntimeRequest.getProperties().put("SOAPAction", finalRuntimeRequest.getHeaders().get("SOAPAction"));
+                    if (runtimeRequest.getHeaders().get("SOAPAction") != null) {
+                        runtimeRequest.getProperties().put("SOAPAction", runtimeRequest.getHeaders().get("SOAPAction"));
                     }
 
-                    String operationName = new XMLDoc(finalRuntimeRequest.getBody()).getSOAPOperationName();
-                    finalRuntimeRequest.getProperties().put("SOAPOperationName", operationName);
+                    String operationName = new XMLDoc(runtimeRequest.getBody()).getSOAPOperationName();
+                    runtimeRequest.getProperties().put("SOAPOperationName", operationName);
                     LOG.debug("Found SOAP Operation Name: {}", operationName);
 
                 } catch (Exception e) {
@@ -295,27 +284,27 @@ public abstract class RequestFilter implements HttpServerFilter {
                 }
             }
 
-            HTTPRoute routeMatch = RouteSupport.findMatchedRoute(finalRuntimeRequest, routingTable);
+            HTTPRoute routeMatch = RouteSupport.findMatchedRoute(runtimeRequest, routingTable);
             if (routeMatch == null) {
                 //if no route match for given request, then log message and send error response.
-                LOG.warn("** Error processing request for {} {} - Invalid route", finalRuntimeRequest.getMethod(), finalRuntimeRequest.getPath() == null ? request.getUri() : finalRuntimeRequest.getPath());
-                handleRequestFailure(finalRuntimeRequest, new Exception("Invalid route"), future);
+                LOG.warn("** Error processing request for {} {} - Invalid route", runtimeRequest.getMethod(), runtimeRequest.getPath() == null ? runtimeRequest.getUrl() : runtimeRequest.getPath());
+                handleRequestFailure(runtimeRequest, new Exception("Invalid route"), failureFuture);
                 return;
 
             } else if (routeMatch.getRouteConfig() != null && routeMatch.getRouteConfig().getErrorStrategy() != ErrorStrategyEnum.NONE) {
                 LOG.debug("Applying service override {} for {} {}",
                         routeMatch.getRouteConfig().getErrorStrategy(),
-                        finalRuntimeRequest.getMethod(),
-                        finalRuntimeRequest.getPath() == null ? request.getUri() : finalRuntimeRequest.getPath()
+                        runtimeRequest.getMethod(),
+                        runtimeRequest.getPath() == null ? runtimeRequest.getUrl() : runtimeRequest.getPath()
                 );
 
                 if (routeMatch.getRouteConfig().getErrorStrategy() == ErrorStrategyEnum.SERVICE_DOWN) {
-                    handleRequestFailure(finalRuntimeRequest, new ServiceOverrideException("Service down", HttpStatus.SERVICE_UNAVAILABLE, ErrorStrategyEnum.SERVICE_DOWN), future);
+                    handleRequestFailure(runtimeRequest, new ServiceOverrideException("Service down", HttpResponseStatus.SERVICE_UNAVAILABLE, ErrorStrategyEnum.SERVICE_DOWN), failureFuture);
                     return;
 
                 } else if (routeMatch.getRouteConfig().getErrorStrategy() == ErrorStrategyEnum.TIMEOUT) {
                     delayedResponder.schedule(() -> {
-                        handleRequestFailure(finalRuntimeRequest, new ServiceOverrideException("Service down", HttpStatus.GATEWAY_TIMEOUT, ErrorStrategyEnum.TIMEOUT), future);
+                        handleRequestFailure(runtimeRequest, new ServiceOverrideException("Service down", HttpResponseStatus.GATEWAY_TIMEOUT, ErrorStrategyEnum.TIMEOUT), failureFuture);
                     }, 110, TimeUnit.SECONDS); //100 seconds as GLB is 120, so that minus a bit
                     return;
 
@@ -325,54 +314,50 @@ public abstract class RequestFilter implements HttpServerFilter {
             }
 
             //trigger process request executor, receive runtime response
-            logRequest(finalRuntimeRequest, routeMatch);
+            logRequest(runtimeRequest, routeMatch);
 
             //construct function to handle the response from engine and write to response, run on IO executor
             BiConsumer<HttpRuntimeResponse, String> successResponseFunction = (HttpRuntimeResponse runtimeResponse, String consoleOutput) -> {
                 try {
                     MDC.put(MDC_SANDBOX_REQUEST_ID, requestId);
-                    MDC.put(MDC_SANDBOX_SANDBOX_ID, finalRuntimeRequest.getSandboxId());
+                    MDC.put(MDC_SANDBOX_SANDBOX_ID, runtimeRequest.getSandboxId());
 
                     //set response time so its accurate
                     runtimeResponse.setRespondedTimestamp(System.currentTimeMillis());
 
                     //map from response back to servlet response - This should be common across proxy and runtime
-                    future.complete((MutableHttpResponse<?>) httpMessageConverter.convertResponse(finalRuntimeRequest, runtimeResponse));
+                    successFuture.accept(runtimeResponse);
                     logConsole(consoleOutput);
-                    logResponse(finalRuntimeRequest, runtimeResponse, startTime, scriptContext.getRuntimeVersion());
+                    logResponse(runtimeRequest, runtimeResponse, startTime, scriptContext.getRuntimeVersion());
 
                     //emit activity message for response as well if store is enabled
                     if (eventEmitterService != null) {
                         eventEmitterService.emitActivity(new RequestActivityMessage(
-                                finalRuntimeRequest.getSandboxId(),
-                                new RuntimeTransaction(finalRuntimeRequest, consoleOutput, runtimeResponse)
+                                runtimeRequest.getSandboxId(),
+                                new RuntimeTransaction(runtimeRequest, consoleOutput, runtimeResponse)
                         ));
                     }
-                } catch (Exception e) {
-                    handleRequestFailure(finalRuntimeRequest, e, future, consoleOutput);
+                } catch (Throwable e) {
+                    handleRequestFailure(runtimeRequest, e, failureFuture, consoleOutput);
                     return;
                 }
             };
 
             BiConsumer<Throwable, String> failureResponseFunction = (Throwable t, String consoleOutput) -> {
-                handleRequestFailure(finalRuntimeRequest, t, future, consoleOutput);
+                handleRequestFailure(runtimeRequest, t, failureFuture, consoleOutput);
             };
 
             //have processed request, fire engine executor
-            WorkerRequestRunnable engineTask = new WorkerRequestRunnable(finalRuntimeRequest, routeMatch, successResponseFunction, failureResponseFunction,
+            WorkerRequestRunnable engineTask = new WorkerRequestRunnable(runtimeRequest, routeMatch, successResponseFunction, failureResponseFunction,
                     processRequestExecutor, ioExecutor, delayedResponder, mapper);
             handleEngineRequest(sandboxIdentifier, engineTask);
 
         } catch (Throwable e) {
             if (!e.getClass().getSimpleName().contains("Suppressed")) LOG.error("Error processing request", e);
-            handleRequestFailure(runtimeRequest, e, future);
+            handleRequestFailure(runtimeRequest, e, failureFuture);
             return;
         }
 
-    }
-
-    protected void handleHttpRuntimeRequest(HttpRequest request, HttpRuntimeRequest runtimeRequest) throws Exception {
-        //noop for overriding
     }
 
     protected abstract void handleEngineRequest(SandboxIdentifier sandboxIdentifier, WorkerRequestRunnable runnable) throws Exception;
@@ -383,7 +368,7 @@ public abstract class RequestFilter implements HttpServerFilter {
 
     protected abstract void logResponse(HttpRuntimeRequest request, HttpRuntimeResponse response, long startTime, RuntimeVersion runtimeVersion);
 
-    protected MutableHttpResponse<?> writeExceptionToResponse(String sandboxName, Exception exception) {
+    protected FullHttpResponse writeExceptionToResponse(String sandboxName, Exception exception) {
         recordInternalException(sandboxName, exception);
         return ExceptionResponseSupport.writeExceptionToResponse(mapper, exception);
     }

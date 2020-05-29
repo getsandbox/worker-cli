@@ -1,10 +1,9 @@
 package org.jliquid.liqp.tags;
 
-import org.jliquid.liqp.LValue;
-import org.jliquid.liqp.nodes.LNode;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.jliquid.liqp.LValue;
+import org.jliquid.liqp.nodes.LNode;
 
 /**
  * Tags are used for the logic in a template.
@@ -100,4 +99,8 @@ public abstract class Tag extends LValue {
      * @return an Object denoting the rendered AST.
      */
     public abstract Object render(Map<String, Object> context, LNode... nodes);
+
+    public Map<String, Object> getContextMap() {
+        return new HashMap(1);
+    }
 }

@@ -1,19 +1,19 @@
 package com.sandbox.worker.core.server.exceptions;
 
 import com.sandbox.worker.models.enums.ErrorStrategyEnum;
-import io.micronaut.http.HttpStatus;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 public class ServiceOverrideException extends Exception {
-    private HttpStatus status;
+    private HttpResponseStatus status;
     private ErrorStrategyEnum errorStrategy;
 
-    public ServiceOverrideException(String message, HttpStatus status, ErrorStrategyEnum errorStrategy) {
+    public ServiceOverrideException(String message, HttpResponseStatus status, ErrorStrategyEnum errorStrategy) {
         super(message);
         this.status = status;
         this.errorStrategy = errorStrategy;
     }
 
-    public HttpStatus getStatus() {
+    public HttpResponseStatus getStatus() {
         return status;
     }
 

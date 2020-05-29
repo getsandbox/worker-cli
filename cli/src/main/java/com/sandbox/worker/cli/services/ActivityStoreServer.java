@@ -26,7 +26,6 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.util.CharsetUtil;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -38,9 +37,12 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.*;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
+import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
 import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
-import static io.netty.handler.codec.http.HttpHeaderValues.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 //This sucks, micronaut only supports 1 server at a time atm so we stand up a separate netty server to serve activity
@@ -141,16 +143,16 @@ class ActivityServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
             ctx.write(response);
 
-            ctx.write(Unpooled.copiedBuffer("[", CharsetUtil.UTF_8), ctx.newProgressivePromise());
+            ctx.write(Unpooled.wrappedBuffer("[".getBytes()), ctx.newProgressivePromise());
             for (int i = 0; i < messages.size(); i++) {
                 File messageFile = messages.get(i);
                 RandomAccessFile raf = new RandomAccessFile(messageFile, "r");
                 ctx.write(new DefaultFileRegion(raf.getChannel(), 0, raf.length()), ctx.newProgressivePromise());
                 if (i < messages.size() - 1){
-                    ctx.write(Unpooled.copiedBuffer(",", CharsetUtil.UTF_8), ctx.newProgressivePromise());
+                    ctx.write(Unpooled.wrappedBuffer(",".getBytes()), ctx.newProgressivePromise());
                 }
             }
-            ctx.write(Unpooled.copiedBuffer("]", CharsetUtil.UTF_8), ctx.newProgressivePromise());
+            ctx.write(Unpooled.wrappedBuffer("]".getBytes()), ctx.newProgressivePromise());
             ChannelFuture f = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 
             if (!keepAlive) {

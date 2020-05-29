@@ -443,16 +443,12 @@ public abstract class ProcessRequestExecutorLegacyTest {
     }
 
     @Test
-    public void handleHttpRequest_invalidXpath() throws Exception {
-        ServiceScriptException exception = assertThrows(ServiceScriptException.class, () -> {
-            HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_invalidXpath");
-            httpReq.setContentType("xml");
-            httpReq.setBody("<users><user><username>nhoughto</username><firstname>nick</firstname></user></users>");
-            handleHttpRequest(getBaseContext(), httpReq);
-
-        });
-
-        assertTrue(exception.getMessage().startsWith("No body has been set"));
+    public void handleHttpRequest_emptySend() throws Exception {
+        HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_emptySend");
+        httpReq.setContentType("xml");
+        httpReq.setBody("<users><user><username>nhoughto</username><firstname>nick</firstname></user></users>");
+        HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
+        assertEquals("", res.getBody());
     }
 
     @Test

@@ -35,7 +35,7 @@ dependencies {
     implementation project(":worker.core-server")
 
     api "io.micronaut:micronaut-inject:${micronautVersion}" //this is api b/c it pull in a bunch of other stuff that we want to construct Context etc.
-    implementation "io.micronaut:micronaut-http-server-netty:${micronautVersion}"
+    api "io.micronaut:micronaut-runtime:${micronautVersion}"
     implementation "info.picocli:picocli:3.9.5"
 
     //testing

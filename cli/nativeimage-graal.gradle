@@ -30,11 +30,11 @@ graal {
 //    option '-H:Log=registerResource:'
 //    option '-H:+PrintClassInitialization'
     option '--report-unsupported-elements-at-runtime'
+    option '--install-exit-handlers'
     option '--language:js'
     option '--no-server'
     option '--no-fallback'
     option '--verbose'
-    option '-J-Dio.netty.noUnsafe=true'
     option '-J-Dio.netty.allocator.maxOrder=1'
 }
 

@@ -5,22 +5,33 @@ import com.sandbox.worker.MapUtils;
 import com.sandbox.worker.core.server.exceptions.ConverterException;
 import com.sandbox.worker.models.HttpRuntimeRequest;
 import com.sandbox.worker.models.HttpRuntimeResponse;
-import io.micronaut.http.HttpRequest;
-import io.micronaut.http.HttpResponse;
-import io.micronaut.http.MediaType;
-import io.micronaut.http.MutableHttpResponse;
-import io.micronaut.http.cookie.Cookie;
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static io.netty.buffer.Unpooled.wrappedBuffer;
 
 public class HttpMessageConverter {
 
@@ -31,51 +42,46 @@ public class HttpMessageConverter {
     private static final Logger LOG = LoggerFactory.getLogger(HttpMessageConverter.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private int maxContentLengthBytes = 1048576;
-
-    public HttpMessageConverter() {
-    }
-
-    public HttpMessageConverter(int maxContentLengthBytes) {
-        this.maxContentLengthBytes = maxContentLengthBytes;
-    }
-
-    public HttpRuntimeRequest convertRequest(HttpRequest rawRequest) throws ConverterException {
+    //This is split to allow CLI to default values in runtime request
+    public HttpRuntimeRequest convertRequest(FullHttpRequest rawRequest, String remoteAddress) throws ConverterException {
         HttpRuntimeRequest request = new HttpRuntimeRequest();
+
+        // use lb header to get the originating IP, take first IP if we have a comma separated list.
+        if (!StringUtils.isEmpty(rawRequest.headers().get("X-Forwarded-For"))) {
+            String realIp = rawRequest.headers().get("X-Forwarded-For");
+            if (realIp.contains(",")) {
+                request.setIp(rawRequest.headers().get("X-Forwarded-For").split(",")[0].trim());
+            } else {
+                request.setIp(rawRequest.headers().get("X-Forwarded-For").trim());
+            }
+        } else {
+            request.setIp(remoteAddress.trim());
+        }
+
         return processRequest(rawRequest, request);
     }
 
-    public HttpRuntimeRequest processRequest(HttpRequest rawRequest, HttpRuntimeRequest request) throws ConverterException {
+    public HttpRuntimeRequest processRequest(FullHttpRequest rawRequest, HttpRuntimeRequest request) throws ConverterException {
 
         //validate request before processing
-        if (rawRequest == null || request == null) {
+        if (rawRequest == null) {
             throw new ConverterException("Bad request - please check that your request data is valid");
         }
 
-        //check content-length header to reject large messages
-        if (rawRequest.getContentLength() > maxContentLengthBytes) {
-            throw new ConverterException("Bad request - your request body exceeds the maximum allowed of " + maxContentLengthBytes + " bytes");
-        }
-
         //start mapping values
-        request.setSandboxName(extractSandboxName(rawRequest));
-        request.setMethod(rawRequest.getMethod().name());
-        request.setUrl(rawRequest.getUri().getPath());
-
-        // use lb header to get the originating IP, take first IP if we have a comma separated list.
-        if (!StringUtils.isEmpty(rawRequest.getHeaders().get("X-Forwarded-For"))) {
-            String realIp = rawRequest.getHeaders().get("X-Forwarded-For");
-            if (realIp.contains(",")) {
-                request.setIp(rawRequest.getHeaders().get("X-Forwarded-For").split(",")[0].trim());
-            } else {
-                request.setIp(rawRequest.getHeaders().get("X-Forwarded-For").trim());
-            }
-        } else {
-            request.setIp(rawRequest.getRemoteAddress().getAddress().getHostAddress().trim());
+        request.setSandboxName(extractSandboxName(rawRequest.headers()));
+        request.setMethod(rawRequest.method().name());
+        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(rawRequest.uri());
+        request.setRawQuery(queryStringDecoder.rawQuery());
+        try {
+            request.setUrl(new URI(queryStringDecoder.path()).getPath());
+        } catch (URISyntaxException e) {
+            LOG.error("Error converting URL to path", e);
+            throw new ConverterException("Cannot convert path value");
         }
 
-        if (rawRequest.getContentType().isPresent()) {
-            String rawContentType = ((MediaType) rawRequest.getContentType().get()).toString();
+        if (rawRequest.headers().contains(HttpHeaderNames.CONTENT_TYPE)) {
+            String rawContentType = rawRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
 
             if (jsonPattern.matcher(rawContentType).matches()) {
                 request.setContentType("json");
@@ -87,28 +93,28 @@ public class HttpMessageConverter {
         }
 
         //content-length is within limit so process
-        request.setBody((String) rawRequest.getBody(String.class).orElse(""));
-
-        //check body length again, could be sent without a content-length..
-        if (request.getBody().length() > maxContentLengthBytes) {
-            throw new ConverterException("Bad request - your request body exceeds the maximum allowed of " + maxContentLengthBytes + " bytes");
-        }
+        ByteBuf content = rawRequest.content();
+        String rawBody = content.toString(Charset.defaultCharset());
+        request.setBody(rawBody == null ? "" : rawBody);
 
         //parse parameter, query params, cookies, headers etc.
-        Map queryParams = rawRequest.getParameters().asMap();
+        Map<String, List<String>> queryParams = queryStringDecoder.parameters();
         request.setQuery(mapUtils.flattenMultiValue(queryParams));
 
-        Map<String, String> cookies = new HashMap<>();
-        if (rawRequest.getCookies() != null) {
-            for (Cookie servletCookie : rawRequest.getCookies().getAll()) {
-                cookies.put(servletCookie.getName(), servletCookie.getValue());
+        if (rawRequest.headers().contains(HttpHeaderNames.COOKIE)) {
+            Map<String, String> cookies = new HashMap<>();
+            Set<io.netty.handler.codec.http.cookie.Cookie> rawCookies = ServerCookieDecoder.LAX.decode(rawRequest.headers().get(HttpHeaderNames.COOKIE));
+            if (rawCookies != null) {
+                for (io.netty.handler.codec.http.cookie.Cookie servletCookie : rawCookies) {
+                    cookies.put(servletCookie.name(), servletCookie.value());
+                }
             }
+            request.setCookies(cookies);
         }
-        request.setCookies(cookies);
 
         //normalise accepted header
         List<String> accepted = new ArrayList<String>();
-        for(String acceptedValue : rawRequest.getHeaders().getAll("Accept")){
+        for(String acceptedValue : rawRequest.headers().getAll("Accept")){
             if(acceptedValue.indexOf(",")!=-1){
                 for(String subValue : acceptedValue.split(",")){
                     accepted.add(subValue);
@@ -121,22 +127,34 @@ public class HttpMessageConverter {
 
         //normalise / map headers
         Map<String,String> normalisedHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        Map<String, List<String>> requestHeaders = rawRequest.getHeaders().asMap();
-        for(String key : requestHeaders.keySet()){
-            List<String> values = requestHeaders.get(key);
-            for (String value : values){
-                //if the SOAPAction is wrapped in quotes, remove them to simplify matching.
-                if(key.equalsIgnoreCase("SOAPAction") && value.startsWith("\"") && value.endsWith("\"")) value = value.substring(1, value.length()-1);
-                normalisedHeaders.put(key, value);
-            }
+        for(Map.Entry<String, String> entry : rawRequest.headers().entries()){
+            //if the SOAPAction is wrapped in quotes, remove them to simplify matching.
+            String value = entry.getValue();
+            if(entry.getKey().equalsIgnoreCase("SOAPAction") && value.startsWith("\"") && value.endsWith("\"")) value = value.substring(1, value.length()-1);
+            normalisedHeaders.put(entry.getKey(), value);
         }
         request.setHeaders(normalisedHeaders);
-
         return request;
     }
 
-    public HttpResponse convertResponse(HttpRuntimeRequest runtimeRequest, HttpRuntimeResponse runtimeResponse) throws ConverterException {
-        MutableHttpResponse result = HttpResponse.ok();
+    public FullHttpResponse convertResponse(HttpRuntimeRequest runtimeRequest, HttpRuntimeResponse runtimeResponse) throws ConverterException {
+        String responseBody;
+        try {
+            if(runtimeResponse.isError()){
+                //write out the error
+                responseBody = mapper.writeValueAsString(runtimeResponse.getError());
+            }else{
+                //write out the body
+                responseBody = runtimeResponse.getBody();
+                if (responseBody == null) {
+                    responseBody = "";
+                }
+            }
+        } catch (IOException e) {
+            throw new ConverterException("Error processing response body", e);
+        }
+
+        FullHttpResponse result = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, wrappedBuffer(responseBody.getBytes()));
 
         //CORS
         Map<String, String> runtimeResponseHeaders = runtimeResponse.getHeaders();
@@ -148,43 +166,36 @@ public class HttpMessageConverter {
         //headers
         if (runtimeResponseHeaders != null) {
             for (String key : runtimeResponseHeaders.keySet()) {
-                result.header(key, runtimeResponseHeaders.get(key));
+                result.headers().set(key, runtimeResponseHeaders.get(key));
             }
         }
 
         //status
         int statusCode = runtimeResponse.getStatusCode() <= 0 ? 200 : runtimeResponse.getStatusCode();
         if(runtimeResponse.getStatusText() != null){
-            result.status(statusCode, runtimeResponse.getStatusText());
+            result.setStatus(HttpResponseStatus.valueOf(statusCode, runtimeResponse.getStatusText()));
         }else{
-            result.status(statusCode);
+            result.setStatus(HttpResponseStatus.valueOf(statusCode));
         }
 
         //cookies
         if (runtimeResponse.getCookies() != null) {
             for (String[] cookie : runtimeResponse.getCookies()) {
-                result.header("Set-Cookie", cookie[0] + "=" + cookie[1]);
+                result.headers().set("Set-Cookie", cookie[0] + "=" + cookie[1]);
             }
         }
 
-        try {
-            if(runtimeResponse.isError()){
-                //write out the error
-                result.contentType("application/json");
-                result.body(mapper.writeValueAsString(runtimeResponse.getError()));
-            }else{
-                //write out the body
-                result.body(runtimeResponse.getBody());
-            }
-        } catch (IOException e) {
-            throw new ConverterException("Error processing response body", e);
+        if(runtimeResponse.isError()) {
+            //write out the error
+            result.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
+            //body is already set
         }
 
         return result;
     }
 
-    public String extractSandboxName(HttpRequest rawRequest){
-        String host = rawRequest.getHeaders().get("Host");
+    public String extractSandboxName(HttpHeaders rawHeaders){
+        String host = rawHeaders.get("Host");
         if(host == null || !host.contains(".")) {
             return null;
         }

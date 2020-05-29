@@ -5,7 +5,7 @@ import com.sandbox.worker.cli.services.LocalFileMetadataService;
 import com.sandbox.worker.core.js.ContextFactory;
 import com.sandbox.worker.core.js.ProcessRequestExecutor;
 import com.sandbox.worker.core.js.models.WorkerRunnableContext;
-import com.sandbox.worker.core.server.RequestFilter;
+import com.sandbox.worker.core.server.RequestHandler;
 import com.sandbox.worker.core.server.WorkerRequestRunnable;
 import com.sandbox.worker.core.server.services.HttpMessageConverter;
 import com.sandbox.worker.core.services.InMemoryStateService;
@@ -21,7 +21,6 @@ import com.sandbox.worker.models.interfaces.HTTPRoute;
 import com.sandbox.worker.models.interfaces.SandboxEventEmitterService;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import io.micronaut.context.annotation.Context;
-import io.micronaut.http.annotation.Filter;
 import io.micronaut.scheduling.TaskExecutors;
 
 import java.io.IOException;
@@ -48,17 +47,16 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 //This is a filter as micronaut doesnt appear to have a way to have a wildcard route defined using normal syntax.
 @Context
-@Filter("/**")
-public class CLIRequestFilter extends RequestFilter {
+public class CLIRequestHandler extends RequestHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CLIRequestFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CLIRequestHandler.class);
 
     private final ExecutorService engineExecutor = Executors.newFixedThreadPool(1, r -> new Thread(r, "engine-executor"));
     private final SandboxIdentifier sandboxIdentifier = new SandboxIdentifier("sandbox-id");
     private final Config config;
     private final FormatUtils formatUtils = new FormatUtils();
 
-    public CLIRequestFilter(Config config, SandboxEventEmitterService eventEmitterService, HttpMessageConverter httpMessageConverter, @javax.inject.Named(TaskExecutors.IO) ExecutorService ioExecutor) {
+    public CLIRequestHandler(Config config, SandboxEventEmitterService eventEmitterService, HttpMessageConverter httpMessageConverter, @javax.inject.Named(TaskExecutors.IO) ExecutorService ioExecutor) {
         super(eventEmitterService,
                 new ProcessRequestExecutor(config.getRequestMaxRenderLength()),
                 config.getStatePath() == null ? new InMemoryStateService() : new LocalFileStateService(config.getStatePath()),

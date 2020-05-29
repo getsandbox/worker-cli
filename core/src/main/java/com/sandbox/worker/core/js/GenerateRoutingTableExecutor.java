@@ -41,9 +41,11 @@ public class GenerateRoutingTableExecutor extends AbstractJSExecutor<SandboxIden
 
         //enrich with route config
         SandboxMetadata sandboxMetadata = scriptContext.getMetadata();
-        for (Route tableRoute : routingTable.getRouteDetails()){
-            if(sandboxMetadata.getRouteConfig().containsKey(tableRoute.getRouteIdentifier())) {
-                tableRoute.setRouteConfig(sandboxMetadata.getRouteConfig().get(tableRoute.getRouteIdentifier()));
+        if (sandboxMetadata.getRouteConfig() != null) {
+            for (Route tableRoute : routingTable.getRouteDetails()){
+                if(sandboxMetadata.getRouteConfig().containsKey(tableRoute.getRouteIdentifier())) {
+                    tableRoute.setRouteConfig(sandboxMetadata.getRouteConfig().get(tableRoute.getRouteIdentifier()));
+                }
             }
         }
 

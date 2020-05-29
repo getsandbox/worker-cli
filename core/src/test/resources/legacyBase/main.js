@@ -107,8 +107,8 @@ Sandbox.define("/handleHttpRequest_xmlFindLoop", function(req, res) {
 	res.send(result) 
 })
 
-//handleHttpRequest_invalidXpath
-Sandbox.define("/handleHttpRequest_invalidXpath", function(req, res) { res.send(req.xmlDoc.get("//*[name()='APCN']")) })
+//handleHttpRequest_emptySend
+Sandbox.define("/handleHttpRequest_emptySend", function(req, res) { res.send(req.xmlDoc.get("//*[name()='APCN']")) })
 
 //handleHttpRequest_invalidXpath2
 Sandbox.define("/handleHttpRequest_invalidXpath2", function(req, res) { 

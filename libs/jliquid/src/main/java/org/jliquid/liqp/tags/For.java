@@ -50,7 +50,7 @@ class For extends Tag {
         Object originalForLoopContext = context.get(FORLOOP);
 
         //put new forloop context for this loop
-        context.put(FORLOOP, new HashMap<String, Object>());
+        context.put(FORLOOP, getContextMap());
 
         Object rendered = array ? renderArray(id, context, nodes) : renderRange(id, context, nodes);
 

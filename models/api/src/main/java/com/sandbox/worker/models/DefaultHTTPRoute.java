@@ -5,6 +5,7 @@ import com.sandbox.worker.RouteSupport;
 import com.sandbox.worker.models.enums.RuntimeTransportType;
 import com.sandbox.worker.models.interfaces.HTTPRoute;
 
+import java.lang.ref.SoftReference;
 import java.util.Map;
 import org.apache.cxf.custom.jaxrs.model.ExactMatchURITemplate;
 
@@ -12,9 +13,8 @@ public class DefaultHTTPRoute extends DefaultRoute implements HTTPRoute {
 
     private String method;
     private String path;
-
     @JsonIgnore
-    private ExactMatchURITemplate uriTemplate;
+    private SoftReference<ExactMatchURITemplate> pathTemplate;
 
     public DefaultHTTPRoute() {
         super();
@@ -25,7 +25,7 @@ public class DefaultHTTPRoute extends DefaultRoute implements HTTPRoute {
         this();
 
         //coalesce varied wildcard method into one
-        this.method = RouteSupport.sanitiseRouteMethod(method);;
+        this.method = RouteSupport.sanitiseRouteMethod(method);
         this.path = RouteSupport.sanitiseRoutePath(path);
         setProperties(properties);
     }
@@ -55,25 +55,20 @@ public class DefaultHTTPRoute extends DefaultRoute implements HTTPRoute {
         this.path = path;
     }
 
-    public ExactMatchURITemplate getUriTemplate() {
-        return uriTemplate;
-    }
-
-    protected void setUriTemplate(ExactMatchURITemplate uriTemplate) {
-        this.uriTemplate = uriTemplate;
-    }
-
-    public ExactMatchURITemplate process(){
-        if(uriTemplate != null) return uriTemplate;
-
-        uriTemplate = new ExactMatchURITemplate(getPath());
-        return uriTemplate;
+    @Override
+    public ExactMatchURITemplate getPathTemplate() {
+        ExactMatchURITemplate result;
+        if(pathTemplate == null || (result = pathTemplate.get()) == null) {
+            result = RouteSupport.getTemplate(this.path);
+            pathTemplate = new SoftReference<>(result);
+        }
+        return result;
     }
 
     @JsonIgnore
     @Override
     public String getProcessingKey() {
-        return process().getLiteralChars();
+        return getPathTemplate().getLiteralChars();
     }
 
     @JsonIgnore

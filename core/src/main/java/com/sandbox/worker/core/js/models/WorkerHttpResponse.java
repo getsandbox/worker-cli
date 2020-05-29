@@ -54,12 +54,13 @@ public class WorkerHttpResponse {
         status(status);
         send("");
     }
-    
+
     // Content-Type defaulted to 'application/json'
     @HostAccess.Export
     public void send(Object body) {
-        if(body != null){
-            this.responseConfigured = true;
+        this.responseConfigured = true;
+        if(body == null){
+            body = "";
         }
 
         if (body instanceof Map || body instanceof Collection) {
