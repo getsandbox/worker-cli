@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = WorkerInactiveEvent.class, name = "worker_inactive_event"),
+        @JsonSubTypes.Type(value = WorkerContextInactiveEvent.class, name = "worker_context_inactive_event"),
         @JsonSubTypes.Type(value = SandboxRequestEvent.class, name = "worker_request_event"),
         @JsonSubTypes.Type(value = SandboxUpdatedEvent.class, name = "sandbox_updated_event"),
         @JsonSubTypes.Type(value = SandboxDeletedEvent.class, name = "sandbox_deleted_event"),

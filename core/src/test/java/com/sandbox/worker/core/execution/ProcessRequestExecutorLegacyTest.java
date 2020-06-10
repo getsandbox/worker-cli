@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sandbox.worker.core.exceptions.ServiceScriptException;
 import com.sandbox.worker.core.js.ProcessRequestExecutor;
+import com.sandbox.worker.core.js.models.BodyContentType;
 import com.sandbox.worker.core.js.models.WorkerScriptContext;
 import com.sandbox.worker.core.services.InMemoryMetadataService;
 import com.sandbox.worker.core.services.InMemoryStateService;
@@ -54,6 +55,22 @@ public abstract class ProcessRequestExecutorLegacyTest {
 
     public WorkerScriptContext getBaseContext() throws Exception {
         return context("./core/src/test/resources/legacyBase", getExecutionVersion());
+    }
+
+    @Test
+    void handleHttpRequest_setAndHeaderWithObject() throws Exception {
+        String mainjs = "Sandbox.define('/test', function(req, res) { res.set({'a':'1', 'b': 2}); res.header({'c':'3', 'd': 4}); res.send('done'); })";
+        RepositoryService repositoryService = mock(LocalFileRepositoryService.class);
+        when(repositoryService.getRepositoryFile(anyString(), anyString())).thenReturn(mainjs);
+
+        HttpRuntimeRequest httpReq = buildHttp("GET", "/test");
+        HttpRuntimeResponse res = handleHttpRequest(context(buildRepo(repositoryService, "main.js"), getExecutionVersion()), httpReq);
+
+        assertEquals(200, res.getStatusCode());
+        assertEquals("1", res.getHeaders().get("a"));
+        assertEquals("2", res.getHeaders().get("b"));
+        assertEquals("3", res.getHeaders().get("c"));
+        assertEquals("4", res.getHeaders().get("d"));
     }
 
     @Test
@@ -269,7 +286,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_runBasicUrlEncodedBody");
         httpReq.setBody("attr=blah&second=qpoklskdjsmth&first=notused&first=1234");
-        httpReq.setContentType("urlencoded");
+        httpReq.setContentType(BodyContentType.URLENCODED.getType());
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
 
         assertEquals("blah-1234", res.getBody());
@@ -396,7 +413,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_validXmlBody() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_validXmlBody");
-        httpReq.setContentType("xml");
+        httpReq.setContentType(BodyContentType.XML.getType());
         httpReq.setBody("<users><user><username>nhoughto</username><firstname>nick</firstname></user></users>");
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
 
@@ -409,7 +426,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_validXpath() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_validXpath");
-        httpReq.setContentType("xml");
+        httpReq.setContentType(BodyContentType.XML.getType());
         httpReq.setBody("<users><user><username>nhoughto</username><firstname>nick</firstname></user></users>");
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
 
@@ -421,7 +438,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_xmlFindLoop() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_xmlFindLoop");
-        httpReq.setContentType("xml");
+        httpReq.setContentType(BodyContentType.XML.getType());
         httpReq.setBody("<getInventoryRequest>\n" +
                 "    <getQuantities>\n" +
                 "        <inventoryItemName>8050202001</inventoryItemName>\n" +
@@ -445,7 +462,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     @Test
     public void handleHttpRequest_emptySend() throws Exception {
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_emptySend");
-        httpReq.setContentType("xml");
+        httpReq.setContentType(BodyContentType.XML.getType());
         httpReq.setBody("<users><user><username>nhoughto</username><firstname>nick</firstname></user></users>");
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
         assertEquals("", res.getBody());
@@ -455,7 +472,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_invalidXpath2() throws Exception {
         ServiceScriptException exception = assertThrows(ServiceScriptException.class, () -> {
             HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_invalidXpath2");
-            httpReq.setContentType("xml");
+            httpReq.setContentType(BodyContentType.XML.getType());
             httpReq.setBody("<users><user><username>nhoughto</username><firstname>nick</firstname></user></users>");
             handleHttpRequest(getBaseContext(), httpReq);
         });
@@ -468,7 +485,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_invalidXmlbody() {
         ServiceScriptException exception = assertThrows(ServiceScriptException.class, () -> {
             HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_invalidXmlbody");
-            httpReq.setContentType("xml");
+            httpReq.setContentType(BodyContentType.XML.getType());
             httpReq.setBody("<user><unclosedtag>");
             handleHttpRequest(getBaseContext(), httpReq);
         });
@@ -479,7 +496,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_xmlNestedXpath() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("POST", "/handleHttpRequest_xmlNestedXpath");
-        httpReq.setContentType("xml");
+        httpReq.setContentType(BodyContentType.XML.getType());
         httpReq.setBody("<PutFTBReport targetNamespace=\"http://vedaleon.com.au/DCSWebServices/ReportServices\">\n" +
                 "    <Report>\n" +
                 "        <ReportType>FTB</ReportType>\n" +
@@ -518,7 +535,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
         when(repositoryService.getRepositoryFile(anyString(), eq("templates/a.liquid"))).thenReturn("{{ data.a }}");
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_simpleRender");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("{\"a\":\"b\"}");
         HttpRuntimeResponse res = handleHttpRequest(context(buildRepo(repositoryService, "main.js", "templates/a.liquid"), getExecutionVersion()), httpReq);
 
@@ -533,7 +550,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
         when(repositoryService.getRepositoryFile(anyString(), eq("templates/b.liquid"))).thenReturn("{{ data.a }}");
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_includeRender");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("{\"a\":\"b\"}");
         HttpRuntimeResponse res = handleHttpRequest(context(buildRepo(repositoryService, "main.js", "templates/a.liquid", "templates/b.liquid"), getExecutionVersion()), httpReq);
 
@@ -547,7 +564,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
         when(repositoryService.getRepositoryFile(anyString(), eq("templates/a.liquid"))).thenReturn("{% for item in data.hash %}\n{{ item[1] }}\n{% endfor %}");
         ServiceScriptException exception = assertThrows(ServiceScriptException.class, () -> {
             HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_exceededRender");
-            httpReq.setContentType("json");
+            httpReq.setContentType(BodyContentType.JSON.getType());
             httpReq.setBody("{\"a\":\"b\"}");
             handleHttpRequest(context(buildRepo(repositoryService, "main.js", "templates/a.liquid"), getExecutionVersion()), httpReq);
         });
@@ -564,7 +581,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
 
         ServiceScriptException exception = assertThrows(ServiceScriptException.class, () -> {
             HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_invalidIncludeRender");
-            httpReq.setContentType("json");
+            httpReq.setContentType(BodyContentType.JSON.getType());
             httpReq.setBody("{\"a\":\"b\"}");
             handleHttpRequest(context(buildRepo(repositoryService, "main.js", "templates/loop.liquid", "templates.wrong.liquid"), getExecutionVersion()), httpReq);
         });
@@ -580,7 +597,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
 
         ServiceScriptException exception = assertThrows(ServiceScriptException.class, () -> {
             HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_endlessLoopIncludeRender");
-            httpReq.setContentType("json");
+            httpReq.setContentType(BodyContentType.JSON.getType());
             httpReq.setBody("{\"a\":\"b\"}");
             HttpRuntimeResponse res = handleHttpRequest(context(buildRepo(repositoryService, "main.js", "templates/loop.liquid"), getExecutionVersion()), httpReq);
         });
@@ -596,7 +613,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
                 "{% endfor %}");
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_loopRender");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("{\"a\":\"b\"}");
         HttpRuntimeResponse res = handleHttpRequest(context(buildRepo(repositoryService, "main.js", "templates/a.liquid"), getExecutionVersion()), httpReq);
 
@@ -613,7 +630,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
                 "{% endfor %}");
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_deepLoopRender");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("{\"a\":\"b\"}");
         HttpRuntimeResponse res = handleHttpRequest(context(buildRepo(repositoryService, "main.js", "templates/a.liquid"), getExecutionVersion()), httpReq);
 
@@ -624,7 +641,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_validJsonObjectbody() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_validJsonObjectbody");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("{\"username\":\"nick\"}");
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
 
@@ -639,7 +656,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_testIsJsonBody() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_testIsJsonBody");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("{\"username\":\"nick\"}");
         httpReq.getHeaders().put("Content-Type", "application/json; charset=UTF8");
 
@@ -651,7 +668,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_validJsonArraybody() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_validJsonArraybody");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("[{\"username\":\"nick\"},{\"username\":\"ando\"}]");
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
 
@@ -670,7 +687,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_checkJsonSchema() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_checkJsonSchema");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("{\"id\":\"nick\"}");
 
         String schema = "{\n" +
@@ -704,7 +721,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_amandaTest() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_amandaTest");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("{\"id\":\"nick\"}");
 
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
@@ -716,7 +733,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_simpleMomentTest() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_simpleMomentTest");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("[{\"username\":\"nick\"},{\"username\":\"ando\"}]");
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
 
@@ -728,7 +745,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
         WorkerScriptContext service = getBaseContext();
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_simpleConsoleTest");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("[{\"username\":\"nick\"},{\"username\":\"ando\"}]");
         HttpRuntimeResponse res = handleHttpRequest(service, httpReq);
 
@@ -744,7 +761,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_validJsonArrayInLodash() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_validJsonArrayInLodash");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("[{\"username\":\"nick\"},{\"username\":\"ando\"}]");
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
 
@@ -807,7 +824,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
     public void handleHttpRequest_validJsonAssortedArraybody() throws Exception {
 
         HttpRuntimeRequest httpReq = buildHttp("GET", "/handleHttpRequest_validJsonAssortedArraybody");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
         httpReq.setBody("[{\"username\":\"nick\"},1,\"a string\",[\"nested\",\"array\"]]");
         HttpRuntimeResponse res = handleHttpRequest(getBaseContext(), httpReq);
 
@@ -935,7 +952,7 @@ public abstract class ProcessRequestExecutorLegacyTest {
                 "        }\n" +
                 "    ]\n" +
                 "}");
-        httpReq.setContentType("json");
+        httpReq.setContentType(BodyContentType.JSON.getType());
 
         HttpRuntimeResponse res = handleHttpRequest(context(buildRepo(repositoryService, "main.js"), stateService, getExecutionVersion()), httpReq);
         assertEquals(201, res.getStatusCode());

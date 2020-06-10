@@ -1,13 +1,20 @@
 (function(global) {
   var wrappedRequest = {}
+  var wrappedResponse = {}
+
   sandboxValidator(wrappedRequest, __service)
+  sandboxTemplates(wrappedResponse, __service)
 
   var wrapCallback = function (callback) {
     return function (callbackRequest, callbackResponse) {
       Object.keys(callbackRequest).forEach(function (property) {
         if (typeof callbackRequest[property] == 'function') {
           wrappedRequest[property] = function () {
-            return callbackRequest[property](Array.prototype.slice.call(arguments))
+            if (arguments.length == 1) { //needed to avoid single arg vs single element Object[] problem
+                return callbackRequest[property](Array.prototype.slice.call(arguments))
+            } else {
+                return callbackRequest[property](...arguments)
+            }
           }
         } else {
           wrappedRequest[property] = callbackRequest[property]
@@ -15,7 +22,20 @@
           wrappedRequest._validationErrors = undefined
         }
       })
-      return callback(wrappedRequest, callbackResponse)
+      Object.keys(callbackResponse).forEach(function (property) {
+        if (typeof callbackResponse[property] == 'function') {
+          wrappedResponse[property] = function () {
+            return callbackResponse[property](...arguments)
+          }
+        } else {
+          wrappedResponse[property] = callbackResponse[property]
+        }
+      })
+      //add render function that adds in the sandboxRequest
+      wrappedResponse.render = function() {
+        wrappedResponse.renderWithRequest(callbackRequest, ...arguments)
+      }
+      return callback(wrappedRequest, wrappedResponse)
     }
   }
 

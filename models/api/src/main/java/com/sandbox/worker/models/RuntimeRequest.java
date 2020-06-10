@@ -1,7 +1,9 @@
 package com.sandbox.worker.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.sandbox.worker.models.interfaces.BodyParserFunction;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.HashMap;
@@ -34,6 +36,8 @@ public abstract class RuntimeRequest {
     String body;
     @ApiModelProperty(value = "The content type of the body, for example 'application/json'.")
     String contentType;
+    @JsonIgnore
+    BodyParserFunction<String, Object> contentParser;
     @ApiModelProperty(value = "The requestor IP address.")
     String ip;
     @ApiModelProperty(value = "The epoch time in milliseconds when the request was received.")
@@ -107,6 +111,14 @@ public abstract class RuntimeRequest {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public BodyParserFunction<String, Object> getContentParser() {
+        return contentParser;
+    }
+
+    public void setContentParser(BodyParserFunction<String, Object> contentParser) {
+        this.contentParser = contentParser;
     }
 
     public String getIp() {

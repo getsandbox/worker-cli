@@ -3,13 +3,13 @@ package com.sandbox.worker.core.services;
 import com.sandbox.worker.core.exceptions.ServiceScriptException;
 import com.sandbox.worker.core.js.models.WorkerHttpRequest;
 import com.sandbox.worker.models.HttpRuntimeRequest;
-
-import java.util.function.Function;
+import com.sandbox.worker.models.interfaces.BodyParserFunction;
 
 public class RuntimeRequestConverter {
 
-    public static WorkerHttpRequest fromInstanceHttpRequest(HttpRuntimeRequest request, Function<String, Object> jsonParser) throws ServiceScriptException {
-        return new WorkerHttpRequest(jsonParser,request.getPath(),
+    public static WorkerHttpRequest fromInstanceHttpRequest(HttpRuntimeRequest request, BodyParserFunction<String, Object> optionalBodyParser) throws ServiceScriptException {
+        return new WorkerHttpRequest(optionalBodyParser,
+                request.getPath(),
                 request.getMethod(),
                 request.getHeaders(),
                 request.getProperties(),

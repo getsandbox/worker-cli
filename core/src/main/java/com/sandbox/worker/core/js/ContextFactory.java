@@ -284,11 +284,15 @@ public class ContextFactory {
         String sandboxLibrariesJS = IOUtils.toString(ContextFactory.class.getClassLoader().getResource(versionContext.getLibrariesPath() + "sandbox-libraries.js"), "UTF-8");
         executionContext.eval(Source.newBuilder("js", sandboxLibrariesJS, "<sandbox-libraries>").build());
 
+        String sandboxTemplatesJS = IOUtils.toString(ContextFactory.class.getClassLoader().getResource(versionContext.getLibrariesPath() + "sandbox-templates.js"), "UTF-8");
+        executionContext.eval(Source.newBuilder("js", sandboxTemplatesJS, "<sandbox-templates>").build());
+
         String sandboxValidatorJS = IOUtils.toString(ContextFactory.class.getClassLoader().getResource(versionContext.getLibrariesPath() + "sandbox-validator.js"), "UTF-8");
         executionContext.eval(Source.newBuilder("js", sandboxValidatorJS, "<sandbox-validator>").build());
 
         String sandboxPatchJS = IOUtils.toString(ContextFactory.class.getClassLoader().getResource(versionContext.getLibrariesPath() + "sandbox-patch.js"), "UTF-8");
         executionContext.eval(Source.newBuilder("js", sandboxPatchJS, "<sandbox-internal>").build());
+
         LOG.debug("createContext - patched context at: {}ms", System.currentTimeMillis() - start);
 
         //inject state

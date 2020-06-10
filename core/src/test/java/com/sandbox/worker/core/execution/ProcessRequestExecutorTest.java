@@ -1,6 +1,8 @@
 package com.sandbox.worker.core.execution;
 
+import com.sandbox.worker.core.exceptions.ServiceScriptException;
 import com.sandbox.worker.core.js.ProcessRequestExecutor;
+import com.sandbox.worker.core.js.models.BodyContentType;
 import com.sandbox.worker.core.js.models.WorkerScriptContext;
 import com.sandbox.worker.models.HttpRuntimeRequest;
 import com.sandbox.worker.models.HttpRuntimeResponse;
@@ -8,6 +10,7 @@ import com.sandbox.worker.test.ProcessRequestExecutorHelper;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,12 +36,47 @@ class ProcessRequestExecutorTest {
     }
 
     @Test
+    void testLiquidSuccess() throws Exception {
+        WorkerScriptContext scriptContext = ProcessRequestExecutorHelper.context("./core/src/test/resources/processRequestLiquidSuccess");
+        HttpRuntimeRequest request = new HttpRuntimeRequest();
+        request.setMethod("GET");
+        request.setUrl("/context");
+
+        HttpRuntimeResponse response = executor.execute(request, scriptContext);
+        assertEquals(200, response.getStatusCode());
+        assertEquals("working, hello world", response.getBody());
+
+        request = new HttpRuntimeRequest();
+        request.setMethod("GET");
+        request.setUrl("/nocontext");
+
+        response = executor.execute(request, scriptContext);
+        assertEquals(200, response.getStatusCode());
+        assertEquals("working, ", response.getBody());
+
+        request = new HttpRuntimeRequest();
+        request.setMethod("GET");
+        request.setUrl("/explicit");
+
+        response = executor.execute(request, scriptContext);
+        assertEquals(200, response.getStatusCode());
+        assertEquals("working, hello world", response.getBody());
+
+        Assertions.assertThrows(ServiceScriptException.class, () -> {
+            HttpRuntimeRequest invalidRequest = new HttpRuntimeRequest();
+            invalidRequest.setMethod("GET");
+            invalidRequest.setUrl("/invalid");
+            executor.execute(invalidRequest, scriptContext);
+        });
+    }
+
+    @Test
     void testJSONSchemaValidateSuccess() throws Exception {
         WorkerScriptContext scriptContext = ProcessRequestExecutorHelper.context("./core/src/test/resources/processRequestJSONSchemaValidateSuccess");
         HttpRuntimeRequest request = new HttpRuntimeRequest();
         request.setMethod("GET");
         request.setUrl("/test");
-        request.setContentType("json");
+        request.setContentType(BodyContentType.JSON.getType());
         request.setBody("{\"id\":\"nick\"}");
 
         HttpRuntimeResponse response = executor.execute(request, scriptContext);

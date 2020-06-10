@@ -2,6 +2,7 @@ package com.sandbox.worker.core.server.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.worker.MapUtils;
+import com.sandbox.worker.core.js.models.BodyContentType;
 import com.sandbox.worker.core.server.exceptions.ConverterException;
 import com.sandbox.worker.models.HttpRuntimeRequest;
 import com.sandbox.worker.models.HttpRuntimeResponse;
@@ -15,10 +16,11 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.multipart.HttpData;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,22 +76,28 @@ public class HttpMessageConverter {
         request.setMethod(rawRequest.method().name());
         QueryStringDecoder queryStringDecoder = new QueryStringDecoder(rawRequest.uri());
         request.setRawQuery(queryStringDecoder.rawQuery());
-        try {
-            request.setUrl(new URI(queryStringDecoder.path()).getPath());
-        } catch (URISyntaxException e) {
-            LOG.error("Error converting URL to path", e);
-            throw new ConverterException("Cannot convert path value");
-        }
+        String decodedPath = queryStringDecoder.path();
+        decodedPath = decodedPath.contains("?") ? decodedPath.substring(0, decodedPath.indexOf("?")) : decodedPath;
+        request.setUrl(decodedPath);
 
         if (rawRequest.headers().contains(HttpHeaderNames.CONTENT_TYPE)) {
             String rawContentType = rawRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
 
             if (jsonPattern.matcher(rawContentType).matches()) {
-                request.setContentType("json");
+                request.setContentType(BodyContentType.JSON.getType());
             } else if (xmlPattern.matcher(rawContentType).matches()) {
-                request.setContentType("xml");
+                request.setContentType(BodyContentType.XML.getType());
             } else if (rawContentType.startsWith("application/x-www-form-urlencoded")) {
-                request.setContentType("urlencoded");
+                request.setContentType(BodyContentType.URLENCODED.getType());
+            } else if (rawContentType.startsWith("multipart/form-data")) {
+                request.setContentType(BodyContentType.FORMDATA.getType());
+                request.setContentParser(s -> {
+                    Map<String, Object> map = new HashMap<>();
+                    for (InterfaceHttpData p : new HttpPostRequestDecoder(rawRequest).getBodyHttpDatas()) {
+                        map.put(p.getName(), ((HttpData) p).getString());
+                    }
+                    return ProxyObject.fromMap(map);
+                });
             }
         }
 

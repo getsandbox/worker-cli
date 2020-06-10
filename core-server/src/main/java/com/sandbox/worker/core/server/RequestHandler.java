@@ -6,6 +6,7 @@ import com.sandbox.worker.core.js.ContextFactory;
 import com.sandbox.worker.core.js.GenerateRoutingTableExecutor;
 import com.sandbox.worker.core.js.ProcessRequestExecutor;
 import com.sandbox.worker.core.js.ScriptFunctions;
+import com.sandbox.worker.core.js.models.BodyContentType;
 import com.sandbox.worker.core.js.models.RouteDetailsProjection;
 import com.sandbox.worker.core.js.models.ScriptObject;
 import com.sandbox.worker.core.js.models.WorkerHttpRequest;
@@ -180,7 +181,6 @@ public abstract class RequestHandler {
         });
     }
 
-    //remove?
     protected WorkerScriptContext getLoadedScriptContext(SandboxIdentifier sandboxIdentifier) throws Exception {
         //Get context, will already exist is this isn't first run
         WorkerScriptContext scriptContext = ContextFactory.getOrCreateContext(sandboxIdentifier, repositoryArchiveService, stateService, metadataService);
@@ -269,7 +269,7 @@ public abstract class RequestHandler {
             RoutingTable routingTable = scriptContext.getRoutingTable();
 
             //Find route for inbound request, fail if not found
-            if ("xml".equals(runtimeRequest.getContentType())) {
+            if (BodyContentType.XML.getType().equals(runtimeRequest.getContentType())) {
                 try {
                     if (runtimeRequest.getHeaders().get("SOAPAction") != null) {
                         runtimeRequest.getProperties().put("SOAPAction", runtimeRequest.getHeaders().get("SOAPAction"));

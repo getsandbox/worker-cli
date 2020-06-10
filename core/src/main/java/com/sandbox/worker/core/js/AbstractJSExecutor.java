@@ -38,6 +38,7 @@ public abstract class AbstractJSExecutor<R, T> {
                 Source mainModule = Source.newBuilder("js", scriptFunctions.readFile( "main.js"), "main.js").build();
                 JSContextHelper.eval(scriptContext, mainModule);
             }
+
             scriptContext.setNeedsBootstrap(false);
 
         } catch (Exception e) {

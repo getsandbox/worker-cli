@@ -1,7 +1,5 @@
 package com.sandbox.worker.core.js.models;
 
-import com.sandbox.worker.core.graal.ValueMapWrapper;
-
 import javax.activation.MimetypesFileTypeMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -103,46 +101,9 @@ public class WorkerHttpResponse {
     }
 
     @HostAccess.Export
-    public void render(String templateName, Object templateLocals) {
-        this.responseConfigured = true;
-        setTemplateName(templateName);
-        Map locals = null;
-
-        //be defensive against crap being passed in, only maps are supported. Could be 'Undefined' or any junk.
-        if (templateLocals instanceof Map) {
-            locals = (Map) templateLocals;
-        } else if(templateLocals instanceof Value){
-            locals = ValueMapWrapper.fromValue((Value) templateLocals);
-        } else {
-            LOG.error("Invalid object passed to render(), return new map, {}", templateLocals.getClass());
-            locals = new HashMap<>();
-        }
-        setTemplateLocals(locals);
-        setRendered(true);
-    }
-
-    @HostAccess.Export
-    public void render(String templateName, Value templateLocals) {
-        render(templateName, (Object) templateLocals);
-    }
-
-
-    @HostAccess.Export
-    public void render(String templateName) {
-        this.responseConfigured = true;
-        setTemplateName(templateName);
-        setRendered(true);
-    }
-
-    @HostAccess.Export
     public void header(String header, String value) {
         this.responseConfigured = true;
         getHeaders().put(header, value);
-    }
-
-    @HostAccess.Export
-    public void set(String header, String value) {
-        header(header, value);
     }
 
     // concat the array to a string
@@ -151,6 +112,21 @@ public class WorkerHttpResponse {
     public void header(String header, String[] values) {
         String value = Arrays.asList(values).stream().collect(Collectors.joining(","));
         header(header, value);
+    }
+
+    @HostAccess.Export
+    public void header(Value values) {
+        values.getMemberKeys().forEach(h -> header(h, values.getMember(h).toString()));
+    }
+
+    @HostAccess.Export
+    public void set(String header, String value) {
+        header(header, value);
+    }
+
+    @HostAccess.Export
+    public void set(Value values) {
+        values.getMemberKeys().forEach(h -> set(h, values.getMember(h).toString()));
     }
 
     @HostAccess.Export

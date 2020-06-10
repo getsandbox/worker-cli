@@ -2,16 +2,14 @@ package com.sandbox.worker.core.js.models;
 
 
 import com.sandbox.worker.core.exceptions.ServiceScriptException;
-import com.sandbox.worker.core.utils.URISupport;
 import com.sandbox.worker.core.utils.XMLDoc;
+import com.sandbox.worker.models.interfaces.BodyParserFunction;
 
 import javax.activation.MimetypesFileTypeMap;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -51,7 +49,7 @@ public class WorkerHttpRequest {
 
     private static MimetypesFileTypeMap mimeTypes = new MimetypesFileTypeMap();
 
-    public WorkerHttpRequest(Function<String, Object> jsonParser, String path, String method, Map<String, String> headers,
+    public WorkerHttpRequest(BodyParserFunction<String, Object> bodyParser, String path, String method, Map<String, String> headers,
                              Map<String, String> properties, Map<String, String> query, Map<String, String> params,
                              Map<String, String> cookies, String body, String contentType,
                              String ip, List<String> accepted, String url) throws ServiceScriptException {
@@ -63,19 +61,12 @@ public class WorkerHttpRequest {
         this.ip = ip != null ? ip : "";
 
         Object parsedBody = null;
-        XMLDoc parsedXMLBody = null;
 
         // if the body is non-zero length then parse it
         if (body != null && !body.isEmpty()) {
             try {
-                if ("json".equalsIgnoreCase(this.contentType)) {
-                    parsedBody = jsonParser.apply(body);
-
-                } else if ("xml".equalsIgnoreCase(this.contentType)) {
-                    parsedXMLBody = new XMLDoc(body);
-
-                } else if ("urlencoded".equalsIgnoreCase(this.contentType)) {
-                    parsedBody = ProxyObject.fromMap(new HashMap<>(decodeBody(body)));
+                if (bodyParser != null) {
+                    parsedBody = bodyParser.apply(body);
 
                 } else {
                     parsedBody = body;
@@ -85,8 +76,13 @@ public class WorkerHttpRequest {
             }
         }
 
-        this.body = parsedBody;
-        this.xmlDoc = parsedXMLBody;
+        if(parsedBody instanceof XMLDoc) {
+            this.body = null;
+            this.xmlDoc = (XMLDoc) parsedBody;
+        } else {
+            this.body = parsedBody;
+            this.xmlDoc = null;
+        }
 
         // set default values
         this.path = path != null ? path : "";
@@ -178,32 +174,6 @@ public class WorkerHttpRequest {
 
     public XMLDoc getXmlDoc() {
         return xmlDoc;
-    }
-
-    private HashMap<String, String> decodeBody(String body) throws Exception {
-        HashMap<String, String> queryMap = new HashMap<>();
-
-        try {
-            Map<String, Object> params = URISupport.parseQuery(body);
-            for (String key : params.keySet()) {
-                Object value = params.get(key);
-                if (value instanceof String) {
-                    value = URLDecoder.decode((String) value, "UTF-8");
-                    queryMap.put(key, (String) value);
-                }
-                if (value instanceof List) {
-                    for (Object listValue : (List) value) {
-                        listValue = URLDecoder.decode((String) listValue, "UTF-8");
-                        queryMap.put(key, (String) listValue);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception("Failed to parse urlencoded body");
-        }
-
-        return queryMap;
     }
 
     //using lowercase, non get prefixed method names so JS can find them when we do 'req.query.blah'.

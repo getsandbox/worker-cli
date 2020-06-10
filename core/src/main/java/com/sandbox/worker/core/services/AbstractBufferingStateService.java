@@ -49,8 +49,9 @@ public abstract class AbstractBufferingStateService implements BufferingStateSer
 
     @Override
     public void flush(String sandboxId) {
-        if (bufferedValues.containsKey(sandboxId)) {
-            setSandboxState(sandboxId, bufferedValues.get(sandboxId).getSupplier().get());
+        BufferedItem item = bufferedValues.remove(sandboxId);
+        if (item != null) {
+            setSandboxState(sandboxId, item.getSupplier().get());
         }
     }
 
