@@ -25,6 +25,13 @@ Fat JAR: https://storage.cloud.google.com/sandbox-releases/worker-cli/worker-cli
 
 ## Usage
 
+Docker:
+
+```
+docker run -v ./your-sandbox-definition:/base -it getsandbox/worker-cli:latest
+```
+
+CLI directly:
 ```
 Usage: sandbox [--quiet] [--verbose] [--watch] [--base=<basePath>]
                [--metadataLimit=<activityStorageLimit>]
