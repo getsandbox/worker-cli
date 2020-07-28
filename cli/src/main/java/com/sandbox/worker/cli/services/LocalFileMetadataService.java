@@ -7,14 +7,16 @@ import com.sandbox.worker.models.RouteConfig;
 import com.sandbox.worker.models.enums.RuntimeVersion;
 import com.sandbox.worker.models.interfaces.MetadataService;
 import com.sandbox.worker.models.interfaces.SandboxMetadata;
+import io.micronaut.core.annotation.Introspected;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Introspected
 public class LocalFileMetadataService implements MetadataService<Object> {
 
     private static final Logger LOG = LoggerFactory.getLogger(LocalFileMetadataService.class);

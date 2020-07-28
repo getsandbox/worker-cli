@@ -37,6 +37,7 @@ graal {
     option '--verbose'
     option '-J-Dio.netty.allocator.maxOrder=1'
     option '-J-Dpolyglot.image-build-time.PreinitializeContexts=js'
+    option '-J-Dfile.encoding=UTF-8'
 }
 
 nativeImage.inputs.property("graalOptions", graal.getOptions().get().toSet().sort().join(",").digest("SHA-1"))

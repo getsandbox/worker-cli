@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.worker.cli.config.Config;
 import com.sandbox.worker.core.services.FileBasedActivityStore;
 import io.micronaut.context.annotation.Context;
+import io.micronaut.core.annotation.Introspected;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -47,6 +48,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 //This sucks, micronaut only supports 1 server at a time atm so we stand up a separate netty server to serve activity
 //hopefully this can die soon and be replaced by some micronaut OTB
+@Introspected
 @Context
 @Singleton
 public class ActivityStoreServer {
@@ -87,6 +89,7 @@ public class ActivityStoreServer {
     }
 }
 
+@Introspected
 class ActivityServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private ObjectMapper mapper;
@@ -106,6 +109,7 @@ class ActivityServerInitializer extends ChannelInitializer<SocketChannel> {
     }
 }
 
+@Introspected
 class ActivityServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private ObjectMapper mapper;

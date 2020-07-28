@@ -18,6 +18,17 @@ import com.sandbox.worker.models.interfaces.MetadataService;
 import com.sandbox.worker.models.interfaces.RepositoryArchiveService;
 import com.sandbox.worker.models.interfaces.RepositoryService;
 import com.sandbox.worker.models.interfaces.SandboxMetadata;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.ResourceLimits;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.io.FileSystem;
+import org.graalvm.polyglot.proxy.ProxyObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,16 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Engine;
-import org.graalvm.polyglot.HostAccess;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.io.FileSystem;
-import org.graalvm.polyglot.proxy.ProxyObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.stream.Collectors;
 
 public class ContextFactory {
 
@@ -55,6 +57,13 @@ public class ContextFactory {
     private static final Map<SandboxIdentifier, WorkerScriptContext> existingContexts = new ConcurrentHashMap<>();
     private static final Map<SandboxIdentifier, Boolean> existingContextLocks = new ConcurrentHashMap<>();
     private static final ScheduledExecutorService cleanupExecutor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "contextCleanup"));
+
+    //this sucks, refactor away from static factory
+    private static int statementExecutionLimits = 1000000;
+
+    public static void setStatementExecutionLimits(int statementExecutionLimits) {
+        ContextFactory.statementExecutionLimits = statementExecutionLimits;
+    }
 
     public static void prepareContext(){
         LOG.info("Preparing contexts..");
@@ -147,6 +156,15 @@ public class ContextFactory {
             removedContext.getStateService().flush(removedContext.getSandboxIdentifier().getSandboxId());
             removedContext.close();
         }
+    }
+
+    public static void removeCancelledContextImmediately(Context context) {
+        List<SandboxIdentifier> toCancel = existingContexts.values().stream()
+                .filter(w -> w.getExecutionContext() == context)
+                .map(w -> w.getSandboxIdentifier())
+                .collect(Collectors.toList());
+
+        toCancel.forEach(existingContexts::remove);
     }
 
     public static void replaceExistingContext(String sandboxId, boolean flushBeforeCreate) throws Exception {
@@ -243,6 +261,10 @@ public class ContextFactory {
             contextBuilder.fileSystem(fileSystem);
         }
 
+        ResourceLimits executionLimits = ResourceLimits.newBuilder()
+                .statementLimit(statementExecutionLimits, null)
+                .build();
+
         contextBuilder
                 .engine(commonEngine)
                 .out(contextOutput)
@@ -254,6 +276,7 @@ public class ContextFactory {
                 .allowHostClassLoading(false)
                 .allowIO(true)
                 .allowExperimentalOptions(true)
+                .resourceLimits(executionLimits)
                 .option("js.polyglot-builtin", "false")
                 .option("js.shared-array-buffer", "false")
                 .option("js.atomics", "false")

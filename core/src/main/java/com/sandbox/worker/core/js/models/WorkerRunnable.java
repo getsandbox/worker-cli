@@ -1,9 +1,10 @@
 package com.sandbox.worker.core.js.models;
 
-import java.lang.ref.WeakReference;
-import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.ref.WeakReference;
+import java.util.concurrent.Callable;
 
 public abstract class WorkerRunnable implements Callable<Void> {
 
@@ -52,7 +53,6 @@ public abstract class WorkerRunnable implements Callable<Void> {
 
     public void exceeded() {
         exceeded = true;
-        doFail(new WorkerRunnableException("Request has exceeded execution limits"));
     }
 
     public void setTaskContext(WorkerRunnableContext taskContext) {

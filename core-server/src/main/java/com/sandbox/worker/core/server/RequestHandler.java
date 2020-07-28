@@ -2,6 +2,7 @@ package com.sandbox.worker.core.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sandbox.worker.RouteSupport;
+import com.sandbox.worker.core.exceptions.ServiceScriptException;
 import com.sandbox.worker.core.js.ContextFactory;
 import com.sandbox.worker.core.js.GenerateRoutingTableExecutor;
 import com.sandbox.worker.core.js.ProcessRequestExecutor;
@@ -38,6 +39,9 @@ import io.micronaut.core.annotation.TypeHint;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,9 +49,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+
+import static com.sandbox.worker.core.utils.ErrorUtils.EXCEEDED_EXECUTION_LIMITS;
 
 @TypeHint(
         value = {
@@ -210,6 +213,11 @@ public abstract class RequestHandler {
                 finalDisplayMessage = displayMessage;
             } else if (throwable instanceof WorkerRunnableException){
                 finalDisplayMessage = throwable.getMessage();
+            } else if (throwable instanceof ServiceScriptException &&
+                    throwable.getMessage().contains("Statement count limit") ||
+                    throwable.getMessage().contains("Execution got cancelled") ||
+                    throwable.getMessage().contains(EXCEEDED_EXECUTION_LIMITS)){
+                finalDisplayMessage = EXCEEDED_EXECUTION_LIMITS;
             } else {
                 finalDisplayMessage = "Error processing request";
             }
@@ -291,7 +299,7 @@ public abstract class RequestHandler {
                 handleRequestFailure(runtimeRequest, new Exception("Invalid route"), failureFuture);
                 return;
 
-            } else if (routeMatch.getRouteConfig() != null && routeMatch.getRouteConfig().getErrorStrategy() != ErrorStrategyEnum.NONE) {
+            } else if (routeMatch.getRouteConfig() != null && routeMatch.getRouteConfig().getErrorStrategy() != null && routeMatch.getRouteConfig().getErrorStrategy() != ErrorStrategyEnum.NONE) {
                 LOG.debug("Applying service override {} for {} {}",
                         routeMatch.getRouteConfig().getErrorStrategy(),
                         runtimeRequest.getMethod(),

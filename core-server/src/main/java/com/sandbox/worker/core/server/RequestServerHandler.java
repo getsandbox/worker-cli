@@ -9,13 +9,14 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.util.ReferenceCountUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class RequestServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
@@ -39,7 +40,7 @@ class RequestServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
         request.retain();
         SocketAddress remoteAddress = ctx.channel().remoteAddress();
         requestFilter.submitRequest(((InetSocketAddress) remoteAddress).getHostName(), request, r -> {
-            ReferenceCountUtil.safeRelease(request.release());
+            ReferenceCountUtil.safeRelease(request);
             if (HttpUtil.isKeepAlive(request)) {
                 r.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
             }
@@ -54,13 +55,22 @@ class RequestServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
     }
 
     protected void sendResponse(ChannelHandlerContext ctx, FullHttpResponse response) {
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+        //don't set content-length if response can't have a body, it confuses clients because netty won't write it out then length is wrong.
+        if (canHaveBody(response.status())) {
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+        }
         ChannelFuture responseFuture = ctx.writeAndFlush(response);
         responseFuture.addListener((ChannelFutureListener) future -> {
             if (!future.isSuccess()) {
                 LOG.error("Error writing response", future.cause());
             }
         });
+    }
+
+    protected boolean canHaveBody(HttpResponseStatus status) {
+        return !(status == HttpResponseStatus.CONTINUE || status == HttpResponseStatus.SWITCHING_PROTOCOLS ||
+                status == HttpResponseStatus.PROCESSING || status == HttpResponseStatus.NO_CONTENT ||
+                status == HttpResponseStatus.NOT_MODIFIED);
     }
 
 }

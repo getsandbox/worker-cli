@@ -8,14 +8,16 @@ import com.sandbox.worker.core.services.SandboxInMemoryEventService;
 import com.sandbox.worker.models.events.SandboxRequestEvent;
 import com.sandbox.worker.models.interfaces.ActivityStore;
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.core.annotation.Introspected;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Introspected
 @Factory
 public class BeanFactory {
 

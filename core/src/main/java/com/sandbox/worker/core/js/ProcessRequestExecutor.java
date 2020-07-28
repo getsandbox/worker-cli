@@ -2,8 +2,6 @@ package com.sandbox.worker.core.js;
 
 import com.sandbox.worker.core.exceptions.ServiceScriptException;
 import com.sandbox.worker.core.js.models.BodyContentType;
-import com.sandbox.worker.models.enums.RuntimeVersion;
-import com.sandbox.worker.models.interfaces.BodyParserFunction;
 import com.sandbox.worker.core.js.models.WorkerHttpRequest;
 import com.sandbox.worker.core.js.models.WorkerHttpResponse;
 import com.sandbox.worker.core.js.models.WorkerScriptContext;
@@ -14,15 +12,17 @@ import com.sandbox.worker.core.utils.URLEncodedUtils;
 import com.sandbox.worker.core.utils.XMLDoc;
 import com.sandbox.worker.models.HttpRuntimeRequest;
 import com.sandbox.worker.models.HttpRuntimeResponse;
+import com.sandbox.worker.models.enums.RuntimeVersion;
+import com.sandbox.worker.models.interfaces.BodyParserFunction;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ProcessRequestExecutor extends AbstractJSExecutor<HttpRuntimeRequest, HttpRuntimeResponse> {
 
@@ -49,7 +49,14 @@ public class ProcessRequestExecutor extends AbstractJSExecutor<HttpRuntimeReques
 
             //can override specific types
             if (BodyContentType.JSON.getType().equalsIgnoreCase(request.getContentType())) {
-                bodyParser = s -> JSContextHelper.execute(scriptContext, "JSON.parse", s);
+                bodyParser = s -> {
+                    try {
+                        return JSContextHelper.execute(scriptContext, "JSON.parse", s);
+                    } catch (Exception e) {
+                        //error parsing body, pass string value through
+                        return s;
+                    }
+                };
             } else if (BodyContentType.URLENCODED.getType().equalsIgnoreCase(request.getContentType())) {
                 bodyParser = s -> ProxyObject.fromMap(new HashMap(URLEncodedUtils.decodeBody(s)));
             } else if (BodyContentType.XML.getType().equalsIgnoreCase(request.getContentType())) {

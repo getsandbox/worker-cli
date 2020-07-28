@@ -5,11 +5,20 @@ public class ServiceScriptException extends Exception {
     String filename;
     int lineNumber = -1;
     int columnNumber = -1;
+
     public ServiceScriptException() {
     }
 
     public ServiceScriptException(Exception cause, String filename, int line, int column) {
-        super(cause.getMessage(),cause);
+        super(cause.getMessage(), cause);
+        this.filename = filename;
+        this.lineNumber = line;
+        this.columnNumber = column;
+
+    }
+
+    public ServiceScriptException(String message, String filename, int line, int column) {
+        super(message);
         this.filename = filename;
         this.lineNumber = line;
         this.columnNumber = column;
@@ -47,14 +56,14 @@ public class ServiceScriptException extends Exception {
 
     @Override
     public String getMessage() {
-        if (filename == null){
+        if (filename == null) {
             return String.format("%1$s", super.getMessage());
-        }else if(lineNumber <= 0 && columnNumber <= 0){
-            return String.format("%1$s: %2$s",filename, super.getMessage());
-        }else if(lineNumber > 0 && columnNumber <= 0){
-            return String.format("%1$s:%2$s %3$s",filename, lineNumber, super.getMessage());
-        }else{
-            return String.format("%1$s:%2$s:%3$s %4$s",filename, lineNumber, columnNumber, super.getMessage());
+        } else if (lineNumber <= 0 && columnNumber <= 0) {
+            return String.format("%1$s: %2$s", filename, super.getMessage());
+        } else if (lineNumber > 0 && columnNumber <= 0) {
+            return String.format("%1$s:%2$s %3$s", filename, lineNumber, super.getMessage());
+        } else {
+            return String.format("%1$s:%2$s:%3$s %4$s", filename, lineNumber, columnNumber, super.getMessage());
         }
     }
 

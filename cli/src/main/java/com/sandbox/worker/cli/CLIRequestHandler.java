@@ -21,7 +21,11 @@ import com.sandbox.worker.models.interfaces.HTTPRoute;
 import com.sandbox.worker.models.interfaces.SandboxEventEmitterService;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import io.micronaut.context.annotation.Context;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.scheduling.TaskExecutors;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -37,15 +41,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 //This is a filter as micronaut doesnt appear to have a way to have a wildcard route defined using normal syntax.
+@Introspected
 @Context
 public class CLIRequestHandler extends RequestHandler {
 

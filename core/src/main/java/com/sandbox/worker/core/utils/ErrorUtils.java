@@ -1,22 +1,31 @@
 package com.sandbox.worker.core.utils;
 
-import com.sandbox.worker.models.Error;
 import com.sandbox.worker.core.exceptions.ServiceScriptException;
-
-import java.util.regex.Pattern;
+import com.sandbox.worker.models.Error;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.SourceSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.regex.Pattern;
+
 public class ErrorUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ErrorUtils.class);
+    public static final String EXCEEDED_EXECUTION_LIMITS = "Request has exceeded execution limits";
 
     public static ServiceScriptException getServiceScriptException(Exception exception) {
         Throwable cause = unwrapThrowable(exception);
 
-        if (cause instanceof PolyglotException) {
+        if (cause instanceof PolyglotException && cause.getMessage().contains("Statement count limit")) {
+            SourceSection sourceSection = ((PolyglotException) cause).getSourceLocation();
+            LOG.error(EXCEEDED_EXECUTION_LIMITS, cause);
+            if (sourceSection != null) {
+                return new ServiceScriptException(EXCEEDED_EXECUTION_LIMITS, sourceSection.getSource().getName(), sourceSection.getStartLine(), sourceSection.getStartColumn());
+            } else {
+                return new ServiceScriptException(EXCEEDED_EXECUTION_LIMITS, cause);
+            }
+        } else if (cause instanceof PolyglotException) {
             SourceSection sourceSection = ((PolyglotException) cause).getSourceLocation();
             if (sourceSection != null) {
                 return new ServiceScriptException((Exception) cause, sourceSection.getSource().getName(), sourceSection.getStartLine(), sourceSection.getStartColumn());
@@ -29,8 +38,8 @@ public class ErrorUtils {
             return new ServiceScriptException("There was a problem handling your request. Please try again in a minute", cause);
 
         } else if (cause instanceof StackOverflowError) {
-            LOG.error("Request has exceeded execution limits", cause);
-            return new ServiceScriptException("Request has exceeded execution limits");
+            LOG.error(EXCEEDED_EXECUTION_LIMITS, cause);
+            return new ServiceScriptException(EXCEEDED_EXECUTION_LIMITS);
 
         } else {
             LOG.error("Unknown error processing request", cause);

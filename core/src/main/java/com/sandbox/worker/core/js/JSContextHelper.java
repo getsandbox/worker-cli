@@ -3,6 +3,7 @@ package com.sandbox.worker.core.js;
 import com.sandbox.worker.core.js.models.WorkerScriptContext;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
@@ -11,9 +12,16 @@ public class JSContextHelper {
     public static Value eval(Context context, String script) {
         Value result;
         synchronized (context) {
+            context.resetLimits();
             context.enter();
             try {
                 result = context.eval("js", script);
+            } catch (PolyglotException e) {
+                if (e.isCancelled()) {
+                    ContextFactory.removeCancelledContextImmediately(context);
+                }
+                throw e;
+
             } finally {
                 context.leave();
             }
@@ -24,9 +32,16 @@ public class JSContextHelper {
     public static Value eval(Context context, Source source) {
         Value result;
         synchronized (context) {
+            context.resetLimits();
             context.enter();
             try {
                 result = context.eval(source);
+            } catch (PolyglotException e) {
+                if (e.isCancelled()) {
+                    ContextFactory.removeCancelledContextImmediately(context);
+                }
+                throw e;
+
             } finally {
                 context.leave();
             }
@@ -49,9 +64,16 @@ public class JSContextHelper {
     public static Value execute(Context context, Value function, Object... arguments) {
         Value result;
         synchronized (context) {
+            context.resetLimits();
             context.enter();
             try {
                 result = function.execute(arguments);
+            } catch (PolyglotException e) {
+                if (e.isCancelled()) {
+                    ContextFactory.removeCancelledContextImmediately(context);
+                }
+                throw e;
+
             } finally {
                 context.leave();
             }

@@ -94,4 +94,8 @@ public class WorkerRequestRunnable extends WorkerRunnable {
 
         return calculatedDelayForRoute;
     }
+
+    public HttpRuntimeRequest getRuntimeRequest() {
+        return runtimeRequest;
+    }
 }

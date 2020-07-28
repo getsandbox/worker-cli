@@ -1,11 +1,14 @@
 package com.sandbox.worker.cli.config;
 
-import javax.inject.Singleton;
-import java.io.IOException;
-import java.util.Properties;
+import io.micronaut.core.annotation.Introspected;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Singleton;
+import java.io.IOException;
+import java.util.Properties;
+
+@Introspected
 @Singleton
 public class InjectedProperties {
 

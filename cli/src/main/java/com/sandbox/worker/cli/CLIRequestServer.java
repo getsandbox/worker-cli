@@ -5,13 +5,15 @@ import com.sandbox.worker.cli.config.Config;
 import com.sandbox.worker.core.server.RequestHandler;
 import com.sandbox.worker.core.server.RequestServer;
 import io.micronaut.context.env.Environment;
+import io.micronaut.core.annotation.Introspected;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Introspected
 public class CLIRequestServer extends RequestServer {
     private static final Logger LOG = LoggerFactory.getLogger(CLIRequestServer.class);
 
