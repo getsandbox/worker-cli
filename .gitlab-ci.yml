@@ -1,8 +1,14 @@
-image: gcr.io/sandbox-public-images/build-container:1.0.7
+default:
+  image: gcr.io/sandbox-public-images/build-container:1.0.7
+  retry:
+    max: 1
+    when:
+      - runner_system_failure
+
 variables:
   GIT_DEPTH: "5"
   GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle/"
-  BUILD_VERSION: "2.0.$CI_PIPELINE_IID"
+  BUILD_VERSION: "2.1.$CI_PIPELINE_IID"
 
 stages:
   - build
